@@ -24,10 +24,18 @@ export default async function MainLayout({
   const user = await getCurrentUser();
   return (
     <ToastProvider>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[200] focus:rounded-lg focus:bg-ink focus:px-4 focus:py-2 focus:font-semibold focus:text-bg"
+      >
+        Skip to content
+      </a>
       <Suspense>
         <TopNav user={{ name: user?.name ?? "You", image: user?.image ?? null }} />
       </Suspense>
-      <main className="px-6 pb-20 pt-4">{children}</main>
+      <main id="main-content" tabIndex={-1} className="px-6 pb-20 pt-4">
+        {children}
+      </main>
       <Fab />
       {modal}
     </ToastProvider>
