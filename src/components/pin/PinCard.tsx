@@ -52,7 +52,7 @@ export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): Reac
             {count}
           </div>
         ) : null}
-        <div className="absolute inset-0 flex flex-col justify-between p-2 opacity-0 transition duration-150 group-hover:bg-ink/[0.28] group-hover:opacity-100">
+        <div className="absolute inset-0 flex flex-col justify-between p-2 opacity-0 transition duration-150 group-hover:bg-ink/[0.28] group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100">
           <div className="flex justify-end">
             <IconButton label="More" tone="solid" onClick={stop}>
               <MoreIcon size={18} />

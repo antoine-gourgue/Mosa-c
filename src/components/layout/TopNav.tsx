@@ -35,18 +35,22 @@ export function TopNav({ user }: TopNavProps): ReactElement {
   };
 
   return (
-    <nav className="sticky top-0 z-50 flex h-20 items-center gap-3 bg-bg/90 px-6 backdrop-blur-md backdrop-saturate-150">
-      <Link href="/" className="flex items-center gap-2">
+    <nav className="sticky top-0 z-50 flex h-20 items-center gap-2 bg-bg/90 px-4 backdrop-blur-md backdrop-saturate-150 sm:gap-3 sm:px-6">
+      <Link href="/" className="flex shrink-0 items-center gap-2">
         <span className="grid size-9 place-items-center rounded-xl bg-accent text-bg">
           <Logo size={20} />
         </span>
-        <span className="text-[21px] font-bold text-accent">Mosaic</span>
+        <span className="hidden text-[21px] font-bold text-accent sm:inline">Mosaic</span>
       </Link>
 
-      <Pill href="/" active={pathname === "/"}>
+      <Pill href="/" active={pathname === "/"} className="hidden md:inline-flex">
         Home
       </Pill>
-      <Pill href="/boards" active={pathname.startsWith("/boards")}>
+      <Pill
+        href="/boards"
+        active={pathname.startsWith("/boards")}
+        className="hidden md:inline-flex"
+      >
         Saved
       </Pill>
 
@@ -68,11 +72,11 @@ export function TopNav({ user }: TopNavProps): ReactElement {
         />
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1">
         <IconButton label="Create" onClick={() => router.push("/create")}>
           <PlusIcon />
         </IconButton>
-        <IconButton label="Notifications" className="relative">
+        <IconButton label="Notifications" className="relative hidden sm:inline-flex">
           <BellIcon size={22} />
           <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-accent" />
         </IconButton>
@@ -80,10 +84,11 @@ export function TopNav({ user }: TopNavProps): ReactElement {
           label="Saves"
           active={pathname.startsWith("/boards")}
           onClick={() => router.push("/boards")}
+          className="hidden sm:inline-flex"
         >
           <StackIcon size={22} />
         </IconButton>
-        <Link href="/boards" aria-label="Profile" className="ml-1">
+        <Link href="/boards" aria-label="Profile" className="ml-1 shrink-0">
           <Avatar name={user.name} src={user.image ?? undefined} size={44} />
         </Link>
       </div>
