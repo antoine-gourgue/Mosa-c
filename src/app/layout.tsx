@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactElement, ReactNode } from "react";
+import { SITE } from "@/lib/site";
 import "./globals.css";
 
 /**
@@ -7,10 +8,10 @@ import "./globals.css";
  */
 export const metadata: Metadata = {
   title: {
-    default: "Mosaic",
-    template: "%s · Mosaic",
+    default: SITE.name,
+    template: `%s · ${SITE.name}`,
   },
-  description: "Discover, save and share visual ideas.",
+  description: SITE.description,
 };
 
 /**
