@@ -46,7 +46,16 @@ process.stdout.write(`Seeding ${nameWithOwner} (base: ${baseBranch})\n`);
 
 process.stdout.write("\n== Labels ==\n");
 for (const l of labels) {
-  run("gh", ["label", "create", l.name, "--color", l.color, "--description", l.description, "--force"]);
+  run("gh", [
+    "label",
+    "create",
+    l.name,
+    "--color",
+    l.color,
+    "--description",
+    l.description,
+    "--force",
+  ]);
   process.stdout.write(`  ✓ ${l.name}\n`);
 }
 
@@ -116,7 +125,14 @@ for (const { number, ticket } of created) {
     process.stdout.write(`  = ${branch} (exists)\n`);
     continue;
   }
-  run("gh", ["api", `repos/${nameWithOwner}/git/refs`, "-f", `ref=refs/heads/${branch}`, "-f", `sha=${baseSha}`]);
+  run("gh", [
+    "api",
+    `repos/${nameWithOwner}/git/refs`,
+    "-f",
+    `ref=refs/heads/${branch}`,
+    "-f",
+    `sha=${baseSha}`,
+  ]);
   process.stdout.write(`  ✓ ${branch}\n`);
 }
 

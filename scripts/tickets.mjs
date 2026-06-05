@@ -15,18 +15,66 @@
 
 /** @type {Milestone[]} */
 export const milestones = [
-  { key: "M1", title: "M1 · Project Setup & Tooling", description: "Next.js, TypeScript strict, Tailwind, lint/format, env, repo hygiene." },
-  { key: "M2", title: "M2 · Design System & Foundations", description: "Tokens, icons and reusable, prop-driven UI components." },
-  { key: "M3", title: "M3 · Database & Backend Infrastructure", description: "Docker Postgres, Prisma schema, seed, services layer." },
-  { key: "M4", title: "M4 · Authentication & Onboarding", description: "Auth.js, credentials + OAuth-ready, sign-up and onboarding flows." },
-  { key: "M5", title: "M5 · Core Feed (Home / Masonry)", description: "App shell, TopNav, masonry, pin cards, save flow." },
-  { key: "M6", title: "M6 · Search & Discovery", description: "Search page, categories, inspiration rail, live filtering." },
-  { key: "M7", title: "M7 · Pin Detail & Interactions", description: "Detail overlay, creator row, follow, suggestions." },
-  { key: "M8", title: "M8 · Boards & Saves", description: "Quick Saves board, collaborators, board CRUD." },
-  { key: "M9", title: "M9 · Create Pin & Upload", description: "Create page, file upload, storage, persistence." },
-  { key: "M10", title: "M10 · Animations & Polish (GSAP)", description: "GSAP setup, feed/overlay/toast/auth animations." },
-  { key: "M11", title: "M11 · Testing & CI/CD", description: "Vitest, Playwright, GitHub Actions pipeline." },
-  { key: "M12", title: "M12 · Deployment & Documentation", description: "Dockerfile, deploy config, a11y, responsive QA, docs." },
+  {
+    key: "M1",
+    title: "M1 · Project Setup & Tooling",
+    description: "Next.js, TypeScript strict, Tailwind, lint/format, env, repo hygiene.",
+  },
+  {
+    key: "M2",
+    title: "M2 · Design System & Foundations",
+    description: "Tokens, icons and reusable, prop-driven UI components.",
+  },
+  {
+    key: "M3",
+    title: "M3 · Database & Backend Infrastructure",
+    description: "Docker Postgres, Prisma schema, seed, services layer.",
+  },
+  {
+    key: "M4",
+    title: "M4 · Authentication & Onboarding",
+    description: "Auth.js, credentials + OAuth-ready, sign-up and onboarding flows.",
+  },
+  {
+    key: "M5",
+    title: "M5 · Core Feed (Home / Masonry)",
+    description: "App shell, TopNav, masonry, pin cards, save flow.",
+  },
+  {
+    key: "M6",
+    title: "M6 · Search & Discovery",
+    description: "Search page, categories, inspiration rail, live filtering.",
+  },
+  {
+    key: "M7",
+    title: "M7 · Pin Detail & Interactions",
+    description: "Detail overlay, creator row, follow, suggestions.",
+  },
+  {
+    key: "M8",
+    title: "M8 · Boards & Saves",
+    description: "Quick Saves board, collaborators, board CRUD.",
+  },
+  {
+    key: "M9",
+    title: "M9 · Create Pin & Upload",
+    description: "Create page, file upload, storage, persistence.",
+  },
+  {
+    key: "M10",
+    title: "M10 · Animations & Polish (GSAP)",
+    description: "GSAP setup, feed/overlay/toast/auth animations.",
+  },
+  {
+    key: "M11",
+    title: "M11 · Testing & CI/CD",
+    description: "Vitest, Playwright, GitHub Actions pipeline.",
+  },
+  {
+    key: "M12",
+    title: "M12 · Deployment & Documentation",
+    description: "Dockerfile, deploy config, a11y, responsive QA, docs.",
+  },
 ];
 
 /**
@@ -114,7 +162,8 @@ export const tickets = [
     type: "chore",
     slug: "scaffold-next-typescript",
     body: body({
-      summary: "Initialize the Next.js application with the App Router, React and TypeScript in strict mode.",
+      summary:
+        "Initialize the Next.js application with the App Router, React and TypeScript in strict mode.",
       tasks: [
         "Run `create-next-app` with App Router, TypeScript, ESLint, `src/` directory and import alias `@/*`.",
         "Pin Node version via `.nvmrc` and `engines` in `package.json`.",
@@ -159,7 +208,8 @@ export const tickets = [
     slug: "eslint-prettier",
     body: body({
       summary: "Set up linting and formatting that enforce the project documentation conventions.",
-      context: "Per `docs/CONVENTIONS.md`, only JSDoc is allowed; `//` and non-JSDoc block comments are forbidden.",
+      context:
+        "Per `docs/CONVENTIONS.md`, only JSDoc is allowed; `//` and non-JSDoc block comments are forbidden.",
       tasks: [
         "Configure ESLint (flat config) with the Next.js, TypeScript and import plugins.",
         "Add a rule banning line comments (`no-inline-comments` / `no-warning-comments` + a custom `no-restricted-syntax` for `Line` comments).",
@@ -181,16 +231,14 @@ export const tickets = [
     type: "chore",
     slug: "folder-architecture",
     body: body({
-      summary: "Create the layered folder skeleton described in `docs/ARCHITECTURE.md` with placeholder index files.",
+      summary:
+        "Create the layered folder skeleton described in `docs/ARCHITECTURE.md` with placeholder index files.",
       tasks: [
         "Create `src/{components/{ui,layout,pin,search,detail},hooks,lib,server/{actions,services},types,icons,styles}`.",
         "Add `index.ts` barrels where appropriate.",
         "Add a `.gitkeep` to `public/uploads`.",
       ],
-      acceptance: [
-        "Folder tree matches the architecture doc.",
-        "Imports via aliases compile.",
-      ],
+      acceptance: ["Folder tree matches the architecture doc.", "Imports via aliases compile."],
     }),
   },
   {
@@ -200,7 +248,8 @@ export const tickets = [
     type: "chore",
     slug: "env-validation",
     body: body({
-      summary: "Centralize and validate environment variables with Zod, failing fast on misconfiguration.",
+      summary:
+        "Centralize and validate environment variables with Zod, failing fast on misconfiguration.",
       tasks: [
         "Create `src/lib/env.ts` validating `DATABASE_URL`, `AUTH_SECRET`, OAuth client vars and `NEXT_PUBLIC_*` with Zod.",
         "Export a typed `env` object; never read `process.env` elsewhere.",
@@ -240,7 +289,8 @@ export const tickets = [
     type: "feature",
     slug: "design-tokens-tailwind",
     body: body({
-      summary: "Wire the tokens from `docs/DESIGN_TOKENS.md` into Tailwind and CSS custom properties.",
+      summary:
+        "Wire the tokens from `docs/DESIGN_TOKENS.md` into Tailwind and CSS custom properties.",
       tasks: [
         "Install and configure Tailwind CSS.",
         "Expose colors (`ink`, `ink-soft`, `surface`, `accent`, ...), radii (`pin`, `lg`), the `shadow-pop` shadow and the nav height as theme tokens.",
@@ -280,7 +330,8 @@ export const tickets = [
     slug: "icon-system",
     body: body({
       summary: "Port the handoff icons into typed, reusable React icon components.",
-      context: "Source icons: Search, Camera, Plus, Bell, Stack, Share, More, Back, Check, Sliders, Sparkle, Organize, Notes.",
+      context:
+        "Source icons: Search, Camera, Plus, Bell, Stack, Share, More, Back, Check, Sliders, Sparkle, Organize, Notes.",
       tasks: [
         "Create one component per icon in `src/icons`, accepting `size` (number) and `strokeWidth` props with a default.",
         "Provide a shared `IconProps` type and a barrel export.",
@@ -383,9 +434,7 @@ export const tickets = [
         "Props: `active`, `size`, `as` (button/link), children.",
         "Active state: dark fill, white text; inactive: transparent.",
       ],
-      acceptance: [
-        "Home/Saved nav tabs and onboarding gender options reuse it.",
-      ],
+      acceptance: ["Home/Saved nav tabs and onboarding gender options reuse it."],
     }),
   },
   {
@@ -396,7 +445,8 @@ export const tickets = [
     slug: "toast-system",
     body: body({
       summary: "Global toast system to surface 'Saved to Quick Saves' notifications.",
-      context: "Toast: dark, bottom-centered, thumbnail + text + 'View' action, auto-dismiss after 3.2s.",
+      context:
+        "Toast: dark, bottom-centered, thumbnail + text + 'View' action, auto-dismiss after 3.2s.",
       tasks: [
         "Create `ToastProvider`, a `useToast()` hook and a `Toast` presentational component.",
         "Support a thumbnail, title, optional action button and timeout.",
@@ -685,10 +735,7 @@ export const tickets = [
         "'Next' disabled until a choice is made; selected = dark fill.",
         "Persist the choice via the register/onboarding action.",
       ],
-      acceptance: [
-        "Selecting an option enables 'Next'.",
-        "Gender is stored on the user.",
-      ],
+      acceptance: ["Selecting an option enables 'Next'.", "Gender is stored on the user."],
     }),
   },
   {
@@ -734,7 +781,8 @@ export const tickets = [
     type: "feature",
     slug: "app-shell",
     body: body({
-      summary: "Authenticated layout wrapping all main routes with the sticky TopNav and modal slot.",
+      summary:
+        "Authenticated layout wrapping all main routes with the sticky TopNav and modal slot.",
       tasks: [
         "Create `(main)/layout.tsx` rendering TopNav, page content and the `@modal` parallel-route slot.",
         "Provide page padding per the handoff (16px 24px 80px).",
@@ -751,7 +799,8 @@ export const tickets = [
     slug: "top-nav",
     body: body({
       summary: "Sticky top navigation (handoff `components.jsx` TopNav).",
-      context: "80px height, sticky, translucent blurred background, brand + tabs + search + action icons.",
+      context:
+        "80px height, sticky, translucent blurred background, brand + tabs + search + action icons.",
       tasks: [
         "Brand (logo + 'Mosaic'), Home/Saved pills, central search input, action icons (Create, Bell with dot, Stack, Avatar).",
         "Active tab reflects the current route; typing in search navigates to `/search`.",
@@ -951,7 +1000,8 @@ export const tickets = [
     type: "feature",
     slug: "detail-route",
     body: body({
-      summary: "Open pin detail as an overlay using parallel/intercepting routes, with a real page fallback.",
+      summary:
+        "Open pin detail as an overlay using parallel/intercepting routes, with a real page fallback.",
       context: "Clicking a pin opens an overlay; deep-linking `/pin/[id]` renders a full page.",
       tasks: [
         "Add `@modal/(.)pin/[id]` intercepting route plus a standalone `/pin/[id]` page.",
@@ -1042,9 +1092,7 @@ export const tickets = [
     slug: "board-collaborators",
     body: body({
       summary: "Overlapping collaborator avatars with an add button.",
-      tasks: [
-        "Stacked avatars (negative margin, white border) + '+' add button.",
-      ],
+      tasks: ["Stacked avatars (negative margin, white border) + '+' add button."],
       acceptance: ["Avatar stack renders as in the mockup."],
     }),
   },
@@ -1168,7 +1216,8 @@ export const tickets = [
     slug: "gsap-setup",
     body: body({
       summary: "Install GSAP and establish the React integration and accessibility baseline.",
-      context: "Use `@gsap/react` `useGSAP`; honor `prefers-reduced-motion` via `gsap.matchMedia()`.",
+      context:
+        "Use `@gsap/react` `useGSAP`; honor `prefers-reduced-motion` via `gsap.matchMedia()`.",
       tasks: [
         "Install `gsap` and `@gsap/react`; register plugins centrally.",
         "Create an animation utilities module and a reduced-motion guard.",
@@ -1208,7 +1257,9 @@ export const tickets = [
         "Optionally use the Flip plugin to morph from card to overlay.",
         "Ensure Esc/scrim close run the exit animation.",
       ],
-      acceptance: ["Overlay opens and closes with a polished transition; reduced motion falls back to a fade."],
+      acceptance: [
+        "Overlay opens and closes with a polished transition; reduced motion falls back to a fade.",
+      ],
     }),
   },
   {

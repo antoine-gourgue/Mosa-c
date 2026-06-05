@@ -21,20 +21,27 @@ const title = process.argv[2] ?? "Mosaic";
 const owner = run("gh", ["api", "user", "--jq", ".login"]);
 const repo = JSON.parse(run("gh", ["repo", "view", "--json", "nameWithOwner"])).nameWithOwner;
 
-const projects = JSON.parse(run("gh", ["project", "list", "--owner", owner, "--format", "json"])).projects ?? [];
+const projects =
+  JSON.parse(run("gh", ["project", "list", "--owner", owner, "--format", "json"])).projects ?? [];
 let project = projects.find((p) => p.title === title);
 if (!project) {
   process.stdout.write(`Creating project "${title}"...\n`);
-  project = JSON.parse(run("gh", ["project", "create", "--owner", owner, "--title", title, "--format", "json"]));
+  project = JSON.parse(
+    run("gh", ["project", "create", "--owner", owner, "--title", title, "--format", "json"]),
+  );
 } else {
   process.stdout.write(`Reusing project "${title}" (#${project.number}).\n`);
 }
 
-const issues = JSON.parse(run("gh", ["issue", "list", "--state", "all", "--limit", "500", "--json", "number,url"]));
+const issues = JSON.parse(
+  run("gh", ["issue", "list", "--state", "all", "--limit", "500", "--json", "number,url"]),
+);
 process.stdout.write(`Adding ${issues.length} issues to the board...\n`);
 for (const issue of issues) {
   run("gh", ["project", "item-add", String(project.number), "--owner", owner, "--url", issue.url]);
   process.stdout.write(`  ✓ #${issue.number}\n`);
 }
-process.stdout.write(`Done. Project: https://github.com/users/${owner}/projects/${project.number}\n`);
+process.stdout.write(
+  `Done. Project: https://github.com/users/${owner}/projects/${project.number}\n`,
+);
 process.stdout.write(`Repo: ${repo}\n`);

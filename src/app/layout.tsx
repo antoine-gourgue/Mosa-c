@@ -27,9 +27,7 @@ export const viewport: Viewport = {
  * @param props.children - The route subtree to render inside the document body.
  * @returns The application HTML shell.
  */
-export default function RootLayout({
-  children,
-}: Readonly<{ children: ReactNode }>): ReactElement {
+export default function RootLayout({ children }: Readonly<{ children: ReactNode }>): ReactElement {
   return (
     <html lang="en">
       <body>{children}</body>

@@ -20,7 +20,9 @@
  * @param gap - Horizontal gap between columns in pixels.
  * @returns The number of columns, never below 2.
  */
-export function useColumns(min: number, gap: number): number { /* ... */ }
+export function useColumns(min: number, gap: number): number {
+  /* ... */
+}
 ```
 
 ## Components / design system
