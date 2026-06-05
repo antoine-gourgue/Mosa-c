@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { hash } from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 
@@ -252,14 +253,16 @@ async function main(): Promise<void> {
     });
   }
 
+  const demoPasswordHash = await hash("password123", 12);
   await prisma.user.upsert({
     where: { email: "demo@mosaic.app" },
-    update: { name: "You" },
+    update: { name: "You", passwordHash: demoPasswordHash },
     create: {
       id: "user_demo",
       email: "demo@mosaic.app",
       name: "You",
       avatarUrl: "/images/creator1.png",
+      passwordHash: demoPasswordHash,
     },
   });
 
