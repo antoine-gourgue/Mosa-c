@@ -5,3 +5,7 @@ export { DetailActions } from "./DetailActions";
 export type { DetailActionsProps } from "./DetailActions";
 export { CreatorRow } from "./CreatorRow";
 export type { CreatorRowProps } from "./CreatorRow";
+export { MiniCreator } from "./MiniCreator";
+export type { MiniCreatorProps } from "./MiniCreator";
+export { MoreLikeCreator } from "./MoreLikeCreator";
+export type { MoreLikeCreatorProps } from "./MoreLikeCreator";

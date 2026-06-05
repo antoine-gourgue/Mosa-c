@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getPinById, isFollowing, isSaved } from "@/server/services";
 import { DetailActions } from "./DetailActions";
 import { CreatorRow } from "./CreatorRow";
+import { MoreLikeCreator } from "./MoreLikeCreator";
 
 /**
  * Props for the {@link PinDetail} component.
@@ -63,6 +64,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
         ) : null}
         <Divider className="my-2" />
         <CreatorRow creator={pin.creator} initialFollowing={following} />
+        <MoreLikeCreator creatorName={pin.creator.name} excludeId={pin.creator.id} />
       </div>
     </div>
   );
