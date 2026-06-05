@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import type { ReactElement } from "react";
 import { useToast } from "@/components/ui";
+import { DURATION, gsap, useGSAP } from "@/lib/gsap";
 import { toggleSave } from "@/server/actions/saves";
 import type { Pin } from "@/types/domain";
 import { Masonry } from "./Masonry";
@@ -31,6 +32,23 @@ export function PinFeed({ pins, savedIds, min = 220 }: PinFeedProps): ReactEleme
   const [, startTransition] = useTransition();
   const { show } = useToast();
   const router = useRouter();
+  const scope = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.from("[data-pin-card]", {
+          y: 18,
+          opacity: 0,
+          duration: DURATION.base,
+          stagger: 0.035,
+          ease: "power2.out",
+        });
+      });
+    },
+    { scope },
+  );
 
   const setSavedFlag = (id: string, value: boolean): void => {
     setSaved((prev) => {
@@ -66,15 +84,17 @@ export function PinFeed({ pins, savedIds, min = 220 }: PinFeedProps): ReactEleme
   };
 
   return (
-    <Masonry min={min}>
-      {pins.map((pin) => (
-        <PinCard
-          key={pin.id}
-          pin={pin}
-          saved={saved.has(pin.id)}
-          onToggleSave={() => handleToggle(pin)}
-        />
-      ))}
-    </Masonry>
+    <div ref={scope}>
+      <Masonry min={min}>
+        {pins.map((pin) => (
+          <PinCard
+            key={pin.id}
+            pin={pin}
+            saved={saved.has(pin.id)}
+            onToggleSave={() => handleToggle(pin)}
+          />
+        ))}
+      </Masonry>
+    </div>
   );
 }
