@@ -8,6 +8,7 @@ export {
   ShareIcon,
   MoreIcon,
   BackIcon,
+  CloseIcon,
   CheckIcon,
   SlidersIcon,
   SparkleIcon,

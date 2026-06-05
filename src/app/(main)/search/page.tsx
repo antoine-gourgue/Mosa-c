@@ -1,7 +1,6 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
 import type { ReactElement } from "react";
-import { SearchBar, SearchDiscovery, SearchResults } from "@/components/search";
+import { SearchDiscovery, SearchResults } from "@/components/search";
 
 /**
  * Metadata for the search route.
@@ -11,8 +10,9 @@ export const metadata: Metadata = {
 };
 
 /**
- * Search route: the enlarged search bar plus either the discovery view (no
- * query) or the results view (query), read from the `q` URL parameter.
+ * Search route: either the discovery view (no query) or the results view
+ * (query), read from the `q` URL parameter. Search input lives in the top
+ * navigation, which is shared across the app.
  *
  * @param props - Route props.
  * @param props.searchParams - The resolved URL search parameters.
@@ -28,9 +28,6 @@ export default async function SearchPage({
 
   return (
     <div className="mx-auto max-w-[1180px]">
-      <Suspense>
-        <SearchBar />
-      </Suspense>
       {query === "" ? <SearchDiscovery /> : <SearchResults query={query} />}
     </div>
   );
