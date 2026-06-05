@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { ReactElement, ReactNode } from "react";
 import { ToastProvider } from "@/components/ui";
-import { TopNav } from "@/components/layout";
+import { Fab, TopNav } from "@/components/layout";
 import { getCurrentUser } from "@/lib/auth";
 
 /**
@@ -28,6 +28,7 @@ export default async function MainLayout({
         <TopNav user={{ name: user?.name ?? "You", image: user?.image ?? null }} />
       </Suspense>
       <main className="px-6 pb-20 pt-4">{children}</main>
+      <Fab />
       {modal}
     </ToastProvider>
   );
