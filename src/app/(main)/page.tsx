@@ -9,7 +9,7 @@ import { Logo } from "@/icons";
  */
 export default function HomePage(): ReactElement {
   return (
-    <main className="grid min-h-dvh place-items-center text-center">
+    <div className="grid min-h-[60dvh] place-items-center text-center">
       <div className="flex flex-col items-center gap-4">
         <span className="grid size-14 place-items-center rounded-pin bg-accent text-bg shadow-pop">
           <Logo size={30} />
@@ -19,6 +19,6 @@ export default function HomePage(): ReactElement {
           <p className="mt-1 text-ink-soft">{SITE.description}</p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
