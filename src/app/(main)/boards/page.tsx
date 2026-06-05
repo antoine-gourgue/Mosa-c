@@ -37,7 +37,9 @@ export default async function BoardsPage(): Promise<ReactElement> {
   return (
     <div className="mx-auto max-w-[1180px]">
       <header className="flex flex-col items-center gap-6 py-8 text-center">
-        <h1 className="text-[52px] font-extrabold leading-none text-ink">Quick Saves</h1>
+        <h1 className="text-4xl font-extrabold leading-none text-ink sm:text-5xl md:text-[52px]">
+          Quick Saves
+        </h1>
         <BoardCollaborators collaborators={collaborators} />
         <BoardTools />
       </header>

@@ -6,6 +6,8 @@ export { Avatar } from "./Avatar";
 export type { AvatarProps } from "./Avatar";
 export { Input } from "./Input";
 export type { InputProps } from "./Input";
+export { Textarea } from "./Textarea";
+export type { TextareaProps } from "./Textarea";
 export { Pill } from "./Pill";
 export type { PillProps, PillSize } from "./Pill";
 export { ToastProvider, useToast } from "./toast";

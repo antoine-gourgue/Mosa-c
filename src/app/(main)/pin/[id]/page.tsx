@@ -1,5 +1,7 @@
+import Link from "next/link";
 import type { ReactElement } from "react";
 import { PinDetail } from "@/components/detail";
+import { BackIcon } from "@/icons";
 
 /**
  * Standalone pin detail page used for deep links and refreshes.
@@ -15,8 +17,17 @@ export default async function PinPage({
 }): Promise<ReactElement> {
   const { id } = await params;
   return (
-    <div className="mx-auto max-w-[1016px] overflow-hidden rounded-[32px] bg-bg shadow-pop">
-      <PinDetail pinId={id} />
+    <div className="mx-auto max-w-[1016px]">
+      <Link
+        href="/"
+        aria-label="Back to feed"
+        className="mb-4 inline-flex size-12 items-center justify-center rounded-full bg-bg text-ink shadow-pop transition-colors hover:bg-surface"
+      >
+        <BackIcon />
+      </Link>
+      <div className="overflow-hidden rounded-[32px] bg-bg shadow-pop">
+        <PinDetail pinId={id} />
+      </div>
     </div>
   );
 }
