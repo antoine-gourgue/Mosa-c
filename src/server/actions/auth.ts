@@ -71,6 +71,16 @@ export async function registerUser(input: RegisterInput): Promise<ActionResult> 
 }
 
 /**
+ * Starts an OAuth sign-in flow with the given provider.
+ *
+ * @param provider - The OAuth provider id.
+ * @returns A promise that never resolves on success (it redirects).
+ */
+export async function signInWithProvider(provider: "google" | "apple"): Promise<void> {
+  await signIn(provider, { redirectTo: "/" });
+}
+
+/**
  * Signs an existing user in with email and password.
  *
  * @param input - The sign-in credentials.
