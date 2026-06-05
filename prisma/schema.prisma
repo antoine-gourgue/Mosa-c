@@ -6,3 +6,108 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum Gender {
+  FEMALE
+  MALE
+  NON_BINARY
+  UNDISCLOSED
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  passwordHash   String?
+  name           String
+  avatarUrl      String?
+  gender         Gender?
+  followersLabel String?
+  verified       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  pins      Pin[]    @relation("PinCreator")
+  boards    Board[]
+  saves     Save[]
+  following Follow[] @relation("Follower")
+  followers Follow[] @relation("Creator")
+}
+
+model Category {
+  id       String @id @default(cuid())
+  slug     String @unique
+  label    String
+  imageUrl String
+
+  pins Pin[]
+}
+
+model Pin {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String
+  width       Int
+  height      Int
+  link        String?
+  createdAt   DateTime @default(now())
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  creatorId String
+  creator   User   @relation("PinCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  saves     Save[]
+  boardPins BoardPin[]
+
+  @@index([creatorId])
+  @@index([categoryId])
+}
+
+model Board {
+  id        String   @id @default(cuid())
+  name      String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  pins BoardPin[]
+
+  @@index([ownerId])
+}
+
+model BoardPin {
+  boardId String
+  board   Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  pinId   String
+  pin     Pin      @relation(fields: [pinId], references: [id], onDelete: Cascade)
+  addedAt DateTime @default(now())
+
+  @@id([boardId, pinId])
+  @@index([pinId])
+}
+
+model Save {
+  userId  String
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pinId   String
+  pin     Pin      @relation(fields: [pinId], references: [id], onDelete: Cascade)
+  savedAt DateTime @default(now())
+
+  @@id([userId, pinId])
+  @@index([pinId])
+}
+
+model Follow {
+  followerId String
+  follower   User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  creatorId  String
+  creator    User     @relation("Creator", fields: [creatorId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@id([followerId, creatorId])
+  @@index([creatorId])
+}
