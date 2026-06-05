@@ -43,6 +43,15 @@ Work is tracked as GitHub Issues grouped into Milestones (epics) on a Projects b
 - Conventional commits (`feat:`, `fix:`, `chore:`, ...).
 - A pull request closes its issue (`Closes #<n>`); CI must be green before merge.
 
+### Git hooks
+
+Husky installs hooks on `npm install` (via the `prepare` script):
+
+- **pre-commit** runs `lint-staged` — ESLint (`--fix`) and Prettier on staged files.
+- **commit-msg** runs `commitlint` to enforce the Conventional Commits format.
+
+A non-conventional message (e.g. `update stuff`) is rejected; use `type(scope): subject`.
+
 See [`PROJECT_PLAN.md`](PROJECT_PLAN.md) for the full epic and ticket breakdown.
 
 ## Documentation
