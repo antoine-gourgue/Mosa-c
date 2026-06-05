@@ -43,16 +43,14 @@ export function TopNav({ user }: TopNavProps): ReactElement {
         <span className="hidden text-[21px] font-bold text-accent sm:inline">Mosaic</span>
       </Link>
 
-      <Pill href="/" active={pathname === "/"} className="hidden md:inline-flex">
-        Home
-      </Pill>
-      <Pill
-        href="/boards"
-        active={pathname.startsWith("/boards")}
-        className="hidden md:inline-flex"
-      >
-        Saved
-      </Pill>
+      <div className="hidden shrink-0 items-center gap-2 md:flex">
+        <Pill href="/" active={pathname === "/"}>
+          Home
+        </Pill>
+        <Pill href="/boards" active={pathname.startsWith("/boards")}>
+          Saved
+        </Pill>
+      </div>
 
       <div className="relative flex-1">
         <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-soft">
@@ -76,18 +74,19 @@ export function TopNav({ user }: TopNavProps): ReactElement {
         <IconButton label="Create" onClick={() => router.push("/create")}>
           <PlusIcon />
         </IconButton>
-        <IconButton label="Notifications" className="relative hidden sm:inline-flex">
-          <BellIcon size={22} />
-          <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-accent" />
-        </IconButton>
-        <IconButton
-          label="Saves"
-          active={pathname.startsWith("/boards")}
-          onClick={() => router.push("/boards")}
-          className="hidden sm:inline-flex"
-        >
-          <StackIcon size={22} />
-        </IconButton>
+        <div className="hidden items-center gap-1 sm:flex">
+          <IconButton label="Notifications" className="relative">
+            <BellIcon size={22} />
+            <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-accent" />
+          </IconButton>
+          <IconButton
+            label="Saves"
+            active={pathname.startsWith("/boards")}
+            onClick={() => router.push("/boards")}
+          >
+            <StackIcon size={22} />
+          </IconButton>
+        </div>
         <Link href="/boards" aria-label="Profile" className="ml-1 shrink-0">
           <Avatar name={user.name} src={user.image ?? undefined} size={44} />
         </Link>
