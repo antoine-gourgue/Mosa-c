@@ -8,18 +8,15 @@ import { SITE } from "@/lib/site";
  */
 export default function HomePage(): ReactElement {
   return (
-    <main
-      style={{
-        minHeight: "100dvh",
-        display: "grid",
-        placeItems: "center",
-        textAlign: "center",
-        gap: "0.5rem",
-      }}
-    >
-      <div>
-        <h1 style={{ fontSize: "2rem", fontWeight: 800 }}>{SITE.name}</h1>
-        <p style={{ color: "#6b6b6b" }}>{SITE.description}</p>
+    <main className="grid min-h-dvh place-items-center text-center">
+      <div className="flex flex-col items-center gap-4">
+        <span className="grid size-14 place-items-center rounded-pin bg-accent text-2xl font-extrabold text-bg shadow-pop">
+          M
+        </span>
+        <div>
+          <h1 className="text-3xl font-extrabold text-ink">{SITE.name}</h1>
+          <p className="mt-1 text-ink-soft">{SITE.description}</p>
+        </div>
       </div>
     </main>
   );
