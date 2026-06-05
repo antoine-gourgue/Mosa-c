@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { MouseEvent, ReactElement, ReactNode } from "react";
 import { IconButton } from "@/components/ui";
 import { BackIcon } from "@/icons";
@@ -16,6 +16,7 @@ import { BackIcon } from "@/icons";
  */
 export function DetailModal({ children }: { children: ReactNode }): ReactElement {
   const router = useRouter();
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
@@ -29,6 +30,14 @@ export function DetailModal({ children }: { children: ReactNode }): ReactElement
     };
   }, [router]);
 
+  useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
+    return () => {
+      previouslyFocused?.focus?.();
+    };
+  }, []);
+
   const stop = (event: MouseEvent<HTMLDivElement>): void => {
     event.stopPropagation();
   };
@@ -39,6 +48,7 @@ export function DetailModal({ children }: { children: ReactNode }): ReactElement
       className="fixed inset-0 z-[60] overflow-y-auto bg-ink/55 p-6"
     >
       <IconButton
+        ref={closeRef}
         label="Close"
         tone="solid"
         size="lg"
@@ -48,6 +58,9 @@ export function DetailModal({ children }: { children: ReactNode }): ReactElement
         <BackIcon />
       </IconButton>
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Pin detail"
         onClick={stop}
         className="mx-auto my-4 max-w-[1016px] overflow-hidden rounded-[32px] bg-bg shadow-pop"
       >
