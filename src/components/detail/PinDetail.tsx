@@ -1,9 +1,11 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
+import { Divider } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
-import { getPinById, isSaved } from "@/server/services";
+import { getPinById, isFollowing, isSaved } from "@/server/services";
 import { DetailActions } from "./DetailActions";
+import { CreatorRow } from "./CreatorRow";
 
 /**
  * Props for the {@link PinDetail} component.
@@ -26,7 +28,10 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
     notFound();
   }
   const user = await getCurrentUser();
-  const saved = user === null ? false : await isSaved(user.id, pin.id);
+  const [saved, following] = await Promise.all([
+    user === null ? Promise.resolve(false) : isSaved(user.id, pin.id),
+    user === null ? Promise.resolve(false) : isFollowing(user.id, pin.creator.id),
+  ]);
 
   return (
     <div className="grid md:grid-cols-2">
@@ -56,6 +61,8 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
         {pin.description !== null ? (
           <p className="text-base text-[#3a3a3a]">{pin.description}</p>
         ) : null}
+        <Divider className="my-2" />
+        <CreatorRow creator={pin.creator} initialFollowing={following} />
       </div>
     </div>
   );
