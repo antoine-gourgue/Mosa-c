@@ -75,6 +75,26 @@ export const milestones = [
     title: "M12 · Deployment & Documentation",
     description: "Dockerfile, deploy config, a11y, responsive QA, docs.",
   },
+  {
+    key: "M13",
+    title: "M13 · Profile & Collections",
+    description: "Public profiles, created pins, boards/collections, edit profile.",
+  },
+  {
+    key: "M14",
+    title: "M14 · Likes & Comments",
+    description: "Like pins, comment threads, counts.",
+  },
+  {
+    key: "M15",
+    title: "M15 · Notifications",
+    description: "Follow/like/comment notifications, unread state, inbox.",
+  },
+  {
+    key: "M16",
+    title: "M16 · Sharing & Download",
+    description: "Share pins (link/Web Share) and download images.",
+  },
 ];
 
 /**
@@ -105,6 +125,10 @@ export const labels = [
   { name: "area:animation", color: "b36b00", description: "GSAP animation" },
   { name: "area:ci", color: "5319e7", description: "CI/CD" },
   { name: "area:deploy", color: "1d76db", description: "Deployment" },
+  { name: "area:profile", color: "c5b3e6", description: "Profiles & collections" },
+  { name: "area:engagement", color: "f9c2d4", description: "Likes & comments" },
+  { name: "area:notifications", color: "fde68a", description: "Notifications" },
+  { name: "area:sharing", color: "bae6fd", description: "Sharing & download" },
   { name: "priority:p0", color: "b60205", description: "Must have / blocking" },
   { name: "priority:p1", color: "d93f0b", description: "High priority" },
   { name: "priority:p2", color: "fbca04", description: "Nice to have" },
@@ -1428,6 +1452,330 @@ export const tickets = [
         "Fix overflow and tap-target issues on mobile.",
       ],
       acceptance: ["Layouts hold from ~360px to ~1600px without breakage."],
+    }),
+  },
+
+  /* ----------------------------- M13 ---------------------------- */
+  {
+    title: "Add username and bio to the user model",
+    milestone: "M13",
+    labels: ["type:feature", "area:profile", "area:backend", "priority:p0"],
+    type: "feature",
+    slug: "profile-schema",
+    body: body({
+      summary: "Give users a public handle and bio so they can have a shareable profile.",
+      context: "Profiles are addressed by a unique username; the seed must backfill handles.",
+      tasks: [
+        "Add `username` (unique, lowercase) and `bio` (nullable) to the `User` model.",
+        "Create and apply a migration.",
+        "Backfill usernames for seeded creators and the demo user (e.g. mira, atlas, you) in the seed, idempotently.",
+        "Update the user domain type and mappers to expose username and bio.",
+      ],
+      acceptance: [
+        "`prisma migrate dev` adds the unique `username` and `bio` columns.",
+        "Seeded users have stable, unique usernames.",
+      ],
+    }),
+  },
+  {
+    title: "Profile data-access services",
+    milestone: "M13",
+    labels: ["type:feature", "area:profile", "area:backend", "priority:p0"],
+    type: "feature",
+    slug: "profile-services",
+    body: body({
+      summary: "Provide the queries the profile screens need.",
+      tasks: [
+        "`getUserByUsername(username)` returning the profile (id, name, username, bio, avatar, verified, followersLabel).",
+        "`getCreatedPins(userId)` returning the pins authored by the user.",
+        "`getFollowCounts(userId)` returning followers and following counts.",
+        "Map rows to domain types; no Prisma leakage.",
+      ],
+      acceptance: [
+        "Services return domain types for a given username.",
+        "Counts reflect the `Follow` table.",
+      ],
+    }),
+  },
+  {
+    title: "Public profile page (header + tabs)",
+    milestone: "M13",
+    labels: ["type:feature", "area:profile", "priority:p0"],
+    type: "feature",
+    slug: "profile-page",
+    body: body({
+      summary: "A public profile at `/u/[username]` with the user header and content tabs.",
+      context:
+        "Pinterest-like profile: large avatar, name, @handle, bio, follower/following counts, Follow button, and tabs for Created / Saved / Boards.",
+      tasks: [
+        "Add the `/u/[username]` route (not-found when the username is unknown).",
+        "Header: centered avatar, name + verified, @username, bio, follower/following counts.",
+        "Follow button reusing the follow action (hidden on the viewer's own profile).",
+        "Tab navigation (Created / Saved / Boards) driven by a URL query or segment.",
+        "Make the TopNav avatar link to the current user's own profile.",
+      ],
+      acceptance: [
+        "Visiting `/u/<username>` shows the header and tabs; unknown handle 404s.",
+        "Following from the profile persists; own profile shows no Follow button.",
+      ],
+    }),
+  },
+  {
+    title: "Profile Created and Saved tabs",
+    milestone: "M13",
+    labels: ["type:feature", "area:profile", "priority:p1"],
+    type: "feature",
+    slug: "profile-tabs-content",
+    body: body({
+      summary: "Render the user's created pins and saved pins inside the profile tabs.",
+      tasks: [
+        "Created tab: masonry of pins authored by the profile user (via `getCreatedPins`), reusing the feed components.",
+        "Saved tab: the profile user's saved pins (reuse the saves service and feed).",
+        "Empty states for each tab.",
+      ],
+      acceptance: [
+        "Created shows the user's own pins; Saved shows their saved pins.",
+        "Empty tabs show a helpful message.",
+      ],
+    }),
+  },
+  {
+    title: "Board (collection) detail page",
+    milestone: "M13",
+    labels: ["type:feature", "area:profile", "area:boards", "priority:p1"],
+    type: "feature",
+    slug: "board-detail-page",
+    body: body({
+      summary: "A page for a single board/collection showing its pins.",
+      context: "Boards model the user's collections (BoardPin). Quick Saves remains the default.",
+      tasks: [
+        "Add `/boards/[id]` rendering the board header (name, owner, pin count) and a masonry of the board's pins.",
+        "Add a Boards tab/section on the profile listing the user's boards with cover thumbnails, linking here.",
+        "Enforce visibility/ownership rules as appropriate; 404 for unknown boards.",
+        "Add a `getBoardWithPins(boardId)` service.",
+      ],
+      acceptance: [
+        "A board page lists exactly the pins added to that board.",
+        "The profile lists the user's boards with covers linking to their pages.",
+      ],
+    }),
+  },
+  {
+    title: "Edit profile (name, bio, avatar)",
+    milestone: "M13",
+    labels: ["type:feature", "area:profile", "priority:p2"],
+    type: "feature",
+    slug: "edit-profile",
+    body: body({
+      summary: "Let users edit their display name, bio and avatar.",
+      tasks: [
+        "An edit profile form (modal or `/settings/profile`) with name, bio and avatar upload.",
+        "`updateProfile` server action with Zod validation; store the avatar via the storage driver.",
+        "Reflect changes across the app (nav avatar, profile, authored pins author).",
+        "Link creator names/avatars on pin cards and detail to their profiles.",
+      ],
+      acceptance: [
+        "Editing name/bio/avatar persists and is reflected everywhere.",
+        "Only the owner can edit their profile.",
+      ],
+    }),
+  },
+
+  /* ----------------------------- M14 ---------------------------- */
+  {
+    title: "Likes and comments schema",
+    milestone: "M14",
+    labels: ["type:feature", "area:engagement", "area:backend", "priority:p0"],
+    type: "feature",
+    slug: "engagement-schema",
+    body: body({
+      summary: "Model likes and comments on pins.",
+      tasks: [
+        "`Like` (userId, pinId, createdAt) with a composite unique to prevent duplicates.",
+        "`Comment` (id, pinId, authorId, body, createdAt) with indexes and `onDelete` cascade.",
+        "Relations from `Pin` and `User`; create and apply a migration.",
+      ],
+      acceptance: [
+        "Migration creates `Like` and `Comment` with constraints.",
+        "A user cannot like the same pin twice.",
+      ],
+    }),
+  },
+  {
+    title: "Like action, button and count",
+    milestone: "M14",
+    labels: ["type:feature", "area:engagement", "priority:p0"],
+    type: "feature",
+    slug: "like-action",
+    body: body({
+      summary: "Let users like and unlike pins with an optimistic heart and live count.",
+      tasks: [
+        "Add a typed `HeartIcon` (outline) and `HeartFilledIcon` to the icon set.",
+        "`toggleLike(pinId)` server action (auth + composite-key idempotency); revalidate affected routes.",
+        "A reusable Like button (heart + count) with optimistic UI, on the pin card overlay and the detail actions.",
+        "Expose like counts and the viewer's liked state from the pin services/detail.",
+      ],
+      acceptance: [
+        "Liking toggles and persists across reloads; the count updates instantly and rolls back on error.",
+        "The viewer's liked state is reflected on load.",
+      ],
+    }),
+  },
+  {
+    title: "Comment services and actions",
+    milestone: "M14",
+    labels: ["type:feature", "area:engagement", "area:backend", "priority:p1"],
+    type: "feature",
+    slug: "comment-actions",
+    body: body({
+      summary: "Server-side support for reading and writing comments.",
+      tasks: [
+        "`getComments(pinId)` returning comments with author info, newest last.",
+        "`addComment(pinId, body)` (auth, Zod-validated, length-limited) and `deleteComment(commentId)` (author or pin owner only).",
+        "Revalidate the detail; return typed results/errors.",
+      ],
+      acceptance: [
+        "Comments persist and load in order with their authors.",
+        "Only the author or pin owner can delete a comment; empty/oversized bodies are rejected.",
+      ],
+    }),
+  },
+  {
+    title: "Comments UI on the pin detail",
+    milestone: "M14",
+    labels: ["type:feature", "area:engagement", "area:detail", "priority:p1"],
+    type: "feature",
+    slug: "comments-ui",
+    body: body({
+      summary: "Show and add comments under the pin detail.",
+      tasks: [
+        "A comments section listing each comment (avatar, name, body, relative time).",
+        "An add-comment form (textarea + submit) wired to `addComment`, clearing on success.",
+        "Delete affordance for comments the viewer may remove; empty state when there are none.",
+        "Relative-time formatting helper.",
+      ],
+      acceptance: [
+        "Posting a comment shows it immediately and persists.",
+        "Authors/owners can delete; the empty state is shown when there are no comments.",
+      ],
+    }),
+  },
+  {
+    title: "Surface like and comment counts",
+    milestone: "M14",
+    labels: ["type:feature", "area:engagement", "priority:p2"],
+    type: "feature",
+    slug: "engagement-counts",
+    body: body({
+      summary: "Show like and comment counts where pins appear.",
+      tasks: [
+        "Include like/comment counts in the pin domain type and queries (aggregate efficiently).",
+        "Show counts on the pin card meta and the detail.",
+        "Avoid N+1 queries (use `_count`).",
+      ],
+      acceptance: ["Counts appear on cards and the detail and stay accurate after actions."],
+    }),
+  },
+
+  /* ----------------------------- M15 ---------------------------- */
+  {
+    title: "Notifications schema and creation hooks",
+    milestone: "M15",
+    labels: ["type:feature", "area:notifications", "area:backend", "priority:p0"],
+    type: "feature",
+    slug: "notification-schema",
+    body: body({
+      summary: "Model notifications and create them on social actions.",
+      tasks: [
+        "`Notification` (id, recipientId, type [FOLLOW|LIKE|COMMENT], actorId, pinId?, commentId?, read, createdAt) with indexes; migration.",
+        "Create a notification when a user follows, likes a pin, or comments — addressed to the affected user, skipping self-actions.",
+        "Clean up notifications via cascades when the underlying rows are deleted.",
+      ],
+      acceptance: [
+        "Following/liking/commenting creates a notification for the recipient (never for self-actions).",
+        "Migration creates the table with constraints.",
+      ],
+    }),
+  },
+  {
+    title: "Notification services",
+    milestone: "M15",
+    labels: ["type:feature", "area:notifications", "area:backend", "priority:p1"],
+    type: "feature",
+    slug: "notification-services",
+    body: body({
+      summary: "Read and update notifications.",
+      tasks: [
+        "`getNotifications(userId)` with actor/pin context, newest first.",
+        "`getUnreadCount(userId)`.",
+        "`markAllRead(userId)` / `markRead(id)` server actions (ownership-checked).",
+        "Map to a UI-friendly notification type (message text built from type + actor).",
+      ],
+      acceptance: [
+        "Unread count is accurate; marking read updates it.",
+        "Lists include the actor and pin needed to render and link each item.",
+      ],
+    }),
+  },
+  {
+    title: "Notifications inbox UI",
+    milestone: "M15",
+    labels: ["type:feature", "area:notifications", "priority:p1"],
+    type: "feature",
+    slug: "notifications-ui",
+    body: body({
+      summary: "Surface notifications from the bell and an inbox view.",
+      tasks: [
+        "Wire the nav bell red dot to the real unread count.",
+        "A notifications view (dropdown or `/notifications` page) listing items (actor avatar, message, time, link to the pin/profile).",
+        "Mark all as read on open / via a button; reflect the cleared unread state.",
+        "Empty state when there are no notifications.",
+      ],
+      acceptance: [
+        "The bell shows a dot only when there are unread notifications.",
+        "Opening the inbox lists notifications and clears the unread state.",
+      ],
+    }),
+  },
+
+  /* ----------------------------- M16 ---------------------------- */
+  {
+    title: "Share a pin (link / Web Share) with copy fallback",
+    milestone: "M16",
+    labels: ["type:feature", "area:sharing", "priority:p1"],
+    type: "feature",
+    slug: "share-pin",
+    body: body({
+      summary: "Let users share a pin via the native share sheet or by copying its link.",
+      tasks: [
+        "A reusable share control using the Web Share API when available, falling back to copying the pin URL to the clipboard.",
+        "Confirm with a toast (e.g. 'Link copied').",
+        "Wire the existing Share buttons on the pin card overlay and the detail to it.",
+        "Build an absolute pin URL from the request/site config.",
+      ],
+      acceptance: [
+        "On supporting devices the native share sheet opens; otherwise the link is copied and a toast confirms.",
+        "Sharing works from both the card and the detail.",
+      ],
+    }),
+  },
+  {
+    title: "Download a pin image",
+    milestone: "M16",
+    labels: ["type:feature", "area:sharing", "area:detail", "priority:p2"],
+    type: "feature",
+    slug: "download-image",
+    body: body({
+      summary: "Let users download the full-resolution pin image from the detail.",
+      tasks: [
+        "Add a typed `DownloadIcon` to the icon set.",
+        "A download action on the detail (and the More menu) that saves the image with a sensible filename.",
+        "Handle local `/uploads` and seeded `/images` sources; fetch as a blob to force a download.",
+      ],
+      acceptance: [
+        "Clicking download saves the pin image to the user's device with a meaningful name.",
+        "Works for both uploaded and seeded images.",
+      ],
     }),
   },
 ];
