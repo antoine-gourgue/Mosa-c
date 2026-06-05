@@ -33,7 +33,7 @@ export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): Reac
   };
 
   return (
-    <div className="mb-4 break-inside-avoid">
+    <div data-pin-card className="mb-4 break-inside-avoid">
       <Link
         href={`/pin/${pin.id}`}
         className="group relative block overflow-hidden rounded-pin bg-surface"
