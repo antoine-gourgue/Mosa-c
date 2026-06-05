@@ -9,3 +9,4 @@ package-lock.json
 public
 PROJECT_PLAN.md
 *.ico
+src/generated

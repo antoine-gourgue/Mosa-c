@@ -54,3 +54,6 @@ yarn-error.log*
 
 # OS
 Thumbs.db
+
+# Prisma generated client
+/src/generated
