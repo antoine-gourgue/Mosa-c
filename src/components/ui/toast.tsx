@@ -2,8 +2,18 @@
 
 import Image from "next/image";
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
-import type { ReactElement, ReactNode } from "react";
+import type { ReactElement, ReactNode, RefObject } from "react";
 import { cn } from "@/lib/cn";
+import { DURATION, REDUCED_MOTION, gsap, useGSAP } from "@/lib/gsap";
+
+/**
+ * Whether the user has requested reduced motion (false during SSR).
+ *
+ * @returns True when reduced motion is preferred.
+ */
+function prefersReducedMotion(): boolean {
+  return typeof window !== "undefined" && window.matchMedia(REDUCED_MOTION).matches;
+}
 
 /**
  * Optional call-to-action rendered inside a toast.
@@ -49,15 +59,16 @@ export function useToast(): ToastContextValue {
 type ToastViewportProps = {
   toast: ToastOptions | null;
   onDismiss: () => void;
+  innerRef: RefObject<HTMLDivElement | null>;
 };
 
 /**
  * Renders the currently visible toast at the bottom center of the screen.
  *
- * @param props - The active toast and the dismiss handler.
+ * @param props - The active toast, the dismiss handler and the card ref.
  * @returns The toast element, or null when nothing is shown.
  */
-function ToastViewport({ toast, onDismiss }: ToastViewportProps): ReactElement | null {
+function ToastViewport({ toast, onDismiss, innerRef }: ToastViewportProps): ReactElement | null {
   if (toast === null) {
     return null;
   }
@@ -67,7 +78,10 @@ function ToastViewport({ toast, onDismiss }: ToastViewportProps): ReactElement |
       aria-live="polite"
       className="pointer-events-none fixed inset-x-0 bottom-7 z-[100] flex justify-center px-4"
     >
-      <div className="pointer-events-auto flex items-center gap-3 rounded-2xl bg-ink p-2 pr-3 text-bg shadow-pop">
+      <div
+        ref={innerRef}
+        className="pointer-events-auto flex items-center gap-3 rounded-2xl bg-ink p-2 pr-3 text-bg shadow-pop"
+      >
         {toast.img !== undefined ? (
           <Image
             src={toast.img}
@@ -123,29 +137,57 @@ function ToastViewport({ toast, onDismiss }: ToastViewportProps): ReactElement |
 export function ToastProvider({ children }: { children: ReactNode }): ReactElement {
   const [toast, setToast] = useState<ToastOptions | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      if (toast !== null && cardRef.current !== null && !prefersReducedMotion()) {
+        gsap.fromTo(
+          cardRef.current,
+          { y: 20, opacity: 0 },
+          { y: 0, opacity: 1, duration: DURATION.base, ease: "power2.out" },
+        );
+      }
+    },
+    { dependencies: [toast] },
+  );
 
   const dismiss = useCallback(() => {
     if (timer.current !== null) {
       clearTimeout(timer.current);
       timer.current = null;
     }
-    setToast(null);
+    const card = cardRef.current;
+    if (card === null || prefersReducedMotion()) {
+      setToast(null);
+      return;
+    }
+    gsap.to(card, {
+      y: 20,
+      opacity: 0,
+      duration: DURATION.base * 0.7,
+      ease: "power2.in",
+      onComplete: () => setToast(null),
+    });
   }, []);
 
-  const show = useCallback((options: ToastOptions) => {
-    if (timer.current !== null) {
-      clearTimeout(timer.current);
-    }
-    setToast(options);
-    timer.current = setTimeout(() => setToast(null), options.duration ?? DEFAULT_DURATION);
-  }, []);
+  const show = useCallback(
+    (options: ToastOptions) => {
+      if (timer.current !== null) {
+        clearTimeout(timer.current);
+      }
+      setToast(options);
+      timer.current = setTimeout(() => dismiss(), options.duration ?? DEFAULT_DURATION);
+    },
+    [dismiss],
+  );
 
   const value = useMemo<ToastContextValue>(() => ({ show, dismiss }), [show, dismiss]);
 
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <ToastViewport toast={toast} onDismiss={dismiss} />
+      <ToastViewport toast={toast} onDismiss={dismiss} innerRef={cardRef} />
     </ToastContext.Provider>
   );
 }
