@@ -1,24 +1,47 @@
+import { Suspense } from "react";
 import type { ReactElement } from "react";
-import { SITE } from "@/lib/site";
-import { Logo } from "@/icons";
+import { getCurrentUser } from "@/lib/auth";
+import { getPins, getSavedPinIds } from "@/server/services";
+import { PinCardSkeleton, PinFeed } from "@/components/pin";
 
 /**
- * Temporary landing placeholder rendered until the home feed is implemented.
+ * Fetches the feed pins and the current user's saved ids, then renders them.
  *
- * @returns The Mosaic application shell placeholder.
+ * @returns The populated feed.
+ */
+async function FeedContent(): Promise<ReactElement> {
+  const user = await getCurrentUser();
+  const [pins, savedIds] = await Promise.all([
+    getPins(),
+    user === null ? Promise.resolve<string[]>([]) : getSavedPinIds(user.id),
+  ]);
+  return <PinFeed pins={pins} savedIds={savedIds} />;
+}
+
+/**
+ * Placeholder masonry of skeletons shown while the feed loads.
+ *
+ * @returns The skeleton grid.
+ */
+function FeedSkeleton(): ReactElement {
+  return (
+    <div className="columns-2 gap-4 md:columns-4 xl:columns-6">
+      {Array.from({ length: 18 }).map((_, index) => (
+        <PinCardSkeleton key={index} height={180 + (index % 4) * 70} />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Home route: the masonry feed of pins.
+ *
+ * @returns The home page.
  */
 export default function HomePage(): ReactElement {
   return (
-    <div className="grid min-h-[60dvh] place-items-center text-center">
-      <div className="flex flex-col items-center gap-4">
-        <span className="grid size-14 place-items-center rounded-pin bg-accent text-bg shadow-pop">
-          <Logo size={30} />
-        </span>
-        <div>
-          <h1 className="text-3xl font-extrabold text-ink">{SITE.name}</h1>
-          <p className="mt-1 text-ink-soft">{SITE.description}</p>
-        </div>
-      </div>
-    </div>
+    <Suspense fallback={<FeedSkeleton />}>
+      <FeedContent />
+    </Suspense>
   );
 }

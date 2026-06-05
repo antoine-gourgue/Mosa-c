@@ -4,3 +4,5 @@ export { Masonry } from "./Masonry";
 export type { MasonryProps } from "./Masonry";
 export { PinCard } from "./PinCard";
 export type { PinCardProps } from "./PinCard";
+export { PinFeed } from "./PinFeed";
+export type { PinFeedProps } from "./PinFeed";
