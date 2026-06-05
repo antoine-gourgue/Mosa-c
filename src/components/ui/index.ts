@@ -10,3 +10,7 @@ export { Pill } from "./Pill";
 export type { PillProps, PillSize } from "./Pill";
 export { ToastProvider, useToast } from "./toast";
 export type { ToastOptions, ToastAction } from "./toast";
+export { Surface } from "./Surface";
+export type { SurfaceProps, SurfaceRadius, SurfaceElevation } from "./Surface";
+export { Divider } from "./Divider";
+export type { DividerProps } from "./Divider";
