@@ -4,18 +4,18 @@ A Pinterest-like image board to discover pins, save ideas, build boards, follow 
 
 ## Tech stack
 
-| Concern        | Choice                                                        |
-| -------------- | ------------------------------------------------------------- |
-| Framework      | Next.js (App Router) + React                                  |
-| Language       | TypeScript (`strict`, no implicit `any`)                      |
-| Styling        | Tailwind CSS + design tokens                                  |
-| Animation      | GSAP (`@gsap/react` `useGSAP`)                                |
-| Database       | PostgreSQL (Docker)                                           |
-| ORM            | Prisma                                                        |
-| Auth           | Auth.js (NextAuth) — credentials + OAuth-ready                |
-| Testing        | Vitest + React Testing Library, Playwright (e2e)              |
-| CI/CD          | GitHub Actions (lint, typecheck, test, build)                |
-| Package manager| npm                                                           |
+| Concern         | Choice                                           |
+| --------------- | ------------------------------------------------ |
+| Framework       | Next.js (App Router) + React                     |
+| Language        | TypeScript (`strict`, no implicit `any`)         |
+| Styling         | Tailwind CSS + design tokens                     |
+| Animation       | GSAP (`@gsap/react` `useGSAP`)                   |
+| Database        | PostgreSQL (Docker)                              |
+| ORM             | Prisma                                           |
+| Auth            | Auth.js (NextAuth) — credentials + OAuth-ready   |
+| Testing         | Vitest + React Testing Library, Playwright (e2e) |
+| CI/CD           | GitHub Actions (lint, typecheck, test, build)    |
+| Package manager | npm                                              |
 
 ## Project conventions
 

@@ -4,26 +4,26 @@ Sourced from the design handoff. These map to the Tailwind theme and CSS variabl
 
 ## Colors
 
-| Token           | Value                          | Usage                          |
-| --------------- | ------------------------------ | ------------------------------ |
-| `--bg`          | `#ffffff`                      | App background                 |
-| `--ink`         | `#1a1a1a`                      | Primary text / dark surfaces   |
-| `--ink-soft`    | `#6b6b6b`                      | Secondary text                 |
-| `--ink-faint`   | `#9a9a9a`                      | Tertiary text                  |
-| `--surface`     | `#efefef`                      | Inputs, neutral fills          |
-| `--surface-2`   | `#e6e6e6`                      | Hover fills                    |
-| `--surface-3`   | `#dadada`                      | Borders on fills               |
-| `--line`        | `#e9e9e9`                      | Dividers                       |
-| `--accent`      | `oklch(0.55 0.21 22)` ≈ `#e60023` | Primary action (red)        |
-| `--accent-press`| `oklch(0.48 0.21 22)`          | Pressed accent                 |
+| Token            | Value                             | Usage                        |
+| ---------------- | --------------------------------- | ---------------------------- |
+| `--bg`           | `#ffffff`                         | App background               |
+| `--ink`          | `#1a1a1a`                         | Primary text / dark surfaces |
+| `--ink-soft`     | `#6b6b6b`                         | Secondary text               |
+| `--ink-faint`    | `#9a9a9a`                         | Tertiary text                |
+| `--surface`      | `#efefef`                         | Inputs, neutral fills        |
+| `--surface-2`    | `#e6e6e6`                         | Hover fills                  |
+| `--surface-3`    | `#dadada`                         | Borders on fills             |
+| `--line`         | `#e9e9e9`                         | Dividers                     |
+| `--accent`       | `oklch(0.55 0.21 22)` ≈ `#e60023` | Primary action (red)         |
+| `--accent-press` | `oklch(0.48 0.21 22)`             | Pressed accent               |
 
 ## Layout
 
-| Token          | Value   | Usage                       |
-| -------------- | ------- | --------------------------- |
-| `--nav-h`      | `80px`  | Top navigation height       |
-| `--radius-pin` | `16px`  | Pin image radius            |
-| `--radius-lg`  | `24px`  | Large surfaces              |
+| Token          | Value  | Usage                 |
+| -------------- | ------ | --------------------- |
+| `--nav-h`      | `80px` | Top navigation height |
+| `--radius-pin` | `16px` | Pin image radius      |
+| `--radius-lg`  | `24px` | Large surfaces        |
 
 ## Shadow
 
@@ -37,14 +37,14 @@ Sourced from the design handoff. These map to the Tailwind theme and CSS variabl
 --font: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif
 ```
 
-| Element        | Size / weight |
-| -------------- | ------------- |
-| Brand          | 21px / 700    |
-| Page title     | 52px / 800    |
-| Detail title   | 30px / 800    |
-| Pin title      | 15px / 600    |
-| Author / meta  | 13px          |
-| Legal text     | 12px          |
+| Element       | Size / weight |
+| ------------- | ------------- |
+| Brand         | 21px / 700    |
+| Page title    | 52px / 800    |
+| Detail title  | 30px / 800    |
+| Pin title     | 15px / 600    |
+| Author / meta | 13px          |
+| Legal text    | 12px          |
 
 ## Masonry
 

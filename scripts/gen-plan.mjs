@@ -24,7 +24,9 @@ function render() {
       "Epics map to GitHub Milestones; each ticket becomes an Issue with a `feature/<issue-number>-<slug>` branch.",
   );
   lines.push("");
-  lines.push(`**Totals:** ${milestones.length} epics · ${tickets.length} tickets · ${labels.length} labels.`);
+  lines.push(
+    `**Totals:** ${milestones.length} epics · ${tickets.length} tickets · ${labels.length} labels.`,
+  );
   lines.push("");
   lines.push("## Labels");
   lines.push("");
@@ -52,4 +54,6 @@ function render() {
 }
 
 writeFileSync(join(root, "PROJECT_PLAN.md"), render() + "\n");
-process.stdout.write(`PROJECT_PLAN.md written: ${tickets.length} tickets across ${milestones.length} milestones.\n`);
+process.stdout.write(
+  `PROJECT_PLAN.md written: ${tickets.length} tickets across ${milestones.length} milestones.\n`,
+);
