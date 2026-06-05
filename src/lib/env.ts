@@ -1,6 +1,20 @@
 import { z } from "zod";
 
 /**
+ * Treats empty environment strings as absent so optional variables left blank
+ * in `.env` (e.g. unused OAuth credentials) do not fail validation.
+ *
+ * @param value - The raw environment value.
+ * @returns The value, or undefined when it is an empty string.
+ */
+function blankToUndefined(value: unknown): unknown {
+  return value === "" ? undefined : value;
+}
+
+const optionalSecret = z.preprocess(blankToUndefined, z.string().min(1).optional());
+const optionalUrl = z.preprocess(blankToUndefined, z.url().optional());
+
+/**
  * Schema describing every environment variable the server relies on. Optional
  * entries gate features (OAuth providers, object storage) that the app can run
  * without during local development.
@@ -9,13 +23,13 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DATABASE_URL: z.url(),
   AUTH_SECRET: z.string().min(1, "AUTH_SECRET is required"),
-  AUTH_URL: z.url().optional(),
-  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
-  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
-  APPLE_CLIENT_ID: z.string().min(1).optional(),
-  APPLE_CLIENT_SECRET: z.string().min(1).optional(),
+  AUTH_URL: optionalUrl,
+  GOOGLE_CLIENT_ID: optionalSecret,
+  GOOGLE_CLIENT_SECRET: optionalSecret,
+  APPLE_CLIENT_ID: optionalSecret,
+  APPLE_CLIENT_SECRET: optionalSecret,
   STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),
-  NEXT_PUBLIC_APP_URL: z.url().optional(),
+  NEXT_PUBLIC_APP_URL: optionalUrl,
 });
 
 /**
