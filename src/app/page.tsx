@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+import { SITE } from "@/lib/site";
 
 /**
  * Temporary landing placeholder rendered until the home feed is implemented.
@@ -17,8 +18,8 @@ export default function HomePage(): ReactElement {
       }}
     >
       <div>
-        <h1 style={{ fontSize: "2rem", fontWeight: 800 }}>Mosaic</h1>
-        <p style={{ color: "#6b6b6b" }}>Discover, save and share visual ideas.</p>
+        <h1 style={{ fontSize: "2rem", fontWeight: 800 }}>{SITE.name}</h1>
+        <p style={{ color: "#6b6b6b" }}>{SITE.description}</p>
       </div>
     </main>
   );
