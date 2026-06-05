@@ -161,6 +161,20 @@ export function BackIcon(props: IconProps): ReactElement {
 }
 
 /**
+ * Cross glyph used to close overlays and dismiss elements.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function CloseIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon {...props}>
+      <path d="M6 6l12 12M18 6 6 18" />
+    </SvgIcon>
+  );
+}
+
+/**
  * Checkmark glyph for verified and selected states.
  *
  * @param props - Icon sizing and presentation props.

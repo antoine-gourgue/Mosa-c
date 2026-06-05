@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import type { MouseEvent, ReactElement, ReactNode } from "react";
 import { IconButton } from "@/components/ui";
-import { BackIcon } from "@/icons";
+import { CloseIcon } from "@/icons";
 
 /**
  * Overlay shell for the pin detail: a dark scrim with a centered card, closing
@@ -52,10 +52,10 @@ export function DetailModal({ children }: { children: ReactNode }): ReactElement
         label="Close"
         tone="solid"
         size="lg"
-        className="fixed left-6 top-6 z-10"
+        className="fixed right-6 top-6 z-10"
         onClick={() => router.back()}
       >
-        <BackIcon />
+        <CloseIcon />
       </IconButton>
       <div
         role="dialog"
