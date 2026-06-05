@@ -1,4 +1,7 @@
 import type { ReactElement } from "react";
+import { getCurrentUser } from "@/lib/auth";
+import { getSavedPinIds, searchPins } from "@/server/services";
+import { PinFeed } from "@/components/pin";
 
 /**
  * Props for the {@link SearchResults} component.
@@ -8,12 +11,28 @@ export type SearchResultsProps = {
 };
 
 /**
- * Results view shown when the search has a query. The filtered pins and empty
- * state are wired in by a later ticket.
+ * Results view shown when the search has a query: the matching pins in a
+ * masonry, or a friendly empty state quoting the query.
  *
  * @param props - The active search query.
  * @returns The results view element.
  */
-export function SearchResults({ query }: SearchResultsProps): ReactElement {
-  return <p className="mt-8 text-ink-soft">Showing results for &ldquo;{query}&rdquo;</p>;
+export async function SearchResults({ query }: SearchResultsProps): Promise<ReactElement> {
+  const user = await getCurrentUser();
+  const [results, savedIds] = await Promise.all([
+    searchPins(query),
+    user === null ? Promise.resolve<string[]>([]) : getSavedPinIds(user.id),
+  ]);
+
+  if (results.length === 0) {
+    return (
+      <div className="mt-16 text-center text-ink-soft">No ideas matched &ldquo;{query}&rdquo;.</div>
+    );
+  }
+
+  return (
+    <div className="mt-6">
+      <PinFeed pins={results} savedIds={savedIds} min={200} />
+    </div>
+  );
 }
