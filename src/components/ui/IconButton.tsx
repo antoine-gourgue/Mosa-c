@@ -34,9 +34,9 @@ const TONE_CLASSES: Record<IconButtonTone, string> = {
 };
 
 const SIZE_CLASSES: Record<IconButtonSize, string> = {
-  sm: "size-9",
-  md: "size-10",
-  lg: "size-11",
+  sm: "size-10",
+  md: "size-11",
+  lg: "size-12",
 };
 
 const ACTIVE_CLASSES = "bg-ink text-bg hover:bg-ink/90";

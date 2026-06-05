@@ -109,7 +109,7 @@ export function SignUp(): ReactElement {
         </Button>
       </form>
 
-      <div className="my-5 flex items-center gap-3 text-sm text-ink-faint">
+      <div className="my-5 flex items-center gap-3 text-sm text-ink-soft">
         <span className="h-px flex-1 bg-line" />
         OR
         <span className="h-px flex-1 bg-line" />
@@ -124,7 +124,7 @@ export function SignUp(): ReactElement {
         </Button>
       </div>
 
-      <p className="mt-6 text-xs text-ink-faint">
+      <p className="mt-6 text-xs text-ink-soft">
         By continuing, you agree to Mosaic&rsquo;s Terms of Service and acknowledge our Privacy
         Policy.
       </p>
