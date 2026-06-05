@@ -2,11 +2,11 @@
 
 Generated from `scripts/tickets.mjs` (run `node scripts/gen-plan.mjs`). Epics map to GitHub Milestones; each ticket becomes an Issue with a `feature/<issue-number>-<slug>` branch.
 
-**Totals:** 12 epics · 70 tickets · 22 labels.
+**Totals:** 16 epics · 86 tickets · 26 labels.
 
 ## Labels
 
-`type:setup` · `type:feature` · `type:chore` · `type:test` · `type:docs` · `type:infra` · `type:design-system` · `area:tooling` · `area:design-system` · `area:backend` · `area:auth` · `area:feed` · `area:search` · `area:detail` · `area:boards` · `area:create` · `area:animation` · `area:ci` · `area:deploy` · `priority:p0` · `priority:p1` · `priority:p2`
+`type:setup` · `type:feature` · `type:chore` · `type:test` · `type:docs` · `type:infra` · `type:design-system` · `area:tooling` · `area:design-system` · `area:backend` · `area:auth` · `area:feed` · `area:search` · `area:detail` · `area:boards` · `area:create` · `area:animation` · `area:ci` · `area:deploy` · `area:profile` · `area:engagement` · `area:notifications` · `area:sharing` · `priority:p0` · `priority:p1` · `priority:p2`
 
 ## M1 · Project Setup & Tooling
 
@@ -161,4 +161,48 @@ Generated from `scripts/tickets.mjs` (run `node scripts/gen-plan.mjs`). Epics ma
 | 2 | Deployment configuration & docs | docs | `docs/<n>-deployment-docs` | `type:docs` `area:deploy` `priority:p2` |
 | 3 | Accessibility pass | chore | `chore/<n>-a11y-pass` | `type:chore` `area:deploy` `priority:p1` |
 | 4 | Responsive QA pass | chore | `chore/<n>-responsive-qa` | `type:chore` `area:deploy` `priority:p1` |
+
+## M13 · Profile & Collections
+
+> Public profiles, created pins, boards/collections, edit profile. — _6 tickets_
+
+| # | Ticket | Type | Branch | Labels |
+| - | ------ | ---- | ------ | ------ |
+| 1 | Add username and bio to the user model | feature | `feature/<n>-profile-schema` | `type:feature` `area:profile` `area:backend` `priority:p0` |
+| 2 | Profile data-access services | feature | `feature/<n>-profile-services` | `type:feature` `area:profile` `area:backend` `priority:p0` |
+| 3 | Public profile page (header + tabs) | feature | `feature/<n>-profile-page` | `type:feature` `area:profile` `priority:p0` |
+| 4 | Profile Created and Saved tabs | feature | `feature/<n>-profile-tabs-content` | `type:feature` `area:profile` `priority:p1` |
+| 5 | Board (collection) detail page | feature | `feature/<n>-board-detail-page` | `type:feature` `area:profile` `area:boards` `priority:p1` |
+| 6 | Edit profile (name, bio, avatar) | feature | `feature/<n>-edit-profile` | `type:feature` `area:profile` `priority:p2` |
+
+## M14 · Likes & Comments
+
+> Like pins, comment threads, counts. — _5 tickets_
+
+| # | Ticket | Type | Branch | Labels |
+| - | ------ | ---- | ------ | ------ |
+| 1 | Likes and comments schema | feature | `feature/<n>-engagement-schema` | `type:feature` `area:engagement` `area:backend` `priority:p0` |
+| 2 | Like action, button and count | feature | `feature/<n>-like-action` | `type:feature` `area:engagement` `priority:p0` |
+| 3 | Comment services and actions | feature | `feature/<n>-comment-actions` | `type:feature` `area:engagement` `area:backend` `priority:p1` |
+| 4 | Comments UI on the pin detail | feature | `feature/<n>-comments-ui` | `type:feature` `area:engagement` `area:detail` `priority:p1` |
+| 5 | Surface like and comment counts | feature | `feature/<n>-engagement-counts` | `type:feature` `area:engagement` `priority:p2` |
+
+## M15 · Notifications
+
+> Follow/like/comment notifications, unread state, inbox. — _3 tickets_
+
+| # | Ticket | Type | Branch | Labels |
+| - | ------ | ---- | ------ | ------ |
+| 1 | Notifications schema and creation hooks | feature | `feature/<n>-notification-schema` | `type:feature` `area:notifications` `area:backend` `priority:p0` |
+| 2 | Notification services | feature | `feature/<n>-notification-services` | `type:feature` `area:notifications` `area:backend` `priority:p1` |
+| 3 | Notifications inbox UI | feature | `feature/<n>-notifications-ui` | `type:feature` `area:notifications` `priority:p1` |
+
+## M16 · Sharing & Download
+
+> Share pins (link/Web Share) and download images. — _2 tickets_
+
+| # | Ticket | Type | Branch | Labels |
+| - | ------ | ---- | ------ | ------ |
+| 1 | Share a pin (link / Web Share) with copy fallback | feature | `feature/<n>-share-pin` | `type:feature` `area:sharing` `priority:p1` |
+| 2 | Download a pin image | feature | `feature/<n>-download-image` | `type:feature` `area:sharing` `area:detail` `priority:p2` |
 
