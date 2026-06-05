@@ -35,7 +35,7 @@ export async function MoreLikeCreator({
   const followed = new Set(followedIds);
   return (
     <div>
-      <h4 className="font-bold text-ink">More like {creatorName}</h4>
+      <h2 className="font-bold text-ink">More like {creatorName}</h2>
       <div className="mt-4 grid grid-cols-3 gap-4">
         {creators.map((creator) => (
           <MiniCreator
