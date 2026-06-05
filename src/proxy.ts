@@ -10,5 +10,5 @@ export default auth;
  * internals and static assets.
  */
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|images|brand).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|images|uploads|brand).*)"],
 };
