@@ -1,0 +1,58 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import type { MouseEvent, ReactElement, ReactNode } from "react";
+import { IconButton } from "@/components/ui";
+import { BackIcon } from "@/icons";
+
+/**
+ * Overlay shell for the pin detail: a dark scrim with a centered card, closing
+ * on Escape or a click outside the card. A fixed close button sits top-left.
+ *
+ * @param props - The detail content to display inside the card.
+ * @param props.children - The pin detail content.
+ * @returns The modal overlay element.
+ */
+export function DetailModal({ children }: { children: ReactNode }): ReactElement {
+  const router = useRouter();
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === "Escape") {
+        router.back();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [router]);
+
+  const stop = (event: MouseEvent<HTMLDivElement>): void => {
+    event.stopPropagation();
+  };
+
+  return (
+    <div
+      onClick={() => router.back()}
+      className="fixed inset-0 z-[60] overflow-y-auto bg-ink/55 p-6"
+    >
+      <IconButton
+        label="Close"
+        tone="solid"
+        size="lg"
+        className="fixed left-6 top-6 z-10"
+        onClick={() => router.back()}
+      >
+        <BackIcon />
+      </IconButton>
+      <div
+        onClick={stop}
+        className="mx-auto my-4 max-w-[1016px] overflow-hidden rounded-[32px] bg-bg shadow-pop"
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
