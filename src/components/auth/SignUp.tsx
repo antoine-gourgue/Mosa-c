@@ -6,19 +6,21 @@ import type { FormEvent, ReactElement } from "react";
 import { Button, Input } from "@/components/ui";
 import { Logo } from "@/icons";
 import { registerUser, signInWithProvider } from "@/server/actions/auth";
+import { GenderStep, type GenderValue } from "./GenderStep";
 
 /**
- * Sign-up screen: the right-hand form collecting email, password and age, with
- * social sign-in, legal text and a link to log in. On submit it registers the
- * account (the onboarding gender step is inserted before this in a later
- * ticket) and the server redirects to the feed.
+ * Sign-up flow: collects email, password and age, then the onboarding gender
+ * step, and registers the account. Field errors from the server send the user
+ * back to the relevant step; the server redirects to the feed on success.
  *
- * @returns The sign-up form element.
+ * @returns The sign-up flow element.
  */
 export function SignUp(): ReactElement {
+  const [step, setStep] = useState<"form" | "gender">("form");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [age, setAge] = useState("");
+  const [gender, setGender] = useState<GenderValue | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -27,11 +29,21 @@ export function SignUp(): ReactElement {
     event.preventDefault();
     setErrors({});
     setFormError(null);
+    setStep("gender");
+  };
+
+  const handleRegister = (): void => {
     startTransition(async () => {
-      const result = await registerUser({ email, password, age: Number(age) });
+      const result = await registerUser({
+        email,
+        password,
+        age: Number(age),
+        gender: gender ?? undefined,
+      });
       if (!result.ok) {
         setErrors(result.fieldErrors ?? {});
         setFormError(result.formError ?? null);
+        setStep("form");
       }
     });
   };
@@ -41,6 +53,12 @@ export function SignUp(): ReactElement {
       await signInWithProvider(provider);
     });
   };
+
+  if (step === "gender") {
+    return (
+      <GenderStep value={gender} onChange={setGender} onNext={handleRegister} pending={pending} />
+    );
+  }
 
   return (
     <div>
@@ -86,7 +104,7 @@ export function SignUp(): ReactElement {
             {formError}
           </p>
         ) : null}
-        <Button type="submit" fullWidth loading={pending}>
+        <Button type="submit" fullWidth>
           Continue
         </Button>
       </form>
