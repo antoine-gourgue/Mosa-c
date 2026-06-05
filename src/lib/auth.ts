@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import type { Provider } from "next-auth/providers";
+import type { Session } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import Apple from "next-auth/providers/apple";
@@ -8,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { verifyPassword } from "@/lib/password";
 import { signInSchema } from "@/lib/validation/auth";
+import { authConfig } from "@/lib/auth.config";
 
 const credentialsProvider = Credentials({
   credentials: {
@@ -44,29 +46,23 @@ if (env.APPLE_CLIENT_ID !== undefined && env.APPLE_CLIENT_SECRET !== undefined) 
 }
 
 /**
- * Auth.js entry points for the application. Uses the Prisma adapter for OAuth
- * account persistence and a JWT session strategy (required by the credentials
- * provider). Google and Apple are enabled only when their credentials are
- * present, so the app runs without them. The session user is enriched with the
- * database id.
+ * Auth.js entry points for the application. Extends the edge-safe config with
+ * the Prisma adapter and the real providers. Google and Apple are enabled only
+ * when their credentials are present, so the app runs without them.
  */
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
-  pages: { signIn: "/login" },
   providers,
-  callbacks: {
-    jwt({ token, user }) {
-      if (user?.id !== undefined) {
-        token.id = user.id;
-      }
-      return token;
-    },
-    session({ session, token }) {
-      if (typeof token.id === "string") {
-        session.user.id = token.id;
-      }
-      return session;
-    },
-  },
 });
+
+/**
+ * Returns the currently authenticated session user, or null when signed out.
+ * Use this from server components and actions.
+ *
+ * @returns The session user or null.
+ */
+export async function getCurrentUser(): Promise<Session["user"] | null> {
+  const session = await auth();
+  return session?.user ?? null;
+}
