@@ -4,3 +4,5 @@ export { IconButton } from "./IconButton";
 export type { IconButtonProps, IconButtonTone, IconButtonSize } from "./IconButton";
 export { Avatar } from "./Avatar";
 export type { AvatarProps } from "./Avatar";
+export { Input } from "./Input";
+export type { InputProps } from "./Input";
