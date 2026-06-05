@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
-import { Button, Input } from "@/components/ui";
+import { Button, Input, Textarea } from "@/components/ui";
 import { createPin } from "@/server/actions/pins";
 import { UploadDropzone } from "./UploadDropzone";
 import type { SelectedImage } from "./UploadDropzone";
@@ -56,11 +56,12 @@ export function CreatePin(): ReactElement {
             onChange={(event) => setTitle(event.target.value)}
             placeholder="Add a title"
           />
-          <Input
+          <Textarea
             label="Description"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             placeholder="What is your Pin about?"
+            rows={4}
           />
           <Input
             label="Link"
