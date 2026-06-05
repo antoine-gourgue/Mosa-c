@@ -8,3 +8,5 @@ export { Input } from "./Input";
 export type { InputProps } from "./Input";
 export { Pill } from "./Pill";
 export type { PillProps, PillSize } from "./Pill";
+export { ToastProvider, useToast } from "./toast";
+export type { ToastOptions, ToastAction } from "./toast";
