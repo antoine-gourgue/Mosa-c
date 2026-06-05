@@ -14,3 +14,7 @@ export { Surface } from "./Surface";
 export type { SurfaceProps, SurfaceRadius, SurfaceElevation } from "./Surface";
 export { Divider } from "./Divider";
 export type { DividerProps } from "./Divider";
+export { Skeleton } from "./Skeleton";
+export type { SkeletonProps } from "./Skeleton";
+export { Spinner } from "./Spinner";
+export type { SpinnerProps } from "./Spinner";
