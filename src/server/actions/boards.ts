@@ -9,6 +9,7 @@ import { AppError } from "@/server/result";
 import type { Board } from "@/types/domain";
 
 const boardNameSchema = z.string().trim().min(1).max(60);
+const memberRoleSchema = z.enum(["EDITOR", "VIEWER"]);
 
 /**
  * Returns the current user or throws an unauthorized error.
@@ -124,6 +125,87 @@ export async function deleteBoard(boardId: string): Promise<void> {
     throw new AppError("VALIDATION", "The default board cannot be deleted.");
   }
   await prisma.board.delete({ where: { id: boardId } });
+  revalidatePath("/boards");
+}
+
+/**
+ * Adds a collaborator to a board by username. Allowed for the owner only. The
+ * board owner and existing members are handled idempotently; the new member's
+ * role is restricted to editor or viewer.
+ *
+ * @param boardId - The board id.
+ * @param username - The username of the user to add.
+ * @param role - The role to grant (editor or viewer).
+ * @returns A promise that resolves once the collaborator is added.
+ */
+export async function addBoardMember(
+  boardId: string,
+  username: string,
+  role: "EDITOR" | "VIEWER",
+): Promise<void> {
+  const user = await requireUser();
+  const board = await getBoardOwnership(boardId);
+  if (board.ownerId !== user.id) {
+    throw new AppError("UNAUTHORIZED", "Only the owner can manage collaborators.");
+  }
+  const parsedRole = memberRoleSchema.safeParse(role);
+  if (!parsedRole.success) {
+    throw new AppError("VALIDATION", "Invalid role.");
+  }
+  const handle = username.trim().replace(/^@/, "");
+  const target = await prisma.user.findUnique({
+    where: { username: handle },
+    select: { id: true },
+  });
+  if (target === null) {
+    throw new AppError("NOT_FOUND", "No user with that username.");
+  }
+  if (target.id === board.ownerId) {
+    throw new AppError("VALIDATION", "The owner is already on this board.");
+  }
+  await prisma.boardMember.upsert({
+    where: { boardId_userId: { boardId, userId: target.id } },
+    update: { role: parsedRole.data },
+    create: { boardId, userId: target.id, role: parsedRole.data },
+  });
+  revalidatePath(`/boards/${boardId}`);
+}
+
+/**
+ * Removes a collaborator from a board. Allowed for the owner only; the owner
+ * cannot be removed.
+ *
+ * @param boardId - The board id.
+ * @param userId - The collaborator's user id.
+ * @returns A promise that resolves once the collaborator is removed.
+ */
+export async function removeBoardMember(boardId: string, userId: string): Promise<void> {
+  const user = await requireUser();
+  const board = await getBoardOwnership(boardId);
+  if (board.ownerId !== user.id) {
+    throw new AppError("UNAUTHORIZED", "Only the owner can manage collaborators.");
+  }
+  if (userId === board.ownerId) {
+    throw new AppError("VALIDATION", "The owner cannot be removed.");
+  }
+  await prisma.boardMember.deleteMany({ where: { boardId, userId } });
+  revalidatePath(`/boards/${boardId}`);
+}
+
+/**
+ * Removes the current user from a board they collaborate on. The owner cannot
+ * leave their own board.
+ *
+ * @param boardId - The board id.
+ * @returns A promise that resolves once the user has left the board.
+ */
+export async function leaveBoard(boardId: string): Promise<void> {
+  const user = await requireUser();
+  const board = await getBoardOwnership(boardId);
+  if (board.ownerId === user.id) {
+    throw new AppError("VALIDATION", "The owner cannot leave their own board.");
+  }
+  await prisma.boardMember.deleteMany({ where: { boardId, userId: user.id } });
   revalidatePath("/boards");
 }
 
