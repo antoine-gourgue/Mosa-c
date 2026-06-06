@@ -32,7 +32,7 @@ export async function SearchResults({ query }: SearchResultsProps): Promise<Reac
 
   return (
     <div className="mt-6">
-      <PinFeed pins={results} savedIds={savedIds} min={200} />
+      <PinFeed pins={results} savedIds={savedIds} min={200} viewerId={user?.id ?? null} />
     </div>
   );
 }

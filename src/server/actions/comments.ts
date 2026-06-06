@@ -43,6 +43,7 @@ export async function addComment(
     commentId: row.id,
   });
   revalidatePath(`/pin/${pinId}`);
+  revalidatePath("/");
   return { ok: true, comment: toComment(row) };
 }
 
@@ -71,5 +72,6 @@ export async function deleteComment(
   }
   await prisma.comment.delete({ where: { id: commentId } });
   revalidatePath(`/pin/${comment.pinId}`);
+  revalidatePath("/");
   return { ok: true };
 }

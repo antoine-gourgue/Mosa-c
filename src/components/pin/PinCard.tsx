@@ -2,14 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import type { MouseEvent, ReactElement } from "react";
-import { Avatar, IconButton, Menu, useToast } from "@/components/ui";
+import { Avatar, ConfirmDialog, IconButton, Menu, useToast } from "@/components/ui";
+import type { MenuItem } from "@/components/ui";
 import { CommentIcon, DownloadIcon, HeartIcon, MoreIcon, ShareIcon, StackIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { downloadPin } from "@/lib/download";
 import { pinUrl, sharePin } from "@/lib/share";
 import { recordDownload } from "@/server/actions/downloads";
+import { deletePin } from "@/server/actions/pins";
 import type { Pin } from "@/types/domain";
 
 /**
@@ -20,6 +22,8 @@ export type PinCardProps = {
   saved: boolean;
   onToggleSave: () => void;
   count?: number;
+  canDelete?: boolean;
+  onDeleted?: () => void;
 };
 
 /**
@@ -30,9 +34,18 @@ export type PinCardProps = {
  * @param props - The pin, its saved state and the save toggle handler.
  * @returns The pin card element.
  */
-export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): ReactElement {
+export function PinCard({
+  pin,
+  saved,
+  onToggleSave,
+  count,
+  canDelete = false,
+  onDeleted,
+}: PinCardProps): ReactElement {
   const { show } = useToast();
   const [downloads, setDownloads] = useState(pin.downloadCount);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, startDelete] = useTransition();
 
   const stop = (event: MouseEvent<HTMLButtonElement>): void => {
     event.preventDefault();
@@ -67,6 +80,32 @@ export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): Reac
     show({ title: "Report received", description: "Thanks, we will review this Pin." });
   };
 
+  const onConfirmDelete = (): void => {
+    startDelete(async () => {
+      const result = await deletePin(pin.id);
+      if (result.ok) {
+        setConfirmDelete(false);
+        show({ title: "Pin deleted" });
+        onDeleted?.();
+      } else {
+        setConfirmDelete(false);
+        show({ title: "Could not delete", description: result.error });
+      }
+    });
+  };
+
+  const menuItems: MenuItem[] = [
+    { label: "Copy link", icon: <ShareIcon size={18} />, onSelect: () => void onCopyLink() },
+    {
+      label: "Download image",
+      icon: <DownloadIcon size={18} />,
+      onSelect: () => void onDownload(),
+    },
+    canDelete
+      ? { label: "Delete Pin", onSelect: () => setConfirmDelete(true), destructive: true }
+      : { label: "Report Pin", onSelect: onReport, destructive: true },
+  ];
+
   return (
     <div data-pin-card className="mb-4 break-inside-avoid">
       <Link
@@ -94,19 +133,7 @@ export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): Reac
               icon={<MoreIcon size={18} />}
               tone="solid"
               align="end"
-              items={[
-                {
-                  label: "Copy link",
-                  icon: <ShareIcon size={18} />,
-                  onSelect: () => void onCopyLink(),
-                },
-                {
-                  label: "Download image",
-                  icon: <DownloadIcon size={18} />,
-                  onSelect: () => void onDownload(),
-                },
-                { label: "Report Pin", onSelect: onReport, destructive: true },
-              ]}
+              items={menuItems}
             />
           </div>
           <div className="flex items-center justify-between">
@@ -169,6 +196,17 @@ export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): Reac
           </div>
         ) : null}
       </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Delete Pin?"
+        description="This pin and its likes, comments and saves will be permanently removed."
+        confirmLabel="Delete"
+        destructive
+        pending={deleting}
+        onConfirm={onConfirmDelete}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </div>
   );
 }

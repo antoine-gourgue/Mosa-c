@@ -63,7 +63,7 @@ export default async function BoardPage({
       {count === 0 ? (
         <p className="py-16 text-center text-ink-soft">This board is empty.</p>
       ) : (
-        <PinFeed pins={board.pins} savedIds={savedIds} min={230} />
+        <PinFeed pins={board.pins} savedIds={savedIds} min={230} viewerId={viewer?.id ?? null} />
       )}
     </div>
   );

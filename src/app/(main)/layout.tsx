@@ -38,8 +38,8 @@ export default async function MainLayout({
       <Suspense>
         <TopNav
           user={{
-            name: user?.name ?? "You",
-            image: user?.image ?? null,
+            name: profile?.name ?? user?.name ?? "You",
+            image: profile?.avatarUrl ?? user?.image ?? null,
             username: profile?.username ?? null,
           }}
           unreadCount={unreadCount}

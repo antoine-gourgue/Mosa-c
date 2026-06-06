@@ -15,7 +15,7 @@ async function FeedContent(): Promise<ReactElement> {
     getPins(),
     user === null ? Promise.resolve<string[]>([]) : getSavedPinIds(user.id),
   ]);
-  return <PinFeed pins={pins} savedIds={savedIds} />;
+  return <PinFeed pins={pins} savedIds={savedIds} viewerId={user?.id ?? null} />;
 }
 
 /**

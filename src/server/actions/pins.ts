@@ -93,3 +93,30 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
   revalidatePath("/boards");
   redirect(`/boards/${board.id}`);
 }
+
+/**
+ * Deletes a pin owned by the current user. Related likes, comments, saves,
+ * board entries and notifications are removed by the database cascade.
+ *
+ * @param pinId - The id of the pin to delete.
+ * @returns A success result, or a failure with an error message.
+ */
+export async function deletePin(
+  pinId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: "You must be signed in." };
+  }
+  const pin = await prisma.pin.findUnique({ where: { id: pinId }, select: { creatorId: true } });
+  if (pin === null) {
+    return { ok: false, error: "Pin not found." };
+  }
+  if (pin.creatorId !== user.id) {
+    return { ok: false, error: "You can only delete your own pins." };
+  }
+  await prisma.pin.delete({ where: { id: pinId } });
+  revalidatePath("/");
+  revalidatePath("/boards");
+  return { ok: true };
+}

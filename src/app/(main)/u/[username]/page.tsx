@@ -1,8 +1,7 @@
-import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactElement } from "react";
+import { BoardsGrid } from "@/components/board";
 import { PinFeed } from "@/components/pin";
 import { ProfileHeader, ProfileTabs } from "@/components/profile";
 import type { ProfileTab } from "@/components/profile";
@@ -54,15 +53,17 @@ export async function generateMetadata({
 async function CreatedView({
   userId,
   savedIds,
+  viewerId,
 }: {
   userId: string;
   savedIds: string[];
+  viewerId: string | null;
 }): Promise<ReactElement> {
   const pins = await getCreatedPins(userId);
   if (pins.length === 0) {
     return <p className="py-16 text-center text-ink-soft">No published pins yet.</p>;
   }
-  return <PinFeed pins={pins} savedIds={savedIds} />;
+  return <PinFeed pins={pins} savedIds={savedIds} viewerId={viewerId} />;
 }
 
 /**
@@ -76,15 +77,17 @@ async function CreatedView({
 async function SavedView({
   userId,
   savedIds,
+  viewerId,
 }: {
   userId: string;
   savedIds: string[];
+  viewerId: string | null;
 }): Promise<ReactElement> {
   const pins = await getSavedPins(userId);
   if (pins.length === 0) {
     return <p className="py-16 text-center text-ink-soft">No saved ideas yet.</p>;
   }
-  return <PinFeed pins={pins} savedIds={savedIds} />;
+  return <PinFeed pins={pins} savedIds={savedIds} viewerId={viewerId} />;
 }
 
 /**
@@ -103,32 +106,7 @@ async function BoardsView({
   username: string | null;
 }): Promise<ReactElement> {
   const boards = await getUserBoardsWithCovers(userId, username);
-  if (boards.length === 0) {
-    return <p className="py-16 text-center text-ink-soft">No boards yet.</p>;
-  }
-  return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-      {boards.map((board) => (
-        <Link key={board.id} href={`/boards/${board.id}`} className="group block">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-surface">
-            {board.coverUrl !== null ? (
-              <Image
-                src={board.coverUrl}
-                alt=""
-                fill
-                sizes="(max-width: 768px) 50vw, 25vw"
-                className="object-cover transition duration-300 group-hover:scale-105"
-              />
-            ) : null}
-          </div>
-          <p className="mt-2 font-semibold text-ink">{board.name}</p>
-          <p className="text-sm text-ink-soft">
-            {board.pinCount} {board.pinCount === 1 ? "Pin" : "Pins"}
-          </p>
-        </Link>
-      ))}
-    </div>
-  );
+  return <BoardsGrid boards={boards} />;
 }
 
 /**
@@ -173,8 +151,12 @@ export default async function ProfilePage({
       />
       <ProfileTabs username={username} active={active} />
       <div className="mt-6">
-        {active === "created" ? <CreatedView userId={user.id} savedIds={savedIds} /> : null}
-        {active === "saved" ? <SavedView userId={user.id} savedIds={savedIds} /> : null}
+        {active === "created" ? (
+          <CreatedView userId={user.id} savedIds={savedIds} viewerId={viewer?.id ?? null} />
+        ) : null}
+        {active === "saved" ? (
+          <SavedView userId={user.id} savedIds={savedIds} viewerId={viewer?.id ?? null} />
+        ) : null}
         {active === "boards" ? <BoardsView userId={user.id} username={user.username} /> : null}
       </div>
     </div>
