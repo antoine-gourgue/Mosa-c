@@ -332,6 +332,21 @@ export function NotesIcon(props: IconProps): ReactElement {
 }
 
 /**
+ * House glyph used for the home navigation tab.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function HomeIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon {...props}>
+      <path d="M3 9.8 12 3l9 6.8V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.8Z" />
+      <path d="M9 21v-7h6v7" />
+    </SvgIcon>
+  );
+}
+
+/**
  * Downward chevron glyph used for dropdown affordances.
  *
  * @param props - Icon sizing and presentation props.
