@@ -88,12 +88,27 @@ export type BoardSummary = Board & {
 };
 
 /**
- * A board with its owner and pins, for the board detail page.
+ * A collaborator's role on a board.
+ */
+export type BoardRole = "OWNER" | "EDITOR" | "VIEWER";
+
+/**
+ * A board member as surfaced to the UI: the user and their role.
+ */
+export type BoardMemberSummary = {
+  user: Creator;
+  role: BoardRole;
+};
+
+/**
+ * A board with its owner, members and pins, for the board detail page.
  */
 export type BoardDetail = {
   id: string;
   name: string;
   isDefault: boolean;
   owner: Creator;
+  members: BoardMemberSummary[];
+  viewerRole: BoardRole | null;
   pins: Pin[];
 };
