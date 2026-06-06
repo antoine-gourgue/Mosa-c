@@ -93,6 +93,15 @@ Each `feat`/`fix` merged to `main` updates a release PR that bumps the version
 and the [`CHANGELOG.md`](CHANGELOG.md); merging it tags the release and the CD
 pipeline deploys it.
 
+## Admin
+
+The back office lives at `/admin` and is gated on the `ADMIN` role.
+
+- In development the seed creates an admin account: `admin@mosaic.app` / `password123`.
+- In production (never seeded) promote a user with Prisma Studio (`npm run db:studio`)
+  by setting their `role` to `ADMIN`, or via SQL:
+  `UPDATE "User" SET role = 'ADMIN' WHERE email = 'you@example.com';`
+
 ## Deployment
 
 The app ships as a standalone Docker image. `docker-compose.prod.yml` runs

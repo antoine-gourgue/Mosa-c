@@ -25,11 +25,22 @@ export const authConfig = {
       if (PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
         return true;
       }
+      if (pathname.startsWith("/admin")) {
+        if (!isLoggedIn) {
+          return false;
+        }
+        return auth?.user?.role === "ADMIN"
+          ? true
+          : Response.redirect(new URL("/", request.nextUrl));
+      }
       return isLoggedIn;
     },
     jwt({ token, user }) {
       if (user?.id !== undefined) {
         token.id = user.id;
+      }
+      if (user?.role !== undefined) {
+        token.role = user.role;
       }
       return token;
     },
@@ -37,6 +48,7 @@ export const authConfig = {
       if (typeof token.id === "string") {
         session.user.id = token.id;
       }
+      session.user.role = token.role === "ADMIN" ? "ADMIN" : "USER";
       return session;
     },
   },

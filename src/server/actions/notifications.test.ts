@@ -21,6 +21,7 @@ describe("notification actions", () => {
       name: "User",
       email: "u@x.com",
       image: null,
+      role: "USER",
     });
   });
 

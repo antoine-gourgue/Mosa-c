@@ -26,6 +26,11 @@ enum BoardRole {
   VIEWER
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id             String    @id @default(cuid())
   email          String    @unique
@@ -39,6 +44,7 @@ model User {
   gender         Gender?
   followersLabel String?
   verified       Boolean   @default(false)
+  role           Role      @default(USER)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
