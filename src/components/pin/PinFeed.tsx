@@ -17,17 +17,26 @@ export type PinFeedProps = {
   pins: Pin[];
   savedIds: string[];
   min?: number;
+  viewerId?: string | null;
 };
 
 /**
  * Client masonry feed of pins. Toggling a save updates the UI optimistically,
  * persists through the save action (rolling back on error) and shows the
- * "Saved to Quick Saves" toast.
+ * "Saved to Quick Saves" toast. When `viewerId` matches a pin's creator, that
+ * card exposes a delete action and is removed from the feed once deleted.
  *
- * @param props - The pins, the initially saved ids and the minimum column width.
+ * @param props - The pins, the initially saved ids, the minimum column width and
+ *   the viewing user's id.
  * @returns The feed element.
  */
-export function PinFeed({ pins, savedIds, min = 220 }: PinFeedProps): ReactElement {
+export function PinFeed({
+  pins,
+  savedIds,
+  min = 220,
+  viewerId = null,
+}: PinFeedProps): ReactElement {
+  const [items, setItems] = useState<Pin[]>(pins);
   const [saved, setSaved] = useState<Set<string>>(() => new Set(savedIds));
   const [, startTransition] = useTransition();
   const { show } = useToast();
@@ -83,15 +92,21 @@ export function PinFeed({ pins, savedIds, min = 220 }: PinFeedProps): ReactEleme
     });
   };
 
+  const removePin = (id: string): void => {
+    setItems((current) => current.filter((pin) => pin.id !== id));
+  };
+
   return (
     <div ref={scope}>
       <Masonry min={min}>
-        {pins.map((pin) => (
+        {items.map((pin) => (
           <PinCard
             key={pin.id}
             pin={pin}
             saved={saved.has(pin.id)}
             onToggleSave={() => handleToggle(pin)}
+            canDelete={viewerId !== null && viewerId === pin.creator.id}
+            onDeleted={() => removePin(pin.id)}
           />
         ))}
       </Masonry>

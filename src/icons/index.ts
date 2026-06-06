@@ -10,6 +10,7 @@ export {
   BackIcon,
   CloseIcon,
   CheckIcon,
+  TrashIcon,
   HeartIcon,
   HeartFilledIcon,
   CommentIcon,

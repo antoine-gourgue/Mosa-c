@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { FormEvent, ReactElement } from "react";
-import { Avatar, Button, Textarea } from "@/components/ui";
+import { Avatar, Button, ConfirmDialog, IconButton, Textarea } from "@/components/ui";
+import { TrashIcon } from "@/icons";
 import { formatRelativeTime } from "@/lib/time";
 import { addComment, deleteComment } from "@/server/actions/comments";
 import type { PinComment } from "@/types/domain";
@@ -34,7 +36,9 @@ export function Comments({
   const [comments, setComments] = useState(initialComments);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const router = useRouter();
 
   const onSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -48,6 +52,7 @@ export function Comments({
       if (result.ok) {
         setComments((current) => [...current, result.comment]);
         setBody("");
+        router.refresh();
       } else {
         setError(result.error);
       }
@@ -59,7 +64,9 @@ export function Comments({
     setComments((current) => current.filter((comment) => comment.id !== id));
     startTransition(async () => {
       const result = await deleteComment(id);
-      if (!result.ok) {
+      if (result.ok) {
+        router.refresh();
+      } else {
         setComments(previous);
       }
     });
@@ -95,13 +102,14 @@ export function Comments({
                 <p className="break-words text-[15px] text-ink">{comment.body}</p>
               </div>
               {viewerId === comment.author.id || isPinOwner ? (
-                <button
-                  type="button"
-                  onClick={() => onDelete(comment.id)}
-                  className="shrink-0 cursor-pointer text-sm font-semibold text-ink-soft hover:text-accent"
+                <IconButton
+                  label="Delete comment"
+                  size="sm"
+                  className="shrink-0 text-ink-faint hover:text-accent"
+                  onClick={() => setConfirmId(comment.id)}
                 >
-                  Delete
-                </button>
+                  <TrashIcon size={18} />
+                </IconButton>
               ) : null}
             </li>
           ))}
@@ -123,6 +131,21 @@ export function Comments({
           </Button>
         </form>
       ) : null}
+
+      <ConfirmDialog
+        open={confirmId !== null}
+        title="Delete comment?"
+        description="This comment will be permanently removed."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => {
+          if (confirmId !== null) {
+            onDelete(confirmId);
+          }
+          setConfirmId(null);
+        }}
+        onCancel={() => setConfirmId(null)}
+      />
     </section>
   );
 }

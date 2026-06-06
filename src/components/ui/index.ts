@@ -4,6 +4,8 @@ export { IconButton } from "./IconButton";
 export type { IconButtonProps, IconButtonTone, IconButtonSize } from "./IconButton";
 export { Menu } from "./Menu";
 export type { MenuProps, MenuItem } from "./Menu";
+export { ConfirmDialog } from "./ConfirmDialog";
+export type { ConfirmDialogProps } from "./ConfirmDialog";
 export { Avatar } from "./Avatar";
 export type { AvatarProps } from "./Avatar";
 export { Input } from "./Input";

@@ -39,13 +39,14 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
 
   return (
     <div className="grid md:grid-cols-2">
-      <div className="relative min-h-[420px] bg-surface md:min-h-[560px]">
+      <div className="flex items-center justify-center bg-surface">
         <Image
           src={pin.imageUrl}
           alt={pin.title}
-          fill
+          width={pin.width}
+          height={pin.height}
           sizes="(max-width: 768px) 100vw, 50vw"
-          className="object-cover"
+          className="h-auto max-h-[85vh] w-full object-contain"
         />
       </div>
       <div className="flex flex-col gap-4 px-9 py-8">
@@ -58,6 +59,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
           initialLiked={like.liked}
           likeCount={like.count}
           downloadCount={pin.downloadCount}
+          isOwner={user?.id === pin.creator.id}
         />
         {pin.category !== null ? (
           <span className="text-sm text-ink-soft">
