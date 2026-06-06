@@ -1,6 +1,17 @@
 import type { Metadata } from "next";
 import type { ReactElement } from "react";
 import { SearchDiscovery, SearchResults } from "@/components/search";
+import type { FeedSort } from "@/server/services";
+
+/**
+ * Resolves the feed sort from the URL query.
+ *
+ * @param value - The raw `sort` query value.
+ * @returns The feed sort, defaulting to "recent".
+ */
+function resolveSort(value: string | undefined): FeedSort {
+  return value === "likes" || value === "downloads" || value === "comments" ? value : "recent";
+}
 
 /**
  * Metadata for the search route.
@@ -21,9 +32,9 @@ export const metadata: Metadata = {
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string }>;
 }): Promise<ReactElement> {
-  const { q } = await searchParams;
+  const { q, sort } = await searchParams;
   const query = (q ?? "").trim();
 
   return query === "" ? (
@@ -31,6 +42,6 @@ export default async function SearchPage({
       <SearchDiscovery />
     </div>
   ) : (
-    <SearchResults query={query} />
+    <SearchResults query={query} sort={resolveSort(sort)} />
   );
 }

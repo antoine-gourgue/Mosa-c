@@ -1,3 +1,4 @@
+import type { PinOrderByWithRelationInput } from "@/generated/prisma/models";
 import { prisma } from "@/lib/prisma";
 import type { Pin } from "@/types/domain";
 import { getFollowedCreatorIds } from "./follows";
@@ -19,11 +20,16 @@ export async function getPins(): Promise<Pin[]> {
 export type FeedSource = "foryou" | "following";
 
 /**
- * A page of feed pins with the cursor for the next page.
+ * The selectable home feed sort orders.
+ */
+export type FeedSort = "recent" | "likes" | "downloads" | "comments";
+
+/**
+ * A page of feed pins with whether more pages remain.
  */
 export type FeedPage = {
   pins: Pin[];
-  nextCursor: string | null;
+  hasMore: boolean;
 };
 
 /**
@@ -31,30 +37,43 @@ export type FeedPage = {
  */
 export const FEED_PAGE_SIZE = 24;
 
+/**
+ * Resolves the Prisma order clause for a feed sort, always tie-breaking on
+ * recency and id so paging is stable.
+ *
+ * @param sort - The feed sort order.
+ * @returns The Prisma orderBy array.
+ */
+function feedOrderBy(sort: FeedSort): PinOrderByWithRelationInput[] {
+  const tiebreak: PinOrderByWithRelationInput[] = [{ createdAt: "desc" }, { id: "desc" }];
+  switch (sort) {
+    case "likes":
+      return [{ likes: { _count: "desc" } }, ...tiebreak];
+    case "comments":
+      return [{ comments: { _count: "desc" } }, ...tiebreak];
+    case "downloads":
+      return [{ downloadCount: "desc" }, ...tiebreak];
+    case "recent":
+      return tiebreak;
+  }
+}
+
 type FeedPinsParams = {
-  cursor: string | null;
-  category: string | null;
+  skip: number;
+  sort: FeedSort;
   creatorIds: string[] | null;
   limit: number;
 };
 
 /**
- * Fetches one cursor-paginated page of pins matching an optional category and
- * an optional set of creators, newest first with a stable id tiebreaker.
+ * Fetches one offset-paginated page of pins for an optional set of creators,
+ * ordered by the given sort.
  *
- * @param params - The cursor, category slug, creator filter and page size.
- * @returns The page of pins and the next cursor (null when exhausted).
+ * @param params - The offset, sort, creator filter and page size.
+ * @returns The page of pins and whether more remain.
  */
-async function getFeedPins({
-  cursor,
-  category,
-  creatorIds,
-  limit,
-}: FeedPinsParams): Promise<FeedPage> {
-  const where: { category?: { slug: string }; creatorId?: { in: string[] } } = {};
-  if (category !== null) {
-    where.category = { slug: category };
-  }
+async function getFeedPins({ skip, sort, creatorIds, limit }: FeedPinsParams): Promise<FeedPage> {
+  const where: { creatorId?: { in: string[] } } = {};
   if (creatorIds !== null) {
     where.creatorId = { in: creatorIds };
   }
@@ -62,43 +81,36 @@ async function getFeedPins({
   const rows = await prisma.pin.findMany({
     where,
     include: PIN_INCLUDE,
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    orderBy: feedOrderBy(sort),
+    skip,
     take: limit + 1,
-    ...(cursor === null ? {} : { cursor: { id: cursor }, skip: 1 }),
   });
 
   const hasMore = rows.length > limit;
   const page = hasMore ? rows.slice(0, limit) : rows;
-  const nextCursor = hasMore ? (page.at(-1)?.id ?? null) : null;
-  return { pins: page.map(toPin), nextCursor };
+  return { pins: page.map(toPin), hasMore };
 }
 
 /**
- * Fetches a page of the home feed for the chosen source and category. The
+ * Fetches a page of the home feed for the chosen source and sort. The
  * "following" source restricts pins to the viewer's followed creators.
  *
- * @param params - The cursor, category slug, feed source and viewer id.
- * @returns The page of pins and the next cursor.
+ * @param params - The offset, sort, feed source and viewer id.
+ * @returns The page of pins and whether more remain.
  */
 export async function getHomeFeed(params: {
-  cursor?: string | null;
-  category?: string | null;
+  skip?: number;
+  sort?: FeedSort;
   feed?: FeedSource;
   viewerId: string | null;
   limit?: number;
 }): Promise<FeedPage> {
-  const {
-    cursor = null,
-    category = null,
-    feed = "foryou",
-    viewerId,
-    limit = FEED_PAGE_SIZE,
-  } = params;
+  const { skip = 0, sort = "recent", feed = "foryou", viewerId, limit = FEED_PAGE_SIZE } = params;
   let creatorIds: string[] | null = null;
   if (feed === "following") {
     creatorIds = viewerId === null ? [] : await getFollowedCreatorIds(viewerId);
   }
-  return getFeedPins({ cursor, category, creatorIds, limit });
+  return getFeedPins({ skip, sort, creatorIds, limit });
 }
 
 /**
@@ -128,12 +140,14 @@ export async function getCreatedPins(userId: string): Promise<Pin[]> {
 }
 
 /**
- * Searches pins by title, category label or creator name, case-insensitively.
+ * Searches pins by title, category label or creator name, case-insensitively,
+ * ordered by the given sort.
  *
  * @param query - The raw search query.
+ * @param sort - The sort order, defaulting to most recent.
  * @returns The matching pins, or an empty list for a blank query.
  */
-export async function searchPins(query: string): Promise<Pin[]> {
+export async function searchPins(query: string, sort: FeedSort = "recent"): Promise<Pin[]> {
   const q = query.trim();
   if (q === "") {
     return [];
@@ -147,7 +161,7 @@ export async function searchPins(query: string): Promise<Pin[]> {
       ],
     },
     include: PIN_INCLUDE,
-    orderBy: { createdAt: "desc" },
+    orderBy: feedOrderBy(sort),
   });
   return rows.map(toPin);
 }

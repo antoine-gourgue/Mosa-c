@@ -6,7 +6,7 @@ export {
   getHomeFeed,
   FEED_PAGE_SIZE,
 } from "./pins";
-export type { FeedPage, FeedSource } from "./pins";
+export type { FeedPage, FeedSource, FeedSort } from "./pins";
 export { getCreatorById, getSuggestedCreators, getUserByUsername, getFollowCounts } from "./users";
 export { getCategories } from "./categories";
 export {
