@@ -39,6 +39,33 @@ function revalidateAdmin(): void {
 }
 
 /**
+ * Removes any pin, regardless of ownership. Admin moderation override of the
+ * owner-only delete in the consumer app.
+ *
+ * @param pinId - The pin id.
+ * @returns A promise that resolves once the pin is removed.
+ */
+export async function adminDeletePin(pinId: string): Promise<void> {
+  await requireAdminUser();
+  await prisma.pin.delete({ where: { id: pinId } });
+  revalidatePath("/admin/moderation");
+  revalidatePath("/admin");
+}
+
+/**
+ * Removes any comment, regardless of authorship.
+ *
+ * @param commentId - The comment id.
+ * @returns A promise that resolves once the comment is removed.
+ */
+export async function adminDeleteComment(commentId: string): Promise<void> {
+  await requireAdminUser();
+  await prisma.comment.delete({ where: { id: commentId } });
+  revalidatePath("/admin/moderation");
+  revalidatePath("/admin");
+}
+
+/**
  * Sets a user's role. Admins cannot change their own role, to avoid locking
  * themselves out of the back office.
  *

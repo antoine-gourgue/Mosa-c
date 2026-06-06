@@ -24,5 +24,21 @@ export { getFollowedCreatorIds, isFollowing } from "./follows";
 export { getLikeState } from "./likes";
 export { getComments } from "./comments";
 export { getNotifications, getUnreadCount } from "./notifications";
-export { getAdminOverview, getAdminUsers, ADMIN_USERS_PAGE_SIZE } from "./admin";
-export type { AdminOverview, AdminUsersPage, AdminUserRow } from "./admin";
+export {
+  getAdminOverview,
+  getAdminUsers,
+  getAdminPins,
+  getAdminComments,
+  ADMIN_USERS_PAGE_SIZE,
+  ADMIN_PINS_PAGE_SIZE,
+  ADMIN_COMMENTS_PAGE_SIZE,
+} from "./admin";
+export type {
+  AdminOverview,
+  AdminUsersPage,
+  AdminUserRow,
+  AdminPinsPage,
+  AdminPinRow,
+  AdminCommentsPage,
+  AdminCommentRow,
+} from "./admin";
