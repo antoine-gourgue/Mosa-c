@@ -15,6 +15,7 @@ export type CreatorRowProps = {
   creator: Creator;
   initialFollowing: boolean;
   isSelf?: boolean;
+  followers: number;
 };
 
 /**
@@ -30,6 +31,7 @@ export function CreatorRow({
   creator,
   initialFollowing,
   isSelf = false,
+  followers,
 }: CreatorRowProps): ReactElement {
   const [following, setFollowing] = useState(initialFollowing);
   const [, startTransition] = useTransition();
@@ -61,9 +63,9 @@ export function CreatorRow({
         />
         <div className="flex flex-col text-left">
           <span className="font-semibold text-ink hover:underline">{creator.name}</span>
-          {creator.followersLabel !== null ? (
-            <span className="text-sm text-ink-soft">{creator.followersLabel} followers</span>
-          ) : null}
+          <span className="text-sm text-ink-soft">
+            {followers} {followers === 1 ? "follower" : "followers"}
+          </span>
         </div>
       </Link>
       {isSelf ? null : (
