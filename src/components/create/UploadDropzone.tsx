@@ -107,22 +107,28 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
         <input type="file" accept="image/*" className="hidden" onChange={onInputChange} />
         <div
           className={cn(
-            "grid min-h-[360px] place-items-center overflow-hidden rounded-3xl border-2 border-dashed bg-surface p-6 text-center text-ink-soft transition-colors",
-            dragActive ? "border-accent bg-surface-2" : "border-surface-3",
+            "grid min-h-[440px] place-items-center overflow-hidden rounded-3xl border-2 border-dashed bg-surface p-6 text-center text-ink-soft transition-colors hover:border-ink-faint",
+            dragActive ? "border-accent bg-accent/[0.04]" : "border-surface-3",
           )}
         >
           {value === null ? (
-            <div>
-              <PlusIcon size={34} className="mx-auto" />
-              <div className="mt-2 font-semibold">Choose a file or drag it here</div>
-              <div className="mt-1 text-sm">We recommend high-quality .jpg or .png</div>
+            <div className="px-4">
+              <span className="mx-auto grid size-16 place-items-center rounded-full bg-bg text-ink shadow-pop">
+                <PlusIcon size={28} />
+              </span>
+              <div className="mt-4 text-[15px] font-semibold text-ink">
+                Choose a file or drag it here
+              </div>
+              <div className="mt-1 text-sm">
+                We recommend high-quality .jpg or .png, up to 10 MB
+              </div>
             </div>
           ) : (
             <div
               role="img"
               aria-label="Selected preview"
               style={{ backgroundImage: `url(${value.previewUrl})` }}
-              className="h-[420px] w-full rounded-2xl bg-contain bg-center bg-no-repeat"
+              className="h-[440px] w-full rounded-2xl bg-contain bg-center bg-no-repeat"
             />
           )}
         </div>
