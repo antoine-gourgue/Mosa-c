@@ -36,7 +36,8 @@ export function PinFeed({
   min = 220,
   viewerId = null,
 }: PinFeedProps): ReactElement {
-  const [items, setItems] = useState<Pin[]>(pins);
+  const [removedIds, setRemovedIds] = useState<Set<string>>(() => new Set());
+  const items = pins.filter((pin) => !removedIds.has(pin.id));
   const [saved, setSaved] = useState<Set<string>>(() => new Set(savedIds));
   const [, startTransition] = useTransition();
   const { show } = useToast();
@@ -93,7 +94,11 @@ export function PinFeed({
   };
 
   const removePin = (id: string): void => {
-    setItems((current) => current.filter((pin) => pin.id !== id));
+    setRemovedIds((current) => {
+      const next = new Set(current);
+      next.add(id);
+      return next;
+    });
   };
 
   return (
