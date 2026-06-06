@@ -25,10 +25,11 @@ type Tab = {
 };
 
 /**
- * Fixed bottom tab bar shown on mobile only (the desktop layout relies on the
- * top navigation). It exposes the primary destinations that are otherwise
- * hidden on small screens — Home, Search, Notifications and Saves — plus a
- * prominent central Create action, and reserves the device safe-area inset.
+ * Floating bottom tab bar shown on mobile only (the desktop layout relies on
+ * the top navigation). It exposes the primary destinations otherwise hidden on
+ * small screens — Home, Search, Notifications and Saves — around a raised
+ * central Create action, highlights the active route with an accent pill and
+ * reserves the device safe-area inset.
  *
  * @param props - The unread notification count for the badge.
  * @returns The bottom navigation element.
@@ -37,24 +38,24 @@ export function BottomNav({ unreadCount }: BottomNavProps): ReactElement {
   const pathname = usePathname();
 
   const tabs: Tab[] = [
-    { href: "/", label: "Home", icon: <HomeIcon size={24} />, isActive: (p) => p === "/" },
+    { href: "/", label: "Home", icon: <HomeIcon size={23} />, isActive: (p) => p === "/" },
     {
       href: "/search",
       label: "Search",
-      icon: <SearchIcon size={24} />,
+      icon: <SearchIcon size={23} />,
       isActive: (p) => p.startsWith("/search"),
     },
     {
       href: "/notifications",
       label: "Alerts",
-      icon: <BellIcon size={24} />,
+      icon: <BellIcon size={23} />,
       isActive: (p) => p.startsWith("/notifications"),
       badge: true,
     },
     {
       href: "/boards",
       label: "Saves",
-      icon: <StackIcon size={24} />,
+      icon: <StackIcon size={23} />,
       isActive: (p) => p.startsWith("/boards"),
     },
   ];
@@ -62,17 +63,17 @@ export function BottomNav({ unreadCount }: BottomNavProps): ReactElement {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-surface-2 bg-bg/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md sm:hidden"
+      className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+12px)] z-50 sm:hidden"
     >
-      <ul className="flex h-16 items-stretch justify-around">
+      <ul className="flex h-16 items-center justify-around rounded-[28px] border border-surface-2 bg-bg/85 px-1 shadow-pop backdrop-blur-xl">
         {tabs.slice(0, 2).map((tab) => (
           <NavTab key={tab.href} tab={tab} active={tab.isActive(pathname)} unread={unreadCount} />
         ))}
-        <li className="flex items-center">
+        <li className="flex flex-1 justify-center">
           <Link
             href="/create"
             aria-label="Create Pin"
-            className="grid size-12 place-items-center rounded-full bg-accent text-bg shadow-pop transition duration-150 hover:bg-accent-press active:scale-95"
+            className="grid size-12 -translate-y-3 place-items-center rounded-[18px] bg-accent text-bg shadow-pop transition duration-150 hover:bg-accent-press active:scale-95"
           >
             <PlusIcon size={26} />
           </Link>
@@ -86,8 +87,8 @@ export function BottomNav({ unreadCount }: BottomNavProps): ReactElement {
 }
 
 /**
- * A single bottom-navigation tab rendering an icon, a small label and an
- * optional unread badge, with an active-state highlight.
+ * A single bottom-navigation tab: an icon in an accent pill when active, a small
+ * label and an optional unread badge.
  *
  * @param props - The tab descriptor, its active state and the unread count.
  * @param props.tab - The tab to render.
@@ -106,23 +107,32 @@ function NavTab({
 }): ReactElement {
   const showBadge = tab.badge === true && unread > 0;
   return (
-    <li className="flex flex-1">
+    <li className="flex flex-1 justify-center">
       <Link
         href={tab.href}
         aria-current={active ? "page" : undefined}
         aria-label={showBadge ? `${tab.label}, ${unread} unread` : tab.label}
-        className={cn(
-          "flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors",
-          active ? "text-ink" : "text-ink-soft",
-        )}
+        className="flex flex-col items-center gap-0.5 py-1.5"
       >
-        <span className="relative">
+        <span
+          className={cn(
+            "relative grid size-9 place-items-center transition-colors",
+            active ? "text-accent" : "text-ink-soft",
+          )}
+        >
           {tab.icon}
           {showBadge ? (
-            <span className="absolute -right-1 -top-0.5 size-2 rounded-full bg-accent" />
+            <span className="absolute right-1 top-1 size-2 rounded-full bg-accent ring-2 ring-bg" />
           ) : null}
         </span>
-        {tab.label}
+        <span
+          className={cn(
+            "text-[10px] font-semibold tracking-tight transition-colors",
+            active ? "text-accent" : "text-ink-faint",
+          )}
+        >
+          {tab.label}
+        </span>
       </Link>
     </li>
   );

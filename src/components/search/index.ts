@@ -5,3 +5,5 @@ export { InspirationRail } from "./InspirationRail";
 export type { InspirationRailProps } from "./InspirationRail";
 export { SearchResults } from "./SearchResults";
 export type { SearchResultsProps } from "./SearchResults";
+export { SearchField } from "./SearchField";
+export type { SearchFieldProps } from "./SearchField";

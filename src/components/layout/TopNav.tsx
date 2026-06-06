@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
-import type { ChangeEvent, ReactElement } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import type { ReactElement } from "react";
+import { SearchField } from "@/components/search/SearchField";
 import { Avatar, IconButton, Menu } from "@/components/ui";
-import { BellIcon, Logo, PlusIcon, SearchIcon, StackIcon } from "@/icons";
+import { BellIcon, Logo, PlusIcon, StackIcon } from "@/icons";
 import { logout } from "@/server/actions/auth";
 
 /**
@@ -27,14 +27,6 @@ export type TopNavProps = {
 export function TopNav({ user, unreadCount }: TopNavProps): ReactElement {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get("q") ?? "");
-
-  const onSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    const value = event.target.value;
-    setQuery(value);
-    router.push(value === "" ? "/search" : `/search?q=${encodeURIComponent(value)}`);
-  };
 
   return (
     <nav className="sticky top-0 z-50 flex h-20 items-center gap-2 bg-bg/90 px-4 backdrop-blur-md backdrop-saturate-150 sm:gap-3 sm:px-6">
@@ -42,25 +34,14 @@ export function TopNav({ user, unreadCount }: TopNavProps): ReactElement {
         <span className="grid size-9 place-items-center rounded-xl bg-accent text-bg">
           <Logo size={20} />
         </span>
-        <span className="hidden text-[21px] font-bold text-accent sm:inline">Mosaic</span>
+        <span className="text-[21px] font-bold text-accent">Mosaic</span>
       </Link>
 
-      <div className="flex flex-1 justify-center">
-        <div className="relative w-full max-w-2xl">
-          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-soft">
-            <SearchIcon size={20} />
-          </span>
-          <input
-            value={query}
-            onChange={onSearchChange}
-            placeholder="Search for ideas"
-            aria-label="Search"
-            className="h-12 w-full rounded-3xl bg-surface pl-11 pr-4 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
-          />
-        </div>
+      <div className="hidden flex-1 justify-center sm:flex">
+        <SearchField className="max-w-2xl" />
       </div>
 
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex flex-1 items-center justify-end gap-1 sm:flex-none">
         <div className="hidden items-center gap-1 sm:flex">
           <IconButton label="Create" onClick={() => router.push("/create")}>
             <PlusIcon />
