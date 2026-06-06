@@ -1,5 +1,11 @@
-export { BoardTools } from "./BoardTools";
 export { BoardCollaborators } from "./BoardCollaborators";
-export type { BoardCollaboratorsProps, Collaborator } from "./BoardCollaborators";
+export type { BoardCollaboratorsProps } from "./BoardCollaborators";
 export { BoardsGrid } from "./BoardsGrid";
 export type { BoardsGridProps } from "./BoardsGrid";
+export { BoardFormDialog } from "./BoardFormDialog";
+export type { BoardFormDialogProps } from "./BoardFormDialog";
+export { CreateBoardButton } from "./CreateBoardButton";
+export { ManageCollaborators } from "./ManageCollaborators";
+export type { ManageCollaboratorsProps } from "./ManageCollaborators";
+export { BoardHeader } from "./BoardHeader";
+export type { BoardHeaderProps } from "./BoardHeader";
