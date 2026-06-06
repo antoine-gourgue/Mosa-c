@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { login } from "./helpers";
 
-test("saving a pin shows the toast and adds it to the board", async ({ page }) => {
+test("saving a pin shows the toast and adds it to Quick Saves", async ({ page }) => {
   await login(page);
 
   const card = page.locator('a[href="/pin/pin_3"]').first();
@@ -12,6 +12,8 @@ test("saving a pin shows the toast and adds it to the board", async ({ page }) =
   await expect(page.getByText("Saved to Quick Saves")).toBeVisible();
 
   await page.goto("/boards");
+  await page.locator('a[href="/boards/board_demo_quick"]').click();
+  await expect(page).toHaveURL(/\/boards\/board_demo_quick/);
   await expect(page.locator('a[href="/pin/pin_3"]').first()).toBeVisible();
 
   await page.goto("/");
