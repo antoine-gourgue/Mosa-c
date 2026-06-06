@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import NextAuth from "next-auth";
 import type { Provider } from "next-auth/providers";
 import type { Session } from "next-auth";
@@ -30,7 +31,7 @@ const credentialsProvider = Credentials({
     if (!valid) {
       return null;
     }
-    return { id: user.id, name: user.name, email: user.email, image: user.image };
+    return { id: user.id, name: user.name, email: user.email, image: user.image, role: user.role };
   },
 });
 
@@ -73,4 +74,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 export async function getCurrentUser(): Promise<Session["user"] | null> {
   const session = await auth();
   return session?.user ?? null;
+}
+
+/**
+ * Authorizes an admin-only server context. Redirects unauthenticated visitors
+ * to the login page and non-admins to the home feed. The role is re-checked
+ * against the database (the source of truth), so it stays authoritative even if
+ * a session token is stale.
+ *
+ * @returns The authenticated admin session user.
+ */
+export async function requireAdmin(): Promise<Session["user"]> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    redirect("/login");
+  }
+  const record = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { role: true },
+  });
+  if (record === null || record.role !== "ADMIN") {
+    redirect("/");
+  }
+  return user;
 }

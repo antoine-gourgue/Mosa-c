@@ -26,6 +26,7 @@ describe("toggleFollow", () => {
       name: "User",
       email: "u@x.com",
       image: null,
+      role: "USER",
     });
   });
 

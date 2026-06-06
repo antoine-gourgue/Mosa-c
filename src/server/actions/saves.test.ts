@@ -23,6 +23,7 @@ describe("toggleSave", () => {
       name: "User",
       email: "u@x.com",
       image: null,
+      role: "USER",
     });
   });
 
