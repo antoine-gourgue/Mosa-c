@@ -6,7 +6,6 @@ import { getCurrentUser } from "@/lib/auth";
 import { getComments, getLikeState, getPinById, isFollowing, isSaved } from "@/server/services";
 import { DetailActions } from "./DetailActions";
 import { CreatorRow } from "./CreatorRow";
-import { MoreLikeCreator } from "./MoreLikeCreator";
 import { Comments } from "./Comments";
 
 /**
@@ -76,7 +75,6 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
           initialFollowing={following}
           isSelf={user?.id === pin.creator.id}
         />
-        <MoreLikeCreator creatorName={pin.creator.name} excludeId={pin.creator.id} />
         <Divider className="my-2" />
         <Comments
           pinId={pin.id}
