@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.github
+npm-debug.log*
+*.log
+.env
+.env.*
+!.env.example
+playwright-report
+test-results
+public/uploads/*
+!public/uploads/.gitkeep
+README*.md
+docs
+coverage
+.DS_Store
