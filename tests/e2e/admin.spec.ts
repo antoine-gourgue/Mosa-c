@@ -62,3 +62,17 @@ test("admins can triage the reports queue", async ({ page }) => {
   await page.getByRole("button", { name: "Dismiss" }).first().click();
   await expect(page.getByText("Report dismissed")).toBeVisible();
 });
+
+test("admins can create a category", async ({ page }) => {
+  await loginAsAdmin(page);
+  await page.goto("/admin/categories");
+  await expect(page.getByRole("heading", { name: "Categories" })).toBeVisible();
+  await page.getByRole("button", { name: "Add category" }).click();
+  const name = `Street Food ${Date.now()}`;
+  await page.getByLabel("Name").fill(name);
+  await page
+    .getByLabel("Cover image URL")
+    .fill("https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200");
+  await page.getByRole("button", { name: "Create" }).click();
+  await expect(page.getByText(name)).toBeVisible();
+});

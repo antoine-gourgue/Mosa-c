@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactElement } from "react";
-import { AdminPlaceholder } from "@/components/admin";
+import { CategoriesAdmin } from "@/components/admin";
+import { getAdminCategories } from "@/server/services";
 
 /**
  * Metadata for the admin categories route.
@@ -10,10 +11,12 @@ export const metadata: Metadata = {
 };
 
 /**
- * Admin categories section (placeholder until the category-management ticket).
+ * Admin categories management page: loads every category and renders the
+ * management table with create, edit and delete.
  *
  * @returns The categories page.
  */
-export default function AdminCategoriesPage(): ReactElement {
-  return <AdminPlaceholder title="Categories" />;
+export default async function AdminCategoriesPage(): Promise<ReactElement> {
+  const categories = await getAdminCategories();
+  return <CategoriesAdmin categories={categories} />;
 }

@@ -9,6 +9,7 @@ vi.mock("@/lib/prisma", () => ({
     pin: { delete: vi.fn() },
     comment: { delete: vi.fn() },
     report: { findUnique: vi.fn(), update: vi.fn() },
+    category: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
   },
 }));
 
@@ -17,6 +18,8 @@ import { prisma } from "@/lib/prisma";
 import {
   adminDeleteComment,
   adminDeletePin,
+  createCategory,
+  deleteCategory,
   deleteUser,
   dismissReport,
   resolveReport,
@@ -29,6 +32,7 @@ const db = prisma as unknown as {
   pin: { delete: Mock };
   comment: { delete: Mock };
   report: { findUnique: Mock; update: Mock };
+  category: { findUnique: Mock; create: Mock; update: Mock; delete: Mock };
 };
 
 /**
@@ -141,5 +145,33 @@ describe("admin actions", () => {
       data: { status: "DISMISSED" },
     });
     expect(db.pin.delete).not.toHaveBeenCalled();
+  });
+
+  it("creates a category with a derived slug", async () => {
+    asAdmin();
+    db.category.findUnique.mockResolvedValue(null);
+    await createCategory("Street Food", "https://img.example/x.jpg");
+    expect(db.category.create).toHaveBeenCalledWith({
+      data: { label: "Street Food", imageUrl: "https://img.example/x.jpg", slug: "street-food" },
+    });
+  });
+
+  it("rejects a category whose slug already exists", async () => {
+    asAdmin();
+    db.category.findUnique.mockResolvedValue({ id: "other" });
+    await expect(createCategory("Travel", "https://img.example/x.jpg")).rejects.toThrow();
+    expect(db.category.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects a category with an invalid image URL", async () => {
+    asAdmin();
+    await expect(createCategory("Travel", "not-a-url")).rejects.toThrow();
+    expect(db.category.create).not.toHaveBeenCalled();
+  });
+
+  it("deletes a category", async () => {
+    asAdmin();
+    await deleteCategory("cat1");
+    expect(db.category.delete).toHaveBeenCalledWith({ where: { id: "cat1" } });
   });
 });
