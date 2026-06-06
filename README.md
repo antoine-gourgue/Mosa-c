@@ -60,3 +60,4 @@ See [`PROJECT_PLAN.md`](PROJECT_PLAN.md) for the full epic and ticket breakdown.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — folder structure and layering.
 - [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) — coding, naming and documentation rules.
 - [`docs/DESIGN_TOKENS.md`](docs/DESIGN_TOKENS.md) — colors, spacing, radius, typography.
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — production deployment on a VPS (Docker + Supabase).
