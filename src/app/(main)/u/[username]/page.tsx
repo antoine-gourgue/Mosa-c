@@ -9,6 +9,7 @@ import {
   getCreatedPins,
   getFollowCounts,
   getSavedPinIds,
+  getSavedPins,
   getUserByUsername,
   isFollowing,
 } from "@/server/services";
@@ -62,6 +63,28 @@ async function CreatedView({
 }
 
 /**
+ * Renders the pins a profile has saved.
+ *
+ * @param props - The profile user id and the viewer's saved ids.
+ * @param props.userId - The profile user id.
+ * @param props.savedIds - The viewer's saved pin ids.
+ * @returns The saved pins view.
+ */
+async function SavedView({
+  userId,
+  savedIds,
+}: {
+  userId: string;
+  savedIds: string[];
+}): Promise<ReactElement> {
+  const pins = await getSavedPins(userId);
+  if (pins.length === 0) {
+    return <p className="py-16 text-center text-ink-soft">No saved ideas yet.</p>;
+  }
+  return <PinFeed pins={pins} savedIds={savedIds} />;
+}
+
+/**
  * Public profile route at `/u/[username]`: header, tabs and the active tab's
  * content.
  *
@@ -103,11 +126,11 @@ export default async function ProfilePage({
       />
       <ProfileTabs username={username} active={active} />
       <div className="mt-6">
-        {active === "created" ? (
-          <CreatedView userId={user.id} savedIds={savedIds} />
-        ) : (
-          <p className="py-16 text-center text-ink-soft">Coming soon.</p>
-        )}
+        {active === "created" ? <CreatedView userId={user.id} savedIds={savedIds} /> : null}
+        {active === "saved" ? <SavedView userId={user.id} savedIds={savedIds} /> : null}
+        {active === "boards" ? (
+          <p className="py-16 text-center text-ink-soft">Boards coming soon.</p>
+        ) : null}
       </div>
     </div>
   );
