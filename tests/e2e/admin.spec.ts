@@ -33,3 +33,13 @@ test("admins can open the dashboard and navigate the back office", async ({ page
   await page.getByRole("link", { name: "Categories" }).click();
   await expect(page.getByRole("heading", { name: "Categories" })).toBeVisible();
 });
+
+test("admins can list and search users", async ({ page }) => {
+  await loginAsAdmin(page);
+  await page.goto("/admin/users");
+  await expect(page.getByRole("heading", { name: "Users" })).toBeVisible();
+  await expect(page.getByText("admin@mosaic.app")).toBeVisible();
+  await page.getByLabel("Search users").fill("northlight");
+  await expect(page.getByText("north@mosaic.app")).toBeVisible();
+  await expect(page.getByText("admin@mosaic.app")).toHaveCount(0);
+});

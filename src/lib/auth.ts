@@ -24,7 +24,7 @@ const credentialsProvider = Credentials({
       return null;
     }
     const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
-    if (user === null || user.passwordHash === null) {
+    if (user === null || user.passwordHash === null || user.disabled) {
       return null;
     }
     const valid = await verifyPassword(parsed.data.password, user.passwordHash);

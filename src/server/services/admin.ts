@@ -1,6 +1,95 @@
 import { prisma } from "@/lib/prisma";
 
 /**
+ * Number of users shown per page in the admin users table.
+ */
+export const ADMIN_USERS_PAGE_SIZE = 20;
+
+/**
+ * A user row in the admin users table.
+ */
+export type AdminUserRow = {
+  id: string;
+  name: string;
+  email: string;
+  username: string | null;
+  role: "USER" | "ADMIN";
+  verified: boolean;
+  disabled: boolean;
+  createdAt: Date;
+  pinCount: number;
+};
+
+/**
+ * A page of users for the admin table.
+ */
+export type AdminUsersPage = {
+  rows: AdminUserRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+/**
+ * Lists users for the admin table, optionally filtered by a case-insensitive
+ * search across name, email and username, newest first and paginated.
+ *
+ * @param query - The search term (empty matches everyone).
+ * @param page - The 1-based page number.
+ * @returns The matching users and pagination metadata.
+ */
+export async function getAdminUsers(query: string, page: number): Promise<AdminUsersPage> {
+  const trimmed = query.trim();
+  const where =
+    trimmed === ""
+      ? {}
+      : {
+          OR: [
+            { name: { contains: trimmed, mode: "insensitive" as const } },
+            { email: { contains: trimmed, mode: "insensitive" as const } },
+            { username: { contains: trimmed, mode: "insensitive" as const } },
+          ],
+        };
+  const current = Math.max(1, page);
+  const [total, rows] = await Promise.all([
+    prisma.user.count({ where }),
+    prisma.user.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (current - 1) * ADMIN_USERS_PAGE_SIZE,
+      take: ADMIN_USERS_PAGE_SIZE,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        username: true,
+        role: true,
+        verified: true,
+        disabled: true,
+        createdAt: true,
+        _count: { select: { pins: true } },
+      },
+    }),
+  ]);
+  return {
+    rows: rows.map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      verified: user.verified,
+      disabled: user.disabled,
+      createdAt: user.createdAt,
+      pinCount: user._count.pins,
+    })),
+    total,
+    page: current,
+    pageSize: ADMIN_USERS_PAGE_SIZE,
+  };
+}
+
+/**
  * Aggregate counts and recent activity shown on the admin dashboard.
  */
 export type AdminOverview = {
