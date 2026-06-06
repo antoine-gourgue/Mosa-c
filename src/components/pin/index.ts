@@ -6,5 +6,7 @@ export { PinCard } from "./PinCard";
 export type { PinCardProps } from "./PinCard";
 export { PinFeed } from "./PinFeed";
 export type { PinFeedProps } from "./PinFeed";
+export { InfiniteFeed } from "./InfiniteFeed";
+export type { InfiniteFeedProps } from "./InfiniteFeed";
 export { LikeButton } from "./LikeButton";
 export type { LikeButtonProps } from "./LikeButton";
