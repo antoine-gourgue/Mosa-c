@@ -6,12 +6,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import { Avatar, Button } from "@/components/ui";
-import { BellIcon } from "@/icons";
+import { BellIcon, CommentIcon, HeartFilledIcon, PlusIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { DURATION, REDUCED_MOTION, gsap, useGSAP } from "@/lib/gsap";
 import { formatRelativeTime } from "@/lib/time";
 import { markAllRead } from "@/server/actions/notifications";
-import type { AppNotification } from "@/types/domain";
+import type { AppNotification, NotificationKind } from "@/types/domain";
 
 /**
  * Props for the {@link NotificationsInbox} component.
@@ -35,6 +35,24 @@ function linkFor(item: AppNotification): string {
     return `/u/${item.actor.username}`;
   }
   return "/notifications";
+}
+
+/**
+ * Resolves the small type badge (icon and color) shown over a notification's
+ * actor avatar.
+ *
+ * @param kind - The notification kind.
+ * @returns The badge icon and background class.
+ */
+function typeBadge(kind: NotificationKind): { icon: ReactElement; className: string } {
+  switch (kind) {
+    case "LIKE":
+      return { icon: <HeartFilledIcon size={11} />, className: "bg-accent" };
+    case "COMMENT":
+      return { icon: <CommentIcon size={11} />, className: "bg-ink" };
+    case "FOLLOW":
+      return { icon: <PlusIcon size={11} />, className: "bg-ink-soft" };
+  }
 }
 
 /**
@@ -93,9 +111,9 @@ export function NotificationsInbox({ items }: NotificationsInboxProps): ReactEle
   };
 
   return (
-    <section className="mx-auto w-full max-w-2xl">
-      <header className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold text-ink">Notifications</h1>
+    <section className="w-full">
+      <header className="mb-5 flex items-center justify-between">
+        <h1 className="text-[28px] font-extrabold text-ink">Notifications</h1>
         {items.length > 0 ? (
           <Button variant="ghost" size="sm" onClick={onMarkAll} disabled={pending || !hasUnread}>
             Mark all as read
@@ -114,38 +132,57 @@ export function NotificationsInbox({ items }: NotificationsInboxProps): ReactEle
           </p>
         </div>
       ) : (
-        <ul ref={listRef} className="flex flex-col gap-1">
-          {items.map((item) => (
-            <li key={item.id} data-notification>
-              <Link
-                href={linkFor(item)}
-                className={cn(
-                  "flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors hover:bg-surface",
-                  !item.read && "bg-surface",
-                )}
-              >
-                <Avatar name={item.actor.name} src={item.actor.avatarUrl ?? undefined} size={44} />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[15px] text-ink">{item.message}</p>
-                  <p className="text-[13px] text-ink-faint">{formatRelativeTime(item.createdAt)}</p>
-                </div>
-                {item.pinImageUrl !== null ? (
-                  <span className="relative size-12 shrink-0 overflow-hidden rounded-xl bg-surface-2">
-                    <Image
-                      src={item.pinImageUrl}
-                      alt=""
-                      fill
-                      sizes="48px"
-                      className="object-cover"
+        <ul ref={listRef} className="flex flex-col gap-0.5">
+          {items.map((item) => {
+            const badge = typeBadge(item.kind);
+            return (
+              <li key={item.id} data-notification>
+                <Link
+                  href={linkFor(item)}
+                  className={cn(
+                    "flex items-center gap-3.5 rounded-2xl px-3 py-3 transition-colors hover:bg-surface",
+                    !item.read && "bg-accent/[0.06]",
+                  )}
+                >
+                  <span className="relative shrink-0">
+                    <Avatar
+                      name={item.actor.name}
+                      src={item.actor.avatarUrl ?? undefined}
+                      size={48}
                     />
+                    <span
+                      className={cn(
+                        "absolute -bottom-0.5 -right-0.5 grid size-[22px] place-items-center rounded-full text-bg ring-2 ring-bg",
+                        badge.className,
+                      )}
+                      aria-hidden
+                    >
+                      {badge.icon}
+                    </span>
                   </span>
-                ) : null}
-                {!item.read ? (
-                  <span className="size-2 shrink-0 rounded-full bg-accent" aria-hidden />
-                ) : null}
-              </Link>
-            </li>
-          ))}
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[15px] leading-snug text-ink">{item.message}</p>
+                    <p className="text-[13px] text-ink-faint">
+                      {formatRelativeTime(item.createdAt)}
+                    </p>
+                  </div>
+
+                  <span className="relative size-14 shrink-0 overflow-hidden rounded-xl">
+                    {item.pinImageUrl !== null ? (
+                      <Image
+                        src={item.pinImageUrl}
+                        alt=""
+                        fill
+                        sizes="56px"
+                        className="rounded-xl bg-surface-2 object-cover"
+                      />
+                    ) : null}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
