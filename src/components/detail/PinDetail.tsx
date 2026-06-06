@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 import { Divider } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
-import { getPinById, isFollowing, isSaved } from "@/server/services";
+import { getLikeState, getPinById, isFollowing, isSaved } from "@/server/services";
 import { DetailActions } from "./DetailActions";
 import { CreatorRow } from "./CreatorRow";
 import { MoreLikeCreator } from "./MoreLikeCreator";
@@ -29,9 +29,10 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
     notFound();
   }
   const user = await getCurrentUser();
-  const [saved, following] = await Promise.all([
+  const [saved, following, like] = await Promise.all([
     user === null ? Promise.resolve(false) : isSaved(user.id, pin.id),
     user === null ? Promise.resolve(false) : isFollowing(user.id, pin.creator.id),
+    getLikeState(pin.id, user?.id ?? null),
   ]);
 
   return (
@@ -52,6 +53,8 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
           imageUrl={pin.imageUrl}
           link={pin.link}
           initialSaved={saved}
+          initialLiked={like.liked}
+          likeCount={like.count}
         />
         {pin.category !== null ? (
           <span className="text-sm text-ink-soft">
