@@ -3,8 +3,8 @@ import { login } from "./helpers";
 
 test("searching filters pins and shows an empty state", async ({ page }) => {
   await login(page);
-  await page.goto("/search?q=galaxy");
-  await expect(page.getByText("Galaxy wallpaper")).toBeVisible();
+  await page.goto("/search?q=pizza");
+  await expect(page.getByText("Wood-fired pizza")).toBeVisible();
 
   await page.goto("/search?q=zzqqxx-no-match");
   await expect(page.getByText(/No ideas matched/i)).toBeVisible();
