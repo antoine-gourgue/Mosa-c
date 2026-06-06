@@ -1,4 +1,12 @@
-export { getPins, getPinById, searchPins, getCreatedPins } from "./pins";
+export {
+  getPins,
+  getPinById,
+  searchPins,
+  getCreatedPins,
+  getHomeFeed,
+  FEED_PAGE_SIZE,
+} from "./pins";
+export type { FeedPage, FeedSource } from "./pins";
 export { getCreatorById, getSuggestedCreators, getUserByUsername, getFollowCounts } from "./users";
 export { getCategories } from "./categories";
 export {
