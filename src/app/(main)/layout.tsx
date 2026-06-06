@@ -3,7 +3,7 @@ import type { ReactElement, ReactNode } from "react";
 import { ToastProvider } from "@/components/ui";
 import { Fab, TopNav } from "@/components/layout";
 import { getCurrentUser } from "@/lib/auth";
-import { getCreatorById } from "@/server/services";
+import { getCreatorById, getUnreadCount } from "@/server/services";
 
 /**
  * Authenticated application shell wrapping every main route with the sticky top
@@ -23,7 +23,10 @@ export default async function MainLayout({
   modal: ReactNode;
 }): Promise<ReactElement> {
   const user = await getCurrentUser();
-  const profile = user === null ? null : await getCreatorById(user.id);
+  const [profile, unreadCount] = await Promise.all([
+    user === null ? Promise.resolve(null) : getCreatorById(user.id),
+    user === null ? Promise.resolve(0) : getUnreadCount(user.id),
+  ]);
   return (
     <ToastProvider>
       <a
@@ -39,6 +42,7 @@ export default async function MainLayout({
             image: user?.image ?? null,
             username: profile?.username ?? null,
           }}
+          unreadCount={unreadCount}
         />
       </Suspense>
       <main id="main-content" tabIndex={-1} className="px-6 pb-20 pt-4">

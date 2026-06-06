@@ -12,6 +12,7 @@ import { BellIcon, Logo, PlusIcon, SearchIcon, StackIcon } from "@/icons";
  */
 export type TopNavProps = {
   user: { name: string; image: string | null; username: string | null };
+  unreadCount: number;
 };
 
 /**
@@ -22,7 +23,7 @@ export type TopNavProps = {
  * @param props - The current user used for the profile avatar.
  * @returns The top navigation element.
  */
-export function TopNav({ user }: TopNavProps): ReactElement {
+export function TopNav({ user, unreadCount }: TopNavProps): ReactElement {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -75,9 +76,16 @@ export function TopNav({ user }: TopNavProps): ReactElement {
           <PlusIcon />
         </IconButton>
         <div className="hidden items-center gap-1 sm:flex">
-          <IconButton label="Notifications" className="relative">
+          <IconButton
+            label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
+            active={pathname.startsWith("/notifications")}
+            onClick={() => router.push("/notifications")}
+            className="relative"
+          >
             <BellIcon size={22} />
-            <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-accent" />
+            {unreadCount > 0 ? (
+              <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-accent" />
+            ) : null}
           </IconButton>
           <IconButton
             label="Saves"
