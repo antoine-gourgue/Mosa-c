@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/antoine-gourgue/Mosa-c/compare/v1.0.0...v1.0.1) (2026-06-06)
+
+
+### Documentation
+
+* add the Mosaic logo to the README ([d5f0d95](https://github.com/antoine-gourgue/Mosa-c/commit/d5f0d9523a815164b0b7499244d1236615259da5))
+
 ## 1.0.0 (2026-06-06)
 
 First stable release of Mosaic — a Pinterest-style image board built with
