@@ -3,7 +3,14 @@
 import { useRef, useState, useTransition } from "react";
 import type { ChangeEvent, FormEvent, ReactElement } from "react";
 import { Button, Input, Textarea } from "@/components/ui";
+import { compressImage } from "@/lib/image";
 import { updateProfile } from "@/server/actions/profile";
+
+/**
+ * Maximum accepted avatar size after compression, matching the server action
+ * body size limit.
+ */
+const MAX_AVATAR_BYTES = 10 * 1024 * 1024;
 
 /**
  * Props for the {@link EditProfile} component.
@@ -39,14 +46,24 @@ export function EditProfile({ name, bio, avatarUrl }: EditProfileProps): ReactEl
 
   const onSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
-    const formData = new FormData();
-    formData.set("name", displayName);
-    formData.set("bio", bioText);
-    if (fileRef.current !== null) {
-      formData.set("avatar", fileRef.current);
-    }
     setError(null);
     startTransition(async () => {
+      const formData = new FormData();
+      formData.set("name", displayName);
+      formData.set("bio", bioText);
+      if (fileRef.current !== null) {
+        let file = fileRef.current;
+        try {
+          file = (await compressImage(file, 512, 0.85)).file;
+        } catch {
+          file = fileRef.current;
+        }
+        if (file.size > MAX_AVATAR_BYTES) {
+          setError("Image is too large, even after compression.");
+          return;
+        }
+        formData.set("avatar", file);
+      }
       const result = await updateProfile(formData);
       setError(result.error);
     });
