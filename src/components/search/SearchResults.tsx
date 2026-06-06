@@ -29,7 +29,7 @@ export async function SearchResults({ query, sort }: SearchResultsProps): Promis
 
   return (
     <>
-      <div className="mb-2 flex items-center justify-end">
+      <div className="mb-4 flex items-center justify-end border-b border-line pb-1">
         <FeedFilter active={sort} />
       </div>
       {results.length === 0 ? (
