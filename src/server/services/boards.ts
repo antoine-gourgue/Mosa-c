@@ -152,33 +152,37 @@ export async function getBoardWithPins(
 }
 
 /**
- * Resolves the cover image for a board (its most recent pin), preferring saved
- * pins for the default board.
+ * Resolves up to `limit` cover images for a board (its most recent pins),
+ * preferring saved pins for the default board, for a collage cover.
  *
  * @param boardId - The board id.
  * @param ownerId - The board owner's id.
  * @param isDefault - Whether the board is the default Quick Saves board.
- * @returns The cover image URL, or null when the board is empty.
+ * @param limit - The maximum number of cover images.
+ * @returns The cover image URLs, newest first (possibly empty).
  */
-async function boardCover(
+async function boardCovers(
   boardId: string,
   ownerId: string,
   isDefault: boolean,
-): Promise<string | null> {
+  limit = 3,
+): Promise<string[]> {
   if (isDefault) {
-    const save = await prisma.save.findFirst({
+    const saves = await prisma.save.findMany({
       where: { userId: ownerId },
       include: { pin: { select: { imageUrl: true } } },
       orderBy: { savedAt: "desc" },
+      take: limit,
     });
-    return save?.pin.imageUrl ?? null;
+    return saves.map((save) => save.pin.imageUrl);
   }
-  const boardPin = await prisma.boardPin.findFirst({
+  const boardPins = await prisma.boardPin.findMany({
     where: { boardId },
     include: { pin: { select: { imageUrl: true } } },
     orderBy: { addedAt: "desc" },
+    take: limit,
   });
-  return boardPin?.pin.imageUrl ?? null;
+  return boardPins.map((boardPin) => boardPin.pin.imageUrl);
 }
 
 /**
@@ -196,7 +200,7 @@ export async function getUserBoardsWithCovers(userId: string): Promise<BoardSumm
   });
   return Promise.all(
     rows.map(async (row) => {
-      const coverUrl = await boardCover(row.id, row.ownerId, row.isDefault);
+      const coverUrls = await boardCovers(row.id, row.ownerId, row.isDefault);
       const count = row.isDefault
         ? await prisma.save.count({ where: { userId: row.ownerId } })
         : row._count.pins;
@@ -205,7 +209,7 @@ export async function getUserBoardsWithCovers(userId: string): Promise<BoardSumm
         name: row.name,
         isDefault: row.isDefault,
         pinCount: count,
-        coverUrl,
+        coverUrls,
         ownerUsername: row.owner.username,
       };
     }),
