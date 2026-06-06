@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { createNotification } from "@/server/notifications";
 import { toComment } from "@/server/services/comments";
 import type { PinComment } from "@/types/domain";
 
@@ -32,7 +33,14 @@ export async function addComment(
   }
   const row = await prisma.comment.create({
     data: { pinId, authorId: user.id, body: parsed.data.body },
-    include: { author: true },
+    include: { author: true, pin: { select: { creatorId: true } } },
+  });
+  await createNotification({
+    type: "COMMENT",
+    recipientId: row.pin.creatorId,
+    actorId: user.id,
+    pinId,
+    commentId: row.id,
   });
   revalidatePath(`/pin/${pinId}`);
   return { ok: true, comment: toComment(row) };

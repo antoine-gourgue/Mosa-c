@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { createNotification } from "@/server/notifications";
 import { AppError } from "@/server/result";
 
 /**
@@ -25,6 +26,7 @@ export async function toggleFollow(creatorId: string): Promise<{ following: bool
 
   if (existing === null) {
     await prisma.follow.create({ data: { followerId: user.id, creatorId } });
+    await createNotification({ type: "FOLLOW", recipientId: creatorId, actorId: user.id });
   } else {
     await prisma.follow.delete({ where: key });
   }
