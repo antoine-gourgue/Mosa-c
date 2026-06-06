@@ -71,7 +71,11 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
           <p className="text-base text-[#3a3a3a]">{pin.description}</p>
         ) : null}
         <Divider className="my-2" />
-        <CreatorRow creator={pin.creator} initialFollowing={following} />
+        <CreatorRow
+          creator={pin.creator}
+          initialFollowing={following}
+          isSelf={user?.id === pin.creator.id}
+        />
         <MoreLikeCreator creatorName={pin.creator.name} excludeId={pin.creator.id} />
         <Divider className="my-2" />
         <Comments
