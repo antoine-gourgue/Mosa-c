@@ -83,7 +83,7 @@ export type Board = {
  * A board summary with a cover image and owner handle, for board listings.
  */
 export type BoardSummary = Board & {
-  coverUrl: string | null;
+  coverUrls: string[];
   ownerUsername: string | null;
 };
 
