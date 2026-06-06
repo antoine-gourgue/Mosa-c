@@ -28,7 +28,10 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: optionalSecret,
   APPLE_CLIENT_ID: optionalSecret,
   APPLE_CLIENT_SECRET: optionalSecret,
-  STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),
+  STORAGE_DRIVER: z.enum(["local", "s3", "supabase"]).default("local"),
+  SUPABASE_URL: optionalUrl,
+  SUPABASE_SERVICE_ROLE_KEY: optionalSecret,
+  SUPABASE_STORAGE_BUCKET: z.preprocess(blankToUndefined, z.string().default("pins")),
   NEXT_PUBLIC_APP_URL: optionalUrl,
 });
 
