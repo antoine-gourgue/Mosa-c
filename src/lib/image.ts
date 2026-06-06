@@ -19,6 +19,37 @@ function toWebpName(name: string): string {
 }
 
 /**
+ * Whether a file is an Apple HEIC/HEIF image, detected by MIME type or by
+ * extension since iOS sometimes reports an empty type for these files.
+ *
+ * @param file - The selected file.
+ * @returns True when the file is HEIC or HEIF.
+ */
+export function isHeicFile(file: File): boolean {
+  return /image\/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
+}
+
+/**
+ * Ensures a file can be decoded by the browser. HEIC/HEIF images (typically
+ * iPhone photos) are converted to JPEG because `createImageBitmap` and `<img>`
+ * cannot decode them reliably outside Safari; every other file is returned
+ * unchanged. The HEIC decoder is imported on demand so it never weighs on the
+ * initial bundle.
+ *
+ * @param file - The selected file.
+ * @returns A browser-decodable image file.
+ */
+export async function ensureDisplayableImage(file: File): Promise<File> {
+  if (!isHeicFile(file)) {
+    return file;
+  }
+  const { heicTo } = await import("heic-to");
+  const blob = await heicTo({ blob: file, type: "image/jpeg", quality: 0.92 });
+  const base = file.name.replace(/\.[^./\\]+$/, "") || "image";
+  return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
+}
+
+/**
  * Compresses an image in the browser before upload: it is downscaled so its
  * longest edge is at most `maxEdge` and re-encoded as WebP at the given quality.
  * Animated GIFs and non-raster images are returned unchanged, and the original

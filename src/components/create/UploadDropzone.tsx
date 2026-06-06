@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { ChangeEvent, DragEvent, ReactElement } from "react";
 import { cn } from "@/lib/cn";
+import { ensureDisplayableImage, isHeicFile } from "@/lib/image";
 import { PlusIcon } from "@/icons";
 
 /**
@@ -58,12 +59,13 @@ function readImage(file: File): Promise<SelectedImage> {
 export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactElement {
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [processing, setProcessing] = useState(false);
 
   const handleFile = async (file: File | undefined): Promise<void> => {
     if (file === undefined) {
       return;
     }
-    if (!file.type.startsWith("image/")) {
+    if (!file.type.startsWith("image/") && !isHeicFile(file)) {
       setError("Please choose an image file.");
       return;
     }
@@ -71,15 +73,19 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
       setError("Images must be 10 MB or smaller.");
       return;
     }
+    setError(null);
+    setProcessing(true);
     try {
-      const selected = await readImage(file);
+      const displayable = await ensureDisplayableImage(file);
+      const selected = await readImage(displayable);
       if (value !== null) {
         URL.revokeObjectURL(value.previewUrl);
       }
-      setError(null);
       onChange(selected);
     } catch {
       setError("That image could not be read.");
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -104,14 +110,21 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
         onDrop={onDrop}
         className="block cursor-pointer"
       >
-        <input type="file" accept="image/*" className="hidden" onChange={onInputChange} />
+        <input
+          type="file"
+          accept="image/*,.heic,.heif"
+          className="hidden"
+          onChange={onInputChange}
+        />
         <div
           className={cn(
             "grid min-h-[440px] place-items-center overflow-hidden rounded-3xl border-2 border-dashed bg-surface p-6 text-center text-ink-soft transition-colors hover:border-ink-faint",
             dragActive ? "border-accent bg-accent/[0.04]" : "border-surface-3",
           )}
         >
-          {value === null ? (
+          {processing ? (
+            <div className="px-4 text-[15px] font-semibold text-ink">Processing photo…</div>
+          ) : value === null ? (
             <div className="px-4">
               <span className="mx-auto grid size-16 place-items-center rounded-full bg-bg text-ink shadow-pop">
                 <PlusIcon size={28} />
@@ -120,7 +133,7 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
                 Choose a file or drag it here
               </div>
               <div className="mt-1 text-sm">
-                We recommend high-quality .jpg or .png, up to 10 MB
+                We recommend high-quality .jpg, .png or .heic, up to 10 MB
               </div>
             </div>
           ) : (
