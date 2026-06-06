@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
-import { Button, ConfirmDialog, IconButton, Menu, useToast } from "@/components/ui";
+import { ConfirmDialog, Menu, useToast } from "@/components/ui";
 import { LikeButton } from "@/components/pin";
 import { DownloadIcon, MoreIcon, ShareIcon } from "@/icons";
 import { downloadPin } from "@/lib/download";
@@ -96,12 +96,21 @@ export function DetailActions({
   };
 
   const menuItems: MenuItem[] = [
+    { label: "Share", icon: <ShareIcon size={18} />, onSelect: () => void onShare() },
     { label: "Copy link", icon: <ShareIcon size={18} />, onSelect: () => void onCopyLink() },
     {
       label: "Download image",
       icon: <DownloadIcon size={18} />,
       onSelect: () => void onDownload(),
     },
+    ...(link !== null
+      ? [
+          {
+            label: "Visit site",
+            onSelect: () => window.open(link, "_blank", "noopener,noreferrer"),
+          },
+        ]
+      : []),
     isOwner
       ? { label: "Delete Pin", onSelect: () => setConfirmDelete(true), destructive: true }
       : { label: "Report Pin", onSelect: onReport, destructive: true },
@@ -119,42 +128,28 @@ export function DetailActions({
         onConfirm={onConfirmDelete}
         onCancel={() => setConfirmDelete(false)}
       />
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <Menu label="More options" icon={<MoreIcon />} align="start" items={menuItems} />
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5">
           <LikeButton
             pinId={pinId}
             initialLiked={initialLiked}
             initialCount={likeCount}
             className="h-11 px-3"
           />
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1">
-            <IconButton label="Download image" onClick={() => void onDownload()}>
-              <DownloadIcon size={22} />
-            </IconButton>
-            {downloads > 0 ? (
-              <span
-                className="text-[13px] font-medium text-ink-soft"
-                aria-label={`${downloads} downloads`}
-              >
-                {downloads}
-              </span>
-            ) : null}
-          </div>
-          <IconButton label="Share" onClick={() => void onShare()}>
-            <ShareIcon size={22} />
-          </IconButton>
-          {link !== null ? (
-            <a href={link} target="_blank" rel="noreferrer noopener">
-              <Button variant="ghost">Visit</Button>
-            </a>
+          {downloads > 0 ? (
+            <span
+              className="inline-flex items-center gap-1 px-1 text-[13px] font-medium text-ink-soft"
+              aria-label={`${downloads} downloads`}
+            >
+              <DownloadIcon size={16} />
+              {downloads}
+            </span>
           ) : null}
-          {boards.length > 0 ? (
-            <SaveToBoard pinId={pinId} title={title} imageUrl={imageUrl} boards={boards} />
-          ) : null}
+          <Menu label="More options" icon={<MoreIcon />} align="start" items={menuItems} />
         </div>
+        {boards.length > 0 ? (
+          <SaveToBoard pinId={pinId} title={title} imageUrl={imageUrl} boards={boards} />
+        ) : null}
       </div>
     </>
   );

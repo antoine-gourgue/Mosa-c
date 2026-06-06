@@ -53,7 +53,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
           width={pin.width}
           height={pin.height}
           sizes="(max-width: 768px) 100vw, 50vw"
-          className="h-auto max-h-[85vh] w-full min-w-0 object-contain"
+          className="h-auto max-h-[60vh] w-full min-w-0 object-contain md:max-h-[85vh]"
         />
       </div>
       <div className="flex min-w-0 flex-col gap-4 px-5 py-6 md:px-9 md:py-8">
@@ -77,7 +77,9 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
             mosaic.app / {pin.category.label.toLowerCase()}
           </span>
         ) : null}
-        <h1 className="text-[30px] font-extrabold leading-tight text-ink">{pin.title}</h1>
+        <h1 className="text-2xl font-extrabold leading-tight text-ink md:text-[30px]">
+          {pin.title}
+        </h1>
         {pin.description !== null ? (
           <p className="text-base text-[#3a3a3a]">{pin.description}</p>
         ) : null}

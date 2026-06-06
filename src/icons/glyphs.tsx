@@ -330,3 +330,17 @@ export function NotesIcon(props: IconProps): ReactElement {
     </SvgIcon>
   );
 }
+
+/**
+ * Downward chevron glyph used for dropdown affordances.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function ChevronDownIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon {...props}>
+      <path d="m6 9 6 6 6-6" />
+    </SvgIcon>
+  );
+}

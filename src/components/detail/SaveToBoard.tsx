@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
-import { useToast } from "@/components/ui";
+import { Menu, useToast } from "@/components/ui";
+import { CheckIcon, ChevronDownIcon } from "@/icons";
+import { cn } from "@/lib/cn";
 import { savePinToBoard } from "@/server/actions/saves";
 
 /**
@@ -25,9 +27,10 @@ export type SaveToBoardProps = {
 };
 
 /**
- * Save control of the pin detail: a board selector (defaulting to Quick Saves)
- * and a Save button that adds the pin to the chosen board, confirming with a
- * toast.
+ * Primary save control of the pin detail: a single accent Save button that adds
+ * the pin to the active board (Quick Saves by default). When the user has more
+ * than one board, an attached chevron opens a board menu; picking a board makes
+ * it the active target and saves immediately, keeping the action row uncluttered.
  *
  * @param props - The pin identity and the user's boards.
  * @returns The save control element.
@@ -37,14 +40,16 @@ export function SaveToBoard({ pinId, title, imageUrl, boards }: SaveToBoardProps
   const [pending, startTransition] = useTransition();
   const defaultId = boards.find((board) => board.isDefault)?.id ?? boards[0]?.id ?? "";
   const [boardId, setBoardId] = useState(defaultId);
+  const multi = boards.length > 1;
 
-  const onSave = (): void => {
-    if (boardId === "") {
+  const saveTo = (id: string): void => {
+    if (id === "") {
       return;
     }
-    const boardName = boards.find((board) => board.id === boardId)?.name ?? "board";
+    const boardName = boards.find((board) => board.id === id)?.name ?? "board";
+    setBoardId(id);
     startTransition(async () => {
-      const result = await savePinToBoard(pinId, boardId);
+      const result = await savePinToBoard(pinId, id);
       if (result.ok) {
         show({ title: `Saved to ${boardName}`, description: title, img: imageUrl });
       } else {
@@ -54,27 +59,34 @@ export function SaveToBoard({ pinId, title, imageUrl, boards }: SaveToBoardProps
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <select
-        value={boardId}
-        onChange={(event) => setBoardId(event.target.value)}
-        aria-label="Board"
-        className="h-11 max-w-[160px] cursor-pointer rounded-full bg-surface px-4 text-[15px] font-semibold text-ink outline-none focus:bg-surface-2"
-      >
-        {boards.map((board) => (
-          <option key={board.id} value={board.id}>
-            {board.name}
-          </option>
-        ))}
-      </select>
+    <div className="flex items-center">
       <button
         type="button"
-        onClick={onSave}
+        onClick={() => saveTo(boardId)}
         disabled={pending || boardId === ""}
-        className="h-11 cursor-pointer rounded-full bg-accent px-5 text-[15px] font-semibold text-bg transition-colors duration-150 hover:bg-accent-press disabled:opacity-50"
+        className={cn(
+          "h-11 cursor-pointer bg-accent px-5 text-[15px] font-semibold text-bg transition-colors duration-150 hover:bg-accent-press disabled:opacity-50",
+          multi ? "rounded-l-full" : "rounded-full",
+        )}
       >
         Save
       </button>
+      {multi ? (
+        <Menu
+          label="Choose a board"
+          align="end"
+          items={boards.map((board) => ({
+            label: board.name,
+            icon: board.id === boardId ? <CheckIcon size={18} /> : undefined,
+            onSelect: () => saveTo(board.id),
+          }))}
+          trigger={
+            <span className="flex h-11 items-center rounded-r-full border-l border-bg/30 bg-accent px-2.5 text-bg transition-colors duration-150 hover:bg-accent-press">
+              <ChevronDownIcon size={18} />
+            </span>
+          }
+        />
+      ) : null}
     </div>
   );
 }
