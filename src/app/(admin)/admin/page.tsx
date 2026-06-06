@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import type { ReactElement } from "react";
 import { DataTable, StatCard } from "@/components/admin";
 import type { Column } from "@/components/admin";
@@ -39,7 +40,9 @@ export default async function AdminPage(): Promise<ReactElement> {
       header: "User",
       render: (user) => (
         <div>
-          <div className="font-semibold text-ink">{user.name}</div>
+          <Link href={`/admin/users/${user.id}`} className="font-semibold text-ink hover:underline">
+            {user.name}
+          </Link>
           <div className="text-ink-soft">{user.email}</div>
         </div>
       ),

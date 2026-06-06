@@ -18,6 +18,7 @@ import { prisma } from "@/lib/prisma";
 import {
   adminDeleteComment,
   adminDeletePin,
+  adminUpdateUser,
   createCategory,
   deleteCategory,
   deleteUser,
@@ -101,6 +102,24 @@ describe("admin actions", () => {
     asAdmin();
     await deleteUser("u2");
     expect(db.user.delete).toHaveBeenCalledWith({ where: { id: "u2" } });
+  });
+
+  it("updates a user's name and bio", async () => {
+    asAdmin();
+    await adminUpdateUser("u2", "New Name", "Hello there");
+    expect(db.user.update).toHaveBeenCalledWith({
+      where: { id: "u2" },
+      data: { name: "New Name", bio: "Hello there" },
+    });
+  });
+
+  it("clears the bio when blank", async () => {
+    asAdmin();
+    await adminUpdateUser("u2", "New Name", "");
+    expect(db.user.update).toHaveBeenCalledWith({
+      where: { id: "u2" },
+      data: { name: "New Name", bio: null },
+    });
   });
 
   it("lets an admin remove any pin", async () => {

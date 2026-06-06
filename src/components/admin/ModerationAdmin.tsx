@@ -91,7 +91,15 @@ const COMMENT_COLUMNS: Column<AdminCommentRow>[] = [
     header: "Comment",
     render: (comment) => <span className="line-clamp-2 max-w-md text-ink">{comment.body}</span>,
   },
-  { key: "author", header: "Author", render: (comment) => comment.authorName },
+  {
+    key: "author",
+    header: "Author",
+    render: (comment) => (
+      <Link href={`/admin/users/${comment.authorId}`} className="text-ink hover:underline">
+        {comment.authorName}
+      </Link>
+    ),
+  },
   {
     key: "pin",
     header: "On pin",

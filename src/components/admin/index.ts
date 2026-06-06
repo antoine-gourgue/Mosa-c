@@ -8,3 +8,4 @@ export { UsersAdmin } from "./UsersAdmin";
 export { ModerationAdmin } from "./ModerationAdmin";
 export { ReportsAdmin } from "./ReportsAdmin";
 export { CategoriesAdmin } from "./CategoriesAdmin";
+export { AdminUserDetail } from "./AdminUserDetail";

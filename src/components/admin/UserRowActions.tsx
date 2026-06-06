@@ -15,6 +15,7 @@ import type { AdminUserRow } from "@/server/services";
 export type UserRowActionsProps = {
   user: AdminUserRow;
   isSelf: boolean;
+  redirectAfterDelete?: string;
 };
 
 type Pending = "ban" | "delete" | null;
@@ -27,19 +28,27 @@ type Pending = "ban" | "delete" | null;
  * @param props - The user row and whether it is the current admin.
  * @returns The row actions element.
  */
-export function UserRowActions({ user, isSelf }: UserRowActionsProps): ReactElement {
+export function UserRowActions({
+  user,
+  isSelf,
+  redirectAfterDelete,
+}: UserRowActionsProps): ReactElement {
   const { show } = useToast();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [confirm, setConfirm] = useState<Pending>(null);
 
-  const run = (action: () => Promise<void>, success: string): void => {
+  const run = (action: () => Promise<void>, success: string, redirect?: string): void => {
     startTransition(async () => {
       try {
         await action();
         setConfirm(null);
         show({ title: success });
-        router.refresh();
+        if (redirect !== undefined) {
+          router.push(redirect);
+        } else {
+          router.refresh();
+        }
       } catch (error) {
         setConfirm(null);
         show({
@@ -112,7 +121,7 @@ export function UserRowActions({ user, isSelf }: UserRowActionsProps): ReactElem
         confirmLabel="Delete"
         destructive
         pending={pending}
-        onConfirm={() => run(() => deleteUser(user.id), "User deleted")}
+        onConfirm={() => run(() => deleteUser(user.id), "User deleted", redirectAfterDelete)}
         onCancel={() => setConfirm(null)}
       />
     </>

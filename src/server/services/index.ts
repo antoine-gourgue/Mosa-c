@@ -31,6 +31,7 @@ export {
   getAdminComments,
   getAdminReports,
   getAdminCategories,
+  getAdminUserDetail,
   ADMIN_USERS_PAGE_SIZE,
   ADMIN_PINS_PAGE_SIZE,
   ADMIN_COMMENTS_PAGE_SIZE,
@@ -47,4 +48,5 @@ export type {
   AdminReportsPage,
   AdminReportRow,
   AdminCategoryRow,
+  AdminUserDetail,
 } from "./admin";
