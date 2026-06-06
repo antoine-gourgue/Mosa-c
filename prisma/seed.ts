@@ -371,6 +371,17 @@ async function main(): Promise<void> {
     update: {},
     create: { followerId: "user_demo", creatorId: "user_mira" },
   });
+
+  await prisma.comment.upsert({
+    where: { id: "comment_demo" },
+    update: { body: "Stunning shot — saving this for my next trip board!" },
+    create: {
+      id: "comment_demo",
+      body: "Stunning shot — saving this for my next trip board!",
+      pinId: "pin_1",
+      authorId: "user_demo",
+    },
+  });
 }
 
 main()
