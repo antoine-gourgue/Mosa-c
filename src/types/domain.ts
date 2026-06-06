@@ -37,6 +37,16 @@ export type Pin = {
 };
 
 /**
+ * A comment on a pin, as surfaced to the UI.
+ */
+export type PinComment = {
+  id: string;
+  body: string;
+  createdAt: string;
+  author: Creator;
+};
+
+/**
  * A board with its pin count, as surfaced to the UI.
  */
 export type Board = {
