@@ -24,6 +24,21 @@ export async function getPinById(id: string): Promise<Pin | null> {
 }
 
 /**
+ * Fetches the pins authored by a user, newest first.
+ *
+ * @param userId - The creator's user id.
+ * @returns The user's pins.
+ */
+export async function getCreatedPins(userId: string): Promise<Pin[]> {
+  const rows = await prisma.pin.findMany({
+    where: { creatorId: userId },
+    include: PIN_INCLUDE,
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map(toPin);
+}
+
+/**
  * Searches pins by title, category label or creator name, case-insensitively.
  *
  * @param query - The raw search query.

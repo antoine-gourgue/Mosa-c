@@ -28,3 +28,30 @@ export async function getSuggestedCreators(excludeId: string, limit = 3): Promis
   });
   return rows.map(toCreator);
 }
+
+/**
+ * Fetches a user by their public username handle.
+ *
+ * @param username - The username handle.
+ * @returns The creator, or null when no user has that handle.
+ */
+export async function getUserByUsername(username: string): Promise<Creator | null> {
+  const row = await prisma.user.findUnique({ where: { username } });
+  return row === null ? null : toCreator(row);
+}
+
+/**
+ * Counts how many users follow a creator and how many they follow.
+ *
+ * @param userId - The user id.
+ * @returns The followers and following counts.
+ */
+export async function getFollowCounts(
+  userId: string,
+): Promise<{ followers: number; following: number }> {
+  const [followers, following] = await Promise.all([
+    prisma.follow.count({ where: { creatorId: userId } }),
+    prisma.follow.count({ where: { followerId: userId } }),
+  ]);
+  return { followers, following };
+}
