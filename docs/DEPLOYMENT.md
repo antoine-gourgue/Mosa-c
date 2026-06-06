@@ -89,6 +89,35 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d --bui
 
 The `migrate` service re-applies any new migrations before the app restarts.
 
+## Continuous deployment (GitHub Actions)
+
+The CI workflow has a `deploy` job that, after the quality and e2e jobs pass on
+a push to `main`, connects to the VPS over SSH and runs the update commands
+above. It only runs once the deployment secrets are set, so CI stays green
+before the VPS is wired up.
+
+One-time setup:
+
+1. **On the VPS**, complete the manual deployment above once (clone, configure
+   `.env.production`, first `up`).
+2. **Create a dedicated deploy key** (no passphrase) and authorize it:
+   ```bash
+   ssh-keygen -t ed25519 -f ~/.ssh/mosaic_deploy -N ""
+   cat ~/.ssh/mosaic_deploy.pub >> ~/.ssh/authorized_keys
+   cat ~/.ssh/mosaic_deploy   # copy the private key for the secret below
+   ```
+3. **Add GitHub repository secrets** (Settings → Secrets and variables →
+   Actions):
+   - `VPS_HOST` — the server IP or hostname.
+   - `VPS_USER` — the SSH user.
+   - `VPS_SSH_KEY` — the **private** deploy key from step 2.
+   - `VPS_PATH` — the absolute path of the cloned repo on the server.
+   - `VPS_PORT` — optional, defaults to `22`.
+
+After that, every merge to `main` runs CI and, if green, redeploys
+automatically. Prefer SSH-key authentication and disable password login on the
+server (`PasswordAuthentication no` in `/etc/ssh/sshd_config`).
+
 ## 5. Database backups
 
 Dump the database from the Postgres container:
