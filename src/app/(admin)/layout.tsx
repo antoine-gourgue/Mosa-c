@@ -1,5 +1,6 @@
 import type { ReactElement, ReactNode } from "react";
 import { AdminSidebar } from "@/components/admin";
+import { ToastProvider } from "@/components/ui";
 import { requireAdmin } from "@/lib/auth";
 
 /**
@@ -19,9 +20,11 @@ export default async function AdminLayout({
 }): Promise<ReactElement> {
   await requireAdmin();
   return (
-    <div className="flex min-h-dvh bg-surface">
-      <AdminSidebar />
-      <main className="min-w-0 flex-1">{children}</main>
-    </div>
+    <ToastProvider>
+      <div className="flex min-h-dvh bg-surface">
+        <AdminSidebar />
+        <main className="min-w-0 flex-1">{children}</main>
+      </div>
+    </ToastProvider>
   );
 }
