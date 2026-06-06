@@ -36,6 +36,7 @@ export type Pin = {
   category: Category | null;
   likeCount: number;
   commentCount: number;
+  downloadCount: number;
 };
 
 /**

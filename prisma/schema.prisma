@@ -99,14 +99,15 @@ model Category {
 }
 
 model Pin {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  imageUrl    String
-  width       Int
-  height      Int
-  link        String?
-  createdAt   DateTime @default(now())
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  imageUrl      String
+  width         Int
+  height        Int
+  link          String?
+  downloadCount Int      @default(0)
+  createdAt     DateTime @default(now())
 
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)

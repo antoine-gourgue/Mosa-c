@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { MouseEvent, ReactElement } from "react";
 import { Avatar, IconButton, useToast } from "@/components/ui";
-import { CommentIcon, HeartIcon, MoreIcon, ShareIcon, StackIcon } from "@/icons";
+import { CommentIcon, DownloadIcon, HeartIcon, MoreIcon, ShareIcon, StackIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { pinUrl, sharePin } from "@/lib/share";
 import type { Pin } from "@/types/domain";
@@ -106,7 +106,7 @@ export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): Reac
             <span className="text-[13px] text-ink-soft">{pin.creator.name}</span>
           </div>
         )}
-        {pin.likeCount > 0 || pin.commentCount > 0 ? (
+        {pin.likeCount > 0 || pin.commentCount > 0 || pin.downloadCount > 0 ? (
           <div className="mt-1 flex items-center gap-3 text-[13px] text-ink-faint">
             {pin.likeCount > 0 ? (
               <span className="inline-flex items-center gap-1">
@@ -118,6 +118,12 @@ export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): Reac
               <span className="inline-flex items-center gap-1">
                 <CommentIcon size={14} />
                 {pin.commentCount}
+              </span>
+            ) : null}
+            {pin.downloadCount > 0 ? (
+              <span className="inline-flex items-center gap-1">
+                <DownloadIcon size={14} />
+                {pin.downloadCount}
               </span>
             ) : null}
           </div>

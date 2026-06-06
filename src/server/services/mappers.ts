@@ -34,6 +34,7 @@ export type PinRow = {
   width: number;
   height: number;
   link: string | null;
+  downloadCount: number;
   creator: CreatorRow;
   category: CategoryRow | null;
   _count: { likes: number; comments: number };
@@ -105,6 +106,7 @@ export function toPin(row: PinRow): Pin {
     category: row.category === null ? null : toCategory(row.category),
     likeCount: row._count.likes,
     commentCount: row._count.comments,
+    downloadCount: row.downloadCount,
   };
 }
 
