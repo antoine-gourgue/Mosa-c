@@ -49,6 +49,26 @@ export type PinComment = {
 };
 
 /**
+ * The kind of engagement that produced a notification.
+ */
+export type NotificationKind = "FOLLOW" | "LIKE" | "COMMENT";
+
+/**
+ * A notification as surfaced to the UI, with the actor and target context
+ * needed to render and link the item.
+ */
+export type AppNotification = {
+  id: string;
+  kind: NotificationKind;
+  read: boolean;
+  createdAt: string;
+  actor: Creator;
+  pinId: string | null;
+  pinImageUrl: string | null;
+  message: string;
+};
+
+/**
  * A board with its pin count, as surfaced to the UI.
  */
 export type Board = {

@@ -11,3 +11,4 @@ export { getSavedPinIds, getSavedPins, isSaved } from "./saves";
 export { getFollowedCreatorIds, isFollowing } from "./follows";
 export { getLikeState } from "./likes";
 export { getComments } from "./comments";
+export { getNotifications, getUnreadCount } from "./notifications";
