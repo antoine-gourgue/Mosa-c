@@ -24,27 +24,43 @@ async function requireUser(): Promise<NonNullable<Session["user"]>> {
 }
 
 /**
- * Ensures a board exists and is owned by the given user.
+ * Loads a board's owner and default flag, throwing when it does not exist.
  *
  * @param boardId - The board id.
- * @param userId - The expected owner id.
- * @returns A promise that resolves when ownership is confirmed.
+ * @returns The board's owner id and default flag.
  */
-async function assertBoardOwner(boardId: string, userId: string): Promise<void> {
+async function getBoardOwnership(
+  boardId: string,
+): Promise<{ ownerId: string; isDefault: boolean }> {
   const board = await prisma.board.findUnique({
     where: { id: boardId },
-    select: { ownerId: true },
+    select: { ownerId: true, isDefault: true },
   });
   if (board === null) {
     throw new AppError("NOT_FOUND", "Board not found.");
   }
-  if (board.ownerId !== userId) {
-    throw new AppError("UNAUTHORIZED", "You do not own this board.");
+  return board;
+}
+
+/**
+ * Ensures a user may edit a board (its owner or an editor member).
+ *
+ * @param boardId - The board id.
+ * @param userId - The acting user id.
+ * @returns A promise that resolves when the user can edit the board.
+ */
+async function assertCanEdit(boardId: string, userId: string): Promise<void> {
+  const member = await prisma.boardMember.findUnique({
+    where: { boardId_userId: { boardId, userId } },
+    select: { role: true },
+  });
+  if (member === null || member.role === "VIEWER") {
+    throw new AppError("UNAUTHORIZED", "You cannot edit this board.");
   }
 }
 
 /**
- * Creates a new board owned by the current user.
+ * Creates a new board owned by the current user, with an OWNER membership.
  *
  * @param name - The board name.
  * @returns The created board.
@@ -56,7 +72,11 @@ export async function createBoard(name: string): Promise<Board> {
     throw new AppError("VALIDATION", "Please enter a board name.");
   }
   const board = await prisma.board.create({
-    data: { name: parsed.data, ownerId: user.id },
+    data: {
+      name: parsed.data,
+      ownerId: user.id,
+      members: { create: { userId: user.id, role: "OWNER" } },
+    },
     include: { _count: { select: { pins: true } } },
   });
   revalidatePath("/boards");
@@ -69,6 +89,45 @@ export async function createBoard(name: string): Promise<Board> {
 }
 
 /**
+ * Renames a board. Allowed for the owner or an editor.
+ *
+ * @param boardId - The board id.
+ * @param name - The new board name.
+ * @returns A promise that resolves once the board is renamed.
+ */
+export async function renameBoard(boardId: string, name: string): Promise<void> {
+  const user = await requireUser();
+  await assertCanEdit(boardId, user.id);
+  const parsed = boardNameSchema.safeParse(name);
+  if (!parsed.success) {
+    throw new AppError("VALIDATION", "Please enter a board name.");
+  }
+  await prisma.board.update({ where: { id: boardId }, data: { name: parsed.data } });
+  revalidatePath("/boards");
+  revalidatePath(`/boards/${boardId}`);
+}
+
+/**
+ * Deletes a board. Allowed for the owner only; the default Quick Saves board
+ * cannot be deleted. Board pins and memberships are removed by the cascade.
+ *
+ * @param boardId - The board id.
+ * @returns A promise that resolves once the board is deleted.
+ */
+export async function deleteBoard(boardId: string): Promise<void> {
+  const user = await requireUser();
+  const board = await getBoardOwnership(boardId);
+  if (board.ownerId !== user.id) {
+    throw new AppError("UNAUTHORIZED", "You do not own this board.");
+  }
+  if (board.isDefault) {
+    throw new AppError("VALIDATION", "The default board cannot be deleted.");
+  }
+  await prisma.board.delete({ where: { id: boardId } });
+  revalidatePath("/boards");
+}
+
+/**
  * Adds a pin to one of the current user's boards (idempotent).
  *
  * @param pinId - The pin id.
@@ -77,7 +136,7 @@ export async function createBoard(name: string): Promise<Board> {
  */
 export async function addPinToBoard(pinId: string, boardId: string): Promise<void> {
   const user = await requireUser();
-  await assertBoardOwner(boardId, user.id);
+  await assertCanEdit(boardId, user.id);
   await prisma.boardPin.upsert({
     where: { boardId_pinId: { boardId, pinId } },
     update: {},
@@ -95,7 +154,7 @@ export async function addPinToBoard(pinId: string, boardId: string): Promise<voi
  */
 export async function removePinFromBoard(pinId: string, boardId: string): Promise<void> {
   const user = await requireUser();
-  await assertBoardOwner(boardId, user.id);
+  await assertCanEdit(boardId, user.id);
   await prisma.boardPin.delete({ where: { boardId_pinId: { boardId, pinId } } });
   revalidatePath("/boards");
 }

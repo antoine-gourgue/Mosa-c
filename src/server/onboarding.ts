@@ -16,7 +16,14 @@ async function ensureDefaultBoard(userId: string): Promise<void> {
   if (existing !== null) {
     return;
   }
-  await prisma.board.create({ data: { ownerId: userId, name: "Quick Saves", isDefault: true } });
+  await prisma.board.create({
+    data: {
+      ownerId: userId,
+      name: "Quick Saves",
+      isDefault: true,
+      members: { create: { userId, role: "OWNER" } },
+    },
+  });
 }
 
 /**

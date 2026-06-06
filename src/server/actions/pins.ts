@@ -73,7 +73,14 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
   const board =
     (await prisma.board.findFirst({
       where: { ownerId: user.id, name: { equals: boardName, mode: "insensitive" } },
-    })) ?? (await prisma.board.create({ data: { ownerId: user.id, name: boardName } }));
+    })) ??
+    (await prisma.board.create({
+      data: {
+        ownerId: user.id,
+        name: boardName,
+        members: { create: { userId: user.id, role: "OWNER" } },
+      },
+    }));
 
   if (board.isDefault) {
     await prisma.save.upsert({
