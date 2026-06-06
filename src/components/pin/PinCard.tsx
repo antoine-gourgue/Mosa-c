@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { MouseEvent, ReactElement } from "react";
-import { Avatar, IconButton } from "@/components/ui";
+import { Avatar, IconButton, useToast } from "@/components/ui";
 import { CommentIcon, HeartIcon, MoreIcon, ShareIcon, StackIcon } from "@/icons";
 import { cn } from "@/lib/cn";
+import { pinUrl, sharePin } from "@/lib/share";
 import type { Pin } from "@/types/domain";
 
 /**
@@ -27,9 +28,19 @@ export type PinCardProps = {
  * @returns The pin card element.
  */
 export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): ReactElement {
+  const { show } = useToast();
+
   const stop = (event: MouseEvent<HTMLButtonElement>): void => {
     event.preventDefault();
     event.stopPropagation();
+  };
+
+  const onShare = async (event: MouseEvent<HTMLButtonElement>): Promise<void> => {
+    stop(event);
+    const outcome = await sharePin({ url: pinUrl(pin.id), title: pin.title });
+    if (outcome === "copied") {
+      show({ title: "Link copied", description: pin.title, img: pin.imageUrl });
+    }
   };
 
   return (
@@ -72,7 +83,7 @@ export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): Reac
             >
               {saved ? "Saved" : "Save"}
             </button>
-            <IconButton label="Share" tone="solid" onClick={stop}>
+            <IconButton label="Share" tone="solid" onClick={(event) => void onShare(event)}>
               <ShareIcon size={16} />
             </IconButton>
           </div>

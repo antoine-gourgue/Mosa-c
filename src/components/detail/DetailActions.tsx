@@ -7,6 +7,7 @@ import { Button, IconButton, useToast } from "@/components/ui";
 import { LikeButton } from "@/components/pin";
 import { MoreIcon, ShareIcon } from "@/icons";
 import { cn } from "@/lib/cn";
+import { pinUrl, sharePin } from "@/lib/share";
 import { toggleSave } from "@/server/actions/saves";
 
 /**
@@ -65,6 +66,13 @@ export function DetailActions({
     });
   };
 
+  const onShare = async (): Promise<void> => {
+    const outcome = await sharePin({ url: pinUrl(pinId), title });
+    if (outcome === "copied") {
+      show({ title: "Link copied", description: title, img: imageUrl });
+    }
+  };
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-1">
@@ -79,7 +87,7 @@ export function DetailActions({
         />
       </div>
       <div className="flex items-center gap-2">
-        <IconButton label="Share">
+        <IconButton label="Share" onClick={() => void onShare()}>
           <ShareIcon size={22} />
         </IconButton>
         {link !== null ? (
