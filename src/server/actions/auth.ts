@@ -2,7 +2,7 @@
 
 import { AuthError } from "next-auth";
 import { prisma } from "@/lib/prisma";
-import { signIn } from "@/lib/auth";
+import { signIn, signOut } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
 import {
   registerSchema,
@@ -100,4 +100,13 @@ export async function loginUser(input: SignInInput): Promise<ActionResult> {
     }
     throw error;
   }
+}
+
+/**
+ * Signs the current user out and redirects to the login page.
+ *
+ * @returns A promise that never resolves normally, as it redirects.
+ */
+export async function logout(): Promise<void> {
+  await signOut({ redirectTo: "/login" });
 }

@@ -21,25 +21,28 @@ export type MenuItem = {
  */
 export type MenuProps = {
   label: string;
-  icon: ReactNode;
+  icon?: ReactNode;
+  trigger?: ReactNode;
   items: MenuItem[];
   align?: "start" | "end";
   tone?: IconButtonTone;
 };
 
 /**
- * Accessible icon-triggered dropdown menu. The panel is rendered in a portal
- * with fixed positioning anchored to the trigger so it is never clipped by an
- * ancestor's `overflow: hidden`, and the trigger stops click propagation so the
- * menu can live inside a linked card without navigating. It closes on outside
- * click, Escape, scroll, resize or selection.
+ * Accessible dropdown menu. By default the trigger is an icon button, but a
+ * custom `trigger` node (e.g. an avatar) can be supplied instead. The panel is
+ * rendered in a portal with fixed positioning anchored to the trigger so it is
+ * never clipped by an ancestor's `overflow: hidden`, and the trigger stops
+ * click propagation so the menu can live inside a linked card without
+ * navigating. It closes on outside click, Escape, scroll, resize or selection.
  *
- * @param props - The trigger label and icon plus the menu items.
+ * @param props - The trigger label and icon (or custom trigger) plus the items.
  * @returns The menu element.
  */
 export function Menu({
   label,
   icon,
+  trigger,
   items,
   align = "end",
   tone = "ghost",
@@ -98,16 +101,30 @@ export function Menu({
 
   return (
     <>
-      <IconButton
-        ref={triggerRef}
-        label={label}
-        tone={tone}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={onTriggerClick}
-      >
-        {icon}
-      </IconButton>
+      {trigger !== undefined ? (
+        <button
+          ref={triggerRef}
+          type="button"
+          aria-label={label}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          onClick={onTriggerClick}
+          className="cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
+        >
+          {trigger}
+        </button>
+      ) : (
+        <IconButton
+          ref={triggerRef}
+          label={label}
+          tone={tone}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          onClick={onTriggerClick}
+        >
+          {icon}
+        </IconButton>
+      )}
       {open
         ? createPortal(
             <div

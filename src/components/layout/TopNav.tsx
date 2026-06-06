@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { ChangeEvent, ReactElement } from "react";
-import { Avatar, IconButton } from "@/components/ui";
+import { Avatar, IconButton, Menu } from "@/components/ui";
 import { BellIcon, Logo, PlusIcon, SearchIcon, StackIcon } from "@/icons";
+import { logout } from "@/server/actions/auth";
 
 /**
  * Props for the {@link TopNav} component.
@@ -16,11 +17,11 @@ export type TopNavProps = {
 };
 
 /**
- * Sticky top navigation: brand, Home/Saved tabs, a central search field that
- * routes to the search page as the user types, and the action icons (create,
- * notifications, saves, profile).
+ * Sticky top navigation: brand, a central search field that routes to the
+ * search page as the user types, the action icons (create, notifications,
+ * saves) and an avatar account menu with profile links and log out.
  *
- * @param props - The current user used for the profile avatar.
+ * @param props - The current user and unread notification count.
  * @returns The top navigation element.
  */
 export function TopNav({ user, unreadCount }: TopNavProps): ReactElement {
@@ -83,13 +84,25 @@ export function TopNav({ user, unreadCount }: TopNavProps): ReactElement {
             <StackIcon size={22} />
           </IconButton>
         </div>
-        <Link
-          href={user.username !== null ? `/u/${user.username}` : "/boards"}
-          aria-label="Profile"
-          className="ml-1 shrink-0"
-        >
-          <Avatar name={user.name} src={user.image ?? undefined} size={44} />
-        </Link>
+        <div className="ml-1 shrink-0">
+          <Menu
+            label="Account menu"
+            align="end"
+            trigger={<Avatar name={user.name} src={user.image ?? undefined} size={44} />}
+            items={[
+              ...(user.username !== null
+                ? [
+                    {
+                      label: "Your profile",
+                      onSelect: () => router.push(`/u/${user.username ?? ""}`),
+                    },
+                  ]
+                : []),
+              { label: "Edit profile", onSelect: () => router.push("/settings/profile") },
+              { label: "Log out", onSelect: () => void logout(), destructive: true },
+            ]}
+          />
+        </div>
       </div>
     </nav>
   );
