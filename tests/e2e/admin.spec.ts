@@ -51,5 +51,5 @@ test("admins can moderate pins and comments", async ({ page }) => {
   await page.getByLabel("Search pins").fill("Paris");
   await expect(page.getByText("Paris at dusk")).toBeVisible();
   await page.getByRole("link", { name: "comments" }).click();
-  await expect(page.getByRole("columnheader", { name: "Author" })).toBeVisible();
+  await expect(page.getByText(/Stunning shot/)).toBeVisible();
 });
