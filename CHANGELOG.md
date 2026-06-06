@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/antoine-gourgue/Mosa-c/compare/v1.0.1...v1.0.2) (2026-06-06)
+
+
+### Bug Fixes
+
+* **create:** support HEIC/HEIF photo uploads ([ed24c88](https://github.com/antoine-gourgue/Mosa-c/commit/ed24c88992c07c6094d3c4961e9aff7bcd599693))
+
 ## [1.0.1](https://github.com/antoine-gourgue/Mosa-c/compare/v1.0.0...v1.0.1) (2026-06-06)
 
 
