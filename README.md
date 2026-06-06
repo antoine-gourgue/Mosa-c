@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src=".github/logo.svg" alt="Mosaic" width="88" height="88" />
+
 # Mosaic
 
 A Pinterest-style image board — discover pins, save ideas into boards, follow
