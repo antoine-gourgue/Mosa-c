@@ -236,6 +236,43 @@ export async function getAdminComments(page: number): Promise<AdminCommentsPage>
 }
 
 /**
+ * A category row in the admin categories table.
+ */
+export type AdminCategoryRow = {
+  id: string;
+  slug: string;
+  label: string;
+  imageUrl: string;
+  pinCount: number;
+};
+
+/**
+ * Lists every category with its pin count for the admin categories table,
+ * alphabetically by label.
+ *
+ * @returns The categories.
+ */
+export async function getAdminCategories(): Promise<AdminCategoryRow[]> {
+  const rows = await prisma.category.findMany({
+    orderBy: { label: "asc" },
+    select: {
+      id: true,
+      slug: true,
+      label: true,
+      imageUrl: true,
+      _count: { select: { pins: true } },
+    },
+  });
+  return rows.map((category) => ({
+    id: category.id,
+    slug: category.slug,
+    label: category.label,
+    imageUrl: category.imageUrl,
+    pinCount: category._count.pins,
+  }));
+}
+
+/**
  * Number of reports shown per page in the admin reports queue.
  */
 export const ADMIN_REPORTS_PAGE_SIZE = 20;
