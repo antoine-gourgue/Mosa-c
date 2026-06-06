@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactElement } from "react";
-import { Avatar } from "@/components/ui";
+import { BoardHeader } from "@/components/board";
 import { PinFeed } from "@/components/pin";
 import { getCurrentUser } from "@/lib/auth";
 import { getBoardWithPins, getSavedPinIds } from "@/server/services";
@@ -47,19 +46,7 @@ export default async function BoardPage({
 
   return (
     <div className="mx-auto max-w-[1180px]">
-      <header className="flex flex-col items-center gap-3 py-8 text-center">
-        <h1 className="text-4xl font-extrabold text-ink sm:text-5xl">{board.name}</h1>
-        <Link
-          href={board.owner.username !== null ? `/u/${board.owner.username}` : "#"}
-          className="flex items-center gap-2"
-        >
-          <Avatar src={board.owner.avatarUrl ?? undefined} name={board.owner.name} size={28} />
-          <span className="text-sm text-ink-soft">{board.owner.name}</span>
-        </Link>
-        <p className="text-sm text-ink-soft">
-          {count} {count === 1 ? "Pin" : "Pins"}
-        </p>
-      </header>
+      <BoardHeader board={board} />
       {count === 0 ? (
         <p className="py-16 text-center text-ink-soft">This board is empty.</p>
       ) : (

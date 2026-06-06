@@ -1,45 +1,55 @@
+"use client";
+
 import type { ReactElement } from "react";
 import { Avatar, IconButton } from "@/components/ui";
 import { PlusIcon } from "@/icons";
-
-/**
- * A board collaborator surfaced to the UI.
- */
-export type Collaborator = {
-  name: string;
-  src: string | null;
-};
+import type { BoardMemberSummary } from "@/types/domain";
 
 /**
  * Props for the {@link BoardCollaborators} component.
  */
 export type BoardCollaboratorsProps = {
-  collaborators: Collaborator[];
+  members: BoardMemberSummary[];
+  canManage?: boolean;
+  onManage?: () => void;
 };
 
 /**
- * Overlapping stack of collaborator avatars with an add button.
+ * Overlapping stack of a board's member avatars, with an optional manage button
+ * for the owner.
  *
- * @param props - The collaborators to display.
+ * @param props - The board members and the manage affordance.
  * @returns The collaborators stack element.
  */
-export function BoardCollaborators({ collaborators }: BoardCollaboratorsProps): ReactElement {
+export function BoardCollaborators({
+  members,
+  canManage = false,
+  onManage,
+}: BoardCollaboratorsProps): ReactElement {
   return (
     <div className="flex items-center">
-      {collaborators.map((collaborator, index) => (
+      {members.map((member, index) => (
         <span
-          key={`${collaborator.name}-${index}`}
+          key={member.user.id}
           className="rounded-full ring-[3px] ring-bg"
           style={{ marginLeft: index === 0 ? 0 : -12 }}
+          title={member.user.name}
         >
-          <Avatar src={collaborator.src ?? undefined} name={collaborator.name} size={44} />
+          <Avatar src={member.user.avatarUrl ?? undefined} name={member.user.name} size={40} />
         </span>
       ))}
-      <span className="ml-2">
-        <IconButton label="Add collaborator" tone="ghost" className="bg-surface">
-          <PlusIcon size={20} />
-        </IconButton>
-      </span>
+      {canManage ? (
+        <span className="ml-2">
+          <IconButton
+            label="Manage collaborators"
+            tone="ghost"
+            className="bg-surface"
+            onClick={onManage}
+          >
+            <PlusIcon size={20} />
+          </IconButton>
+        </span>
+      ) : null}
     </div>
   );
 }
