@@ -69,7 +69,11 @@ export default async function AdminPage(): Promise<ReactElement> {
     {
       key: "title",
       header: "Pin",
-      render: (pin) => <span className="font-semibold">{pin.title}</span>,
+      render: (pin) => (
+        <Link href={`/admin/pins/${pin.id}`} className="font-semibold text-ink hover:underline">
+          {pin.title}
+        </Link>
+      ),
     },
     { key: "creator", header: "Creator", render: (pin) => pin.creatorName },
     { key: "created", header: "Created", render: (pin) => day(pin.createdAt) },

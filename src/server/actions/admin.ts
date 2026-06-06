@@ -17,6 +17,12 @@ const userProfileSchema = z.object({
   name: z.string().trim().min(1).max(80),
   bio: z.string().trim().max(300),
 });
+const pinSchema = z.object({
+  title: z.string().trim().min(1).max(120),
+  description: z.string().trim().max(1000),
+  link: z.union([z.literal(""), z.url()]),
+  categoryId: z.string().nullable(),
+});
 
 /**
  * Authorizes the caller as an admin, throwing when they are not signed in or
@@ -59,6 +65,40 @@ export async function adminDeletePin(pinId: string): Promise<void> {
   await prisma.pin.delete({ where: { id: pinId } });
   revalidatePath("/admin/moderation");
   revalidatePath("/admin");
+}
+
+/**
+ * Updates a pin's title, description, link and category as an admin override.
+ *
+ * @param pinId - The pin id.
+ * @param input - The new title, description, link and category id.
+ * @returns A promise that resolves once the pin is updated.
+ */
+export async function adminUpdatePin(
+  pinId: string,
+  input: { title: string; description: string; link: string; categoryId: string | null },
+): Promise<void> {
+  await requireAdminUser();
+  const parsed = pinSchema.safeParse(input);
+  if (!parsed.success) {
+    throw new AppError("VALIDATION", "Enter a title and a valid link (or leave it blank).");
+  }
+  await prisma.pin.update({
+    where: { id: pinId },
+    data: {
+      title: parsed.data.title,
+      description: parsed.data.description === "" ? null : parsed.data.description,
+      link: parsed.data.link === "" ? null : parsed.data.link,
+      category:
+        parsed.data.categoryId === null || parsed.data.categoryId === ""
+          ? { disconnect: true }
+          : { connect: { id: parsed.data.categoryId } },
+    },
+  });
+  revalidatePath("/admin/moderation");
+  revalidatePath(`/admin/pins/${pinId}`);
+  revalidatePath("/admin");
+  revalidatePath(`/pin/${pinId}`);
 }
 
 /**

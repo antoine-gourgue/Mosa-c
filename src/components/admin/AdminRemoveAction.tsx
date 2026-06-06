@@ -13,6 +13,7 @@ export type AdminRemoveActionProps = {
   kind: "pin" | "comment";
   id: string;
   description: string;
+  redirectAfter?: string;
 };
 
 /**
@@ -22,7 +23,12 @@ export type AdminRemoveActionProps = {
  * @param props - The target kind, its id and a confirmation description.
  * @returns The remove action element.
  */
-export function AdminRemoveAction({ kind, id, description }: AdminRemoveActionProps): ReactElement {
+export function AdminRemoveAction({
+  kind,
+  id,
+  description,
+  redirectAfter,
+}: AdminRemoveActionProps): ReactElement {
   const { show } = useToast();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -38,7 +44,11 @@ export function AdminRemoveAction({ kind, id, description }: AdminRemoveActionPr
         }
         setOpen(false);
         show({ title: kind === "pin" ? "Pin removed" : "Comment removed" });
-        router.refresh();
+        if (redirectAfter !== undefined) {
+          router.push(redirectAfter);
+        } else {
+          router.refresh();
+        }
       } catch (error) {
         setOpen(false);
         show({

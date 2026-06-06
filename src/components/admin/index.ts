@@ -9,3 +9,4 @@ export { ModerationAdmin } from "./ModerationAdmin";
 export { ReportsAdmin } from "./ReportsAdmin";
 export { CategoriesAdmin } from "./CategoriesAdmin";
 export { AdminUserDetail } from "./AdminUserDetail";
+export { AdminPinDetail } from "./AdminPinDetail";

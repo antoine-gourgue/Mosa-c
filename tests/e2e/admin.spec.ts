@@ -73,6 +73,16 @@ test("admins can open a user's detail and edit it", async ({ page }) => {
   await expect(page.getByText("Profile updated")).toBeVisible();
 });
 
+test("admins can open a pin's detail and edit it", async ({ page }) => {
+  await loginAsAdmin(page);
+  await page.goto("/admin/moderation?q=Paris");
+  await page.getByRole("link", { name: "Paris at dusk" }).click();
+  await expect(page.getByRole("heading", { name: "Edit pin" })).toBeVisible();
+  await page.getByLabel("Title").fill("Paris, blue hour");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("Pin updated")).toBeVisible();
+});
+
 test("admins can create a category", async ({ page }) => {
   await loginAsAdmin(page);
   await page.goto("/admin/categories");

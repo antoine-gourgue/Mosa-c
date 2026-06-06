@@ -60,7 +60,11 @@ const PIN_COLUMNS: Column<AdminPinRow>[] = [
   {
     key: "pin",
     header: "Pin",
-    render: (pin) => <span className="font-semibold text-ink">{pin.title}</span>,
+    render: (pin) => (
+      <Link href={`/admin/pins/${pin.id}`} className="font-semibold text-ink hover:underline">
+        {pin.title}
+      </Link>
+    ),
   },
   { key: "creator", header: "Creator", render: (pin) => pin.creatorName },
   {
