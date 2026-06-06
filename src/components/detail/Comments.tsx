@@ -97,7 +97,7 @@ export function Comments({
               <div className="min-w-0 flex-1">
                 <p className="text-sm">
                   <span className="font-semibold text-ink">{comment.author.name}</span>{" "}
-                  <span className="text-ink-faint">{formatRelativeTime(comment.createdAt)}</span>
+                  <span className="text-ink-soft">{formatRelativeTime(comment.createdAt)}</span>
                 </p>
                 <p className="break-words text-[15px] text-ink">{comment.body}</p>
               </div>
@@ -105,7 +105,7 @@ export function Comments({
                 <IconButton
                   label="Delete comment"
                   size="sm"
-                  className="shrink-0 text-ink-faint hover:text-accent"
+                  className="shrink-0 text-ink-soft hover:text-accent"
                   onClick={() => setConfirmId(comment.id)}
                 >
                   <TrashIcon size={18} />

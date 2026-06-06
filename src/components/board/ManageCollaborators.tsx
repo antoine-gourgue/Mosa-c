@@ -95,7 +95,7 @@ export function ManageCollaborators({
                 <IconButton
                   label={`Remove ${member.user.name}`}
                   size="sm"
-                  className="text-ink-faint hover:text-accent"
+                  className="text-ink-soft hover:text-accent"
                   onClick={() => onRemove(member.user.id)}
                   disabled={pending}
                 >
