@@ -174,6 +174,65 @@ export function CloseIcon(props: IconProps): ReactElement {
   );
 }
 
+const HEART_PATH =
+  "M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z";
+
+/**
+ * Outline heart glyph for the unliked state.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function HeartIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon {...props}>
+      <path d={HEART_PATH} />
+    </SvgIcon>
+  );
+}
+
+/**
+ * Filled heart glyph for the liked state.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function HeartFilledIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon filled {...props}>
+      <path d={HEART_PATH} />
+    </SvgIcon>
+  );
+}
+
+/**
+ * Comment bubble glyph.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function CommentIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon {...props}>
+      <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-5A8 8 0 1 1 21 12z" />
+    </SvgIcon>
+  );
+}
+
+/**
+ * Download glyph.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function DownloadIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon {...props}>
+      <path d="M12 4v11m0 0 4-4m-4 4-4-4M5 19h14" />
+    </SvgIcon>
+  );
+}
+
 /**
  * Checkmark glyph for verified and selected states.
  *

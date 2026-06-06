@@ -9,3 +9,4 @@ export {
 } from "./boards";
 export { getSavedPinIds, getSavedPins, isSaved } from "./saves";
 export { getFollowedCreatorIds, isFollowing } from "./follows";
+export { getLikeState } from "./likes";

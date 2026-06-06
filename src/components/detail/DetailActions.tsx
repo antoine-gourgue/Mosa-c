@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
 import { Button, IconButton, useToast } from "@/components/ui";
+import { LikeButton } from "@/components/pin";
 import { MoreIcon, ShareIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { toggleSave } from "@/server/actions/saves";
@@ -17,6 +18,8 @@ export type DetailActionsProps = {
   imageUrl: string;
   link: string | null;
   initialSaved: boolean;
+  initialLiked: boolean;
+  likeCount: number;
 };
 
 /**
@@ -33,6 +36,8 @@ export function DetailActions({
   imageUrl,
   link,
   initialSaved,
+  initialLiked,
+  likeCount,
 }: DetailActionsProps): ReactElement {
   const [saved, setSaved] = useState(initialSaved);
   const [, startTransition] = useTransition();
@@ -62,9 +67,17 @@ export function DetailActions({
 
   return (
     <div className="flex items-center justify-between">
-      <IconButton label="More">
-        <MoreIcon />
-      </IconButton>
+      <div className="flex items-center gap-1">
+        <IconButton label="More">
+          <MoreIcon />
+        </IconButton>
+        <LikeButton
+          pinId={pinId}
+          initialLiked={initialLiked}
+          initialCount={likeCount}
+          className="h-11 px-3"
+        />
+      </div>
       <div className="flex items-center gap-2">
         <IconButton label="Share">
           <ShareIcon size={22} />
