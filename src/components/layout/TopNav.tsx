@@ -44,22 +44,24 @@ export function TopNav({ user, unreadCount }: TopNavProps): ReactElement {
         <span className="hidden text-[21px] font-bold text-accent sm:inline">Mosaic</span>
       </Link>
 
-      <div className="relative flex-1">
-        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-soft">
-          <SearchIcon size={20} />
-        </span>
-        <input
-          value={query}
-          onChange={onSearchChange}
-          onFocus={() => {
-            if (!pathname.startsWith("/search")) {
-              router.push("/search");
-            }
-          }}
-          placeholder="Search for an idea of any size"
-          aria-label="Search"
-          className="h-12 w-full rounded-3xl bg-surface pl-11 pr-4 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
-        />
+      <div className="flex flex-1 justify-center">
+        <div className="relative w-full max-w-2xl">
+          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-soft">
+            <SearchIcon size={20} />
+          </span>
+          <input
+            value={query}
+            onChange={onSearchChange}
+            onFocus={() => {
+              if (!pathname.startsWith("/search")) {
+                router.push("/search");
+              }
+            }}
+            placeholder="Search for ideas"
+            aria-label="Search"
+            className="h-12 w-full rounded-3xl bg-surface pl-11 pr-4 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
+          />
+        </div>
       </div>
 
       <div className="flex shrink-0 items-center gap-1">
