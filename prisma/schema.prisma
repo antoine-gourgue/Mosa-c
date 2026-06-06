@@ -33,6 +33,8 @@ model User {
   pins      Pin[]     @relation("PinCreator")
   boards    Board[]
   saves     Save[]
+  likes     Like[]
+  comments  Comment[]
   following Follow[]  @relation("Follower")
   followers Follow[]  @relation("Creator")
   accounts  Account[]
@@ -105,9 +107,37 @@ model Pin {
 
   saves     Save[]
   boardPins BoardPin[]
+  likes     Like[]
+  comments  Comment[]
 
   @@index([creatorId])
   @@index([categoryId])
+}
+
+model Like {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pinId     String
+  pin       Pin      @relation(fields: [pinId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, pinId])
+  @@index([pinId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  body      String
+  createdAt DateTime @default(now())
+
+  pinId String
+  pin   Pin    @relation(fields: [pinId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([pinId])
+  @@index([authorId])
 }
 
 model Board {
