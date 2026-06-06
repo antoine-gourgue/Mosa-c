@@ -1,34 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
-import { extname, join } from "node:path";
+import { join } from "node:path";
+import { safeExtension } from "./extension";
 import type { PutOptions, PutResult, Storage } from "./types";
 
 const UPLOAD_DIR = join(process.cwd(), "public", "uploads");
-
-const EXTENSION_BY_TYPE: Record<string, string> = {
-  "image/jpeg": ".jpg",
-  "image/png": ".png",
-  "image/webp": ".webp",
-  "image/gif": ".gif",
-  "image/avif": ".avif",
-};
-
-/**
- * Returns a safe file extension, falling back to a sanitized version of the
- * original filename's extension.
- *
- * @param contentType - The MIME type of the upload.
- * @param filename - The original filename.
- * @returns A sanitized extension including the leading dot.
- */
-function safeExtension(contentType: string, filename: string): string {
-  const fromType = EXTENSION_BY_TYPE[contentType];
-  if (fromType !== undefined) {
-    return fromType;
-  }
-  const fromName = extname(filename).toLowerCase();
-  return /^\.[a-z0-9]{1,5}$/.test(fromName) ? fromName : ".bin";
-}
 
 /**
  * Storage driver writing uploads to `public/uploads` and serving them from the
