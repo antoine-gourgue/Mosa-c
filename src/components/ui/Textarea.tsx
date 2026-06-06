@@ -45,7 +45,7 @@ export function Textarea({
         aria-invalid={error ? true : undefined}
         aria-describedby={messageId}
         className={cn(
-          "w-full resize-y rounded-2xl bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-ink-faint",
+          "w-full resize-none rounded-2xl bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-ink-faint",
           "outline-none transition-[box-shadow,background-color] duration-150 ease-out",
           error ? "ring-2 ring-accent" : "focus:bg-surface-2 focus:ring-2 focus:ring-ink/15",
           className,
