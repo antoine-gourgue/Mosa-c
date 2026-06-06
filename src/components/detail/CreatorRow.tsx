@@ -14,16 +14,23 @@ import type { Creator } from "@/types/domain";
 export type CreatorRowProps = {
   creator: Creator;
   initialFollowing: boolean;
+  isSelf?: boolean;
 };
 
 /**
  * Creator row of the pin detail: avatar, name, follower count and a persistent
- * Follow/Following toggle with optimistic feedback.
+ * Follow/Following toggle with optimistic feedback. The follow toggle is hidden
+ * when the viewer is the creator, since a user cannot follow themselves.
  *
- * @param props - The creator and the initial following state.
+ * @param props - The creator, the initial following state and whether the
+ *   viewer is the creator.
  * @returns The creator row element.
  */
-export function CreatorRow({ creator, initialFollowing }: CreatorRowProps): ReactElement {
+export function CreatorRow({
+  creator,
+  initialFollowing,
+  isSelf = false,
+}: CreatorRowProps): ReactElement {
   const [following, setFollowing] = useState(initialFollowing);
   const [, startTransition] = useTransition();
 
@@ -59,16 +66,18 @@ export function CreatorRow({ creator, initialFollowing }: CreatorRowProps): Reac
           ) : null}
         </div>
       </Link>
-      <button
-        type="button"
-        onClick={onToggle}
-        className={cn(
-          "ml-auto h-11 cursor-pointer rounded-full px-5 text-[15px] font-semibold transition-colors duration-150",
-          following ? "bg-ink text-bg hover:bg-ink/90" : "bg-surface text-ink hover:bg-surface-2",
-        )}
-      >
-        {following ? "Following" : "Follow"}
-      </button>
+      {isSelf ? null : (
+        <button
+          type="button"
+          onClick={onToggle}
+          className={cn(
+            "ml-auto h-11 cursor-pointer rounded-full px-5 text-[15px] font-semibold transition-colors duration-150",
+            following ? "bg-ink text-bg hover:bg-ink/90" : "bg-surface text-ink hover:bg-surface-2",
+          )}
+        >
+          {following ? "Following" : "Follow"}
+        </button>
+      )}
     </div>
   );
 }
