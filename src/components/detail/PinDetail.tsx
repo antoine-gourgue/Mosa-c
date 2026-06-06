@@ -45,18 +45,18 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
   ]);
 
   return (
-    <div className="grid md:grid-cols-2">
-      <div className="flex items-center justify-center bg-surface">
+    <div className="grid grid-cols-1 md:grid-cols-2">
+      <div className="flex min-w-0 items-center justify-center bg-surface">
         <Image
           src={pin.imageUrl}
           alt={pin.title}
           width={pin.width}
           height={pin.height}
           sizes="(max-width: 768px) 100vw, 50vw"
-          className="h-auto max-h-[85vh] w-full object-contain"
+          className="h-auto max-h-[85vh] w-full min-w-0 object-contain"
         />
       </div>
-      <div className="flex flex-col gap-4 px-9 py-8">
+      <div className="flex min-w-0 flex-col gap-4 px-5 py-6 md:px-9 md:py-8">
         <DetailActions
           pinId={pin.id}
           title={pin.title}
