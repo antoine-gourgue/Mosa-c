@@ -66,6 +66,46 @@ export async function adminDeleteComment(commentId: string): Promise<void> {
 }
 
 /**
+ * Refreshes the admin surfaces affected by a report change.
+ */
+function revalidateReports(): void {
+  revalidatePath("/admin/reports");
+  revalidatePath("/admin");
+}
+
+/**
+ * Resolves a report by removing the reported pin. Deleting the pin cascades to
+ * its reports, closing this one.
+ *
+ * @param reportId - The report id.
+ * @returns A promise that resolves once the pin is removed.
+ */
+export async function resolveReport(reportId: string): Promise<void> {
+  await requireAdminUser();
+  const report = await prisma.report.findUnique({
+    where: { id: reportId },
+    select: { pinId: true },
+  });
+  if (report === null) {
+    throw new AppError("NOT_FOUND", "Report not found.");
+  }
+  await prisma.pin.delete({ where: { id: report.pinId } });
+  revalidateReports();
+}
+
+/**
+ * Dismisses a report without touching the pin.
+ *
+ * @param reportId - The report id.
+ * @returns A promise that resolves once the report is dismissed.
+ */
+export async function dismissReport(reportId: string): Promise<void> {
+  await requireAdminUser();
+  await prisma.report.update({ where: { id: reportId }, data: { status: "DISMISSED" } });
+  revalidateReports();
+}
+
+/**
  * Sets a user's role. Admins cannot change their own role, to avoid locking
  * themselves out of the back office.
  *

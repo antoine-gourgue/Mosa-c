@@ -103,7 +103,7 @@ export function UsersAdmin({ data, query, currentUserId }: UsersAdminProps): Rea
       key: "joined",
       header: "Joined",
       render: (user) =>
-        user.createdAt.toLocaleDateString(undefined, {
+        user.createdAt.toLocaleDateString("en-US", {
           day: "numeric",
           month: "short",
           year: "numeric",

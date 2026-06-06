@@ -29,9 +29,11 @@ export {
   getAdminUsers,
   getAdminPins,
   getAdminComments,
+  getAdminReports,
   ADMIN_USERS_PAGE_SIZE,
   ADMIN_PINS_PAGE_SIZE,
   ADMIN_COMMENTS_PAGE_SIZE,
+  ADMIN_REPORTS_PAGE_SIZE,
 } from "./admin";
 export type {
   AdminOverview,
@@ -41,4 +43,6 @@ export type {
   AdminPinRow,
   AdminCommentsPage,
   AdminCommentRow,
+  AdminReportsPage,
+  AdminReportRow,
 } from "./admin";

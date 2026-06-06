@@ -53,3 +53,12 @@ test("admins can moderate pins and comments", async ({ page }) => {
   await page.getByRole("link", { name: "comments" }).click();
   await expect(page.getByText(/Stunning shot/)).toBeVisible();
 });
+
+test("admins can triage the reports queue", async ({ page }) => {
+  await loginAsAdmin(page);
+  await page.goto("/admin/reports");
+  await expect(page.getByRole("heading", { name: "Reports" })).toBeVisible();
+  await expect(page.getByText("Above the green valley")).toBeVisible();
+  await page.getByRole("button", { name: "Dismiss" }).first().click();
+  await expect(page.getByText("Report dismissed")).toBeVisible();
+});

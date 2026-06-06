@@ -22,7 +22,7 @@ type RecentPin = AdminOverview["recentPins"][number];
  * @returns The formatted day string.
  */
 function day(date: Date): string {
-  return date.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  return date.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
 }
 
 /**
@@ -77,11 +77,12 @@ export default async function AdminPage(): Promise<ReactElement> {
       <h1 className="text-3xl font-extrabold text-ink">Dashboard</h1>
       <p className="mt-1 text-ink-soft">An overview of activity across Mosaic.</p>
 
-      <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
         <StatCard label="Users" value={overview.counts.users} />
         <StatCard label="Pins" value={overview.counts.pins} />
         <StatCard label="Comments" value={overview.counts.comments} />
         <StatCard label="Boards" value={overview.counts.boards} />
+        <StatCard label="Pending reports" value={overview.counts.pendingReports} />
       </div>
 
       <section className="mt-8">

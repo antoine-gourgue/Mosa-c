@@ -8,6 +8,7 @@ vi.mock("@/lib/prisma", () => ({
     user: { findUnique: vi.fn(), update: vi.fn(), delete: vi.fn() },
     pin: { delete: vi.fn() },
     comment: { delete: vi.fn() },
+    report: { findUnique: vi.fn(), update: vi.fn() },
   },
 }));
 
@@ -17,6 +18,8 @@ import {
   adminDeleteComment,
   adminDeletePin,
   deleteUser,
+  dismissReport,
+  resolveReport,
   setUserDisabled,
   setUserRole,
 } from "./admin";
@@ -25,6 +28,7 @@ const db = prisma as unknown as {
   user: { findUnique: Mock; update: Mock; delete: Mock };
   pin: { delete: Mock };
   comment: { delete: Mock };
+  report: { findUnique: Mock; update: Mock };
 };
 
 /**
@@ -120,5 +124,22 @@ describe("admin actions", () => {
     await expect(adminDeleteComment("c1")).rejects.toThrow();
     expect(db.pin.delete).not.toHaveBeenCalled();
     expect(db.comment.delete).not.toHaveBeenCalled();
+  });
+
+  it("resolves a report by removing the reported pin", async () => {
+    asAdmin();
+    db.report.findUnique.mockResolvedValue({ pinId: "pin9" });
+    await resolveReport("r1");
+    expect(db.pin.delete).toHaveBeenCalledWith({ where: { id: "pin9" } });
+  });
+
+  it("dismisses a report without removing the pin", async () => {
+    asAdmin();
+    await dismissReport("r1");
+    expect(db.report.update).toHaveBeenCalledWith({
+      where: { id: "r1" },
+      data: { status: "DISMISSED" },
+    });
+    expect(db.pin.delete).not.toHaveBeenCalled();
   });
 });
