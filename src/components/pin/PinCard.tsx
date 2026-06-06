@@ -2,11 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import type { MouseEvent, ReactElement } from "react";
-import { Avatar, IconButton, useToast } from "@/components/ui";
+import { Avatar, IconButton, Menu, useToast } from "@/components/ui";
 import { CommentIcon, DownloadIcon, HeartIcon, MoreIcon, ShareIcon, StackIcon } from "@/icons";
 import { cn } from "@/lib/cn";
+import { downloadPin } from "@/lib/download";
 import { pinUrl, sharePin } from "@/lib/share";
+import { recordDownload } from "@/server/actions/downloads";
 import type { Pin } from "@/types/domain";
 
 /**
@@ -29,6 +32,7 @@ export type PinCardProps = {
  */
 export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): ReactElement {
   const { show } = useToast();
+  const [downloads, setDownloads] = useState(pin.downloadCount);
 
   const stop = (event: MouseEvent<HTMLButtonElement>): void => {
     event.preventDefault();
@@ -41,6 +45,26 @@ export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): Reac
     if (outcome === "copied") {
       show({ title: "Link copied", description: pin.title, img: pin.imageUrl });
     }
+  };
+
+  const onCopyLink = async (): Promise<void> => {
+    await navigator.clipboard.writeText(pinUrl(pin.id));
+    show({ title: "Link copied", description: pin.title, img: pin.imageUrl });
+  };
+
+  const onDownload = async (): Promise<void> => {
+    try {
+      await downloadPin({ url: pin.imageUrl, title: pin.title });
+      setDownloads((value) => value + 1);
+      const result = await recordDownload(pin.id);
+      setDownloads(result.count);
+    } catch {
+      show({ title: "Download failed", description: "Please try again." });
+    }
+  };
+
+  const onReport = (): void => {
+    show({ title: "Report received", description: "Thanks, we will review this Pin." });
   };
 
   return (
@@ -65,9 +89,25 @@ export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): Reac
         ) : null}
         <div className="absolute inset-0 flex flex-col justify-between p-2 opacity-0 transition duration-150 group-hover:bg-ink/[0.28] group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100">
           <div className="flex justify-end">
-            <IconButton label="More" tone="solid" onClick={stop}>
-              <MoreIcon size={18} />
-            </IconButton>
+            <Menu
+              label="More options"
+              icon={<MoreIcon size={18} />}
+              tone="solid"
+              align="end"
+              items={[
+                {
+                  label: "Copy link",
+                  icon: <ShareIcon size={18} />,
+                  onSelect: () => void onCopyLink(),
+                },
+                {
+                  label: "Download image",
+                  icon: <DownloadIcon size={18} />,
+                  onSelect: () => void onDownload(),
+                },
+                { label: "Report Pin", onSelect: onReport, destructive: true },
+              ]}
+            />
           </div>
           <div className="flex items-center justify-between">
             <button
@@ -106,7 +146,7 @@ export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): Reac
             <span className="text-[13px] text-ink-soft">{pin.creator.name}</span>
           </div>
         )}
-        {pin.likeCount > 0 || pin.commentCount > 0 || pin.downloadCount > 0 ? (
+        {pin.likeCount > 0 || pin.commentCount > 0 || downloads > 0 ? (
           <div className="mt-1 flex items-center gap-3 text-[13px] text-ink-faint">
             {pin.likeCount > 0 ? (
               <span className="inline-flex items-center gap-1">
@@ -120,10 +160,10 @@ export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): Reac
                 {pin.commentCount}
               </span>
             ) : null}
-            {pin.downloadCount > 0 ? (
+            {downloads > 0 ? (
               <span className="inline-flex items-center gap-1">
                 <DownloadIcon size={14} />
-                {pin.downloadCount}
+                {downloads}
               </span>
             ) : null}
           </div>
