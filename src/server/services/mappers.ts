@@ -36,6 +36,7 @@ export type PinRow = {
   link: string | null;
   creator: CreatorRow;
   category: CategoryRow | null;
+  _count: { likes: number; comments: number };
 };
 
 /**
@@ -51,7 +52,11 @@ export type BoardRow = {
 /**
  * Prisma include selecting a pin's creator and category.
  */
-export const PIN_INCLUDE = { creator: true, category: true } as const;
+export const PIN_INCLUDE = {
+  creator: true,
+  category: true,
+  _count: { select: { likes: true, comments: true } },
+} as const;
 
 /**
  * Maps a creator row to the UI creator type.
@@ -98,6 +103,8 @@ export function toPin(row: PinRow): Pin {
     link: row.link,
     creator: toCreator(row.creator),
     category: row.category === null ? null : toCategory(row.category),
+    likeCount: row._count.likes,
+    commentCount: row._count.comments,
   };
 }
 

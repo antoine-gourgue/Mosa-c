@@ -34,6 +34,8 @@ export type Pin = {
   link: string | null;
   creator: Creator;
   category: Category | null;
+  likeCount: number;
+  commentCount: number;
 };
 
 /**
