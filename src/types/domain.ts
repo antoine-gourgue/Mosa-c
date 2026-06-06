@@ -45,3 +45,22 @@ export type Board = {
   isDefault: boolean;
   pinCount: number;
 };
+
+/**
+ * A board summary with a cover image and owner handle, for board listings.
+ */
+export type BoardSummary = Board & {
+  coverUrl: string | null;
+  ownerUsername: string | null;
+};
+
+/**
+ * A board with its owner and pins, for the board detail page.
+ */
+export type BoardDetail = {
+  id: string;
+  name: string;
+  isDefault: boolean;
+  owner: Creator;
+  pins: Pin[];
+};
