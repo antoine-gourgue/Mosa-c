@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 import {
   getBoardsForUser,
   getComments,
+  getFollowCounts,
   getLikeState,
   getPinById,
   isFollowing,
@@ -35,11 +36,12 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
     notFound();
   }
   const user = await getCurrentUser();
-  const [following, like, comments, boards] = await Promise.all([
+  const [following, like, comments, boards, followCounts] = await Promise.all([
     user === null ? Promise.resolve(false) : isFollowing(user.id, pin.creator.id),
     getLikeState(pin.id, user?.id ?? null),
     getComments(pin.id),
     user === null ? Promise.resolve([]) : getBoardsForUser(user.id),
+    getFollowCounts(pin.creator.id),
   ]);
 
   return (
@@ -84,6 +86,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
           creator={pin.creator}
           initialFollowing={following}
           isSelf={user?.id === pin.creator.id}
+          followers={followCounts.followers}
         />
         <Divider className="my-2" />
         <Comments
