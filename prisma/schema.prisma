@@ -20,6 +20,12 @@ enum NotificationType {
   COMMENT
 }
 
+enum BoardRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
 model User {
   id             String    @id @default(cuid())
   email          String    @unique
@@ -48,6 +54,8 @@ model User {
 
   notifications      Notification[] @relation("NotificationRecipient")
   actedNotifications Notification[] @relation("NotificationActor")
+
+  boardMemberships BoardMember[]
 }
 
 model Account {
@@ -163,9 +171,22 @@ model Board {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  pins BoardPin[]
+  pins    BoardPin[]
+  members BoardMember[]
 
   @@index([ownerId])
+}
+
+model BoardMember {
+  boardId   String
+  board     Board     @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      BoardRole @default(EDITOR)
+  createdAt DateTime  @default(now())
+
+  @@id([boardId, userId])
+  @@index([userId])
 }
 
 model BoardPin {
