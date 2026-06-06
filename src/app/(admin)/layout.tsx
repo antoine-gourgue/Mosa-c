@@ -1,10 +1,12 @@
 import type { ReactElement, ReactNode } from "react";
+import { AdminSidebar } from "@/components/admin";
 import { requireAdmin } from "@/lib/auth";
 
 /**
  * Layout for the admin back office. It gates every nested route on the ADMIN
- * role (redirecting other visitors away) and renders the admin surface outside
- * the consumer navigation. The full admin shell is added in a later ticket.
+ * role (redirecting other visitors away) and renders the admin shell — a
+ * persistent sidebar beside the routed content — outside the consumer
+ * navigation.
  *
  * @param props - Layout props.
  * @param props.children - The admin route content.
@@ -16,5 +18,10 @@ export default async function AdminLayout({
   children: ReactNode;
 }): Promise<ReactElement> {
   await requireAdmin();
-  return <div className="min-h-dvh bg-bg">{children}</div>;
+  return (
+    <div className="flex min-h-dvh bg-surface">
+      <AdminSidebar />
+      <main className="min-w-0 flex-1">{children}</main>
+    </div>
+  );
 }
