@@ -6,6 +6,10 @@ export {
   getDefaultBoard,
   getBoardWithPins,
   getUserBoardsWithCovers,
+  getBoardMembers,
+  getBoardRole,
+  canEditBoard,
+  canManageBoard,
 } from "./boards";
 export { getSavedPinIds, getSavedPins, isSaved } from "./saves";
 export { getFollowedCreatorIds, isFollowing } from "./follows";

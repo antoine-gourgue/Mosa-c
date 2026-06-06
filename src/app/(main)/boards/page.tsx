@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import type { ReactElement } from "react";
 import { BoardsGrid } from "@/components/board";
 import { getCurrentUser } from "@/lib/auth";
-import { getCreatorById, getUserBoardsWithCovers } from "@/server/services";
+import { getUserBoardsWithCovers } from "@/server/services";
 
 /**
  * Metadata for the boards route.
@@ -23,8 +23,7 @@ export default async function BoardsPage(): Promise<ReactElement> {
   if (user === null) {
     redirect("/login");
   }
-  const profile = await getCreatorById(user.id);
-  const boards = await getUserBoardsWithCovers(user.id, profile?.username ?? null);
+  const boards = await getUserBoardsWithCovers(user.id);
 
   return (
     <div className="mx-auto max-w-[1180px]">

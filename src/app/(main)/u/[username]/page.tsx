@@ -98,14 +98,8 @@ async function SavedView({
  * @param props.username - The profile username, for links.
  * @returns The boards grid.
  */
-async function BoardsView({
-  userId,
-  username,
-}: {
-  userId: string;
-  username: string | null;
-}): Promise<ReactElement> {
-  const boards = await getUserBoardsWithCovers(userId, username);
+async function BoardsView({ userId }: { userId: string }): Promise<ReactElement> {
+  const boards = await getUserBoardsWithCovers(userId);
   return <BoardsGrid boards={boards} />;
 }
 
@@ -157,7 +151,7 @@ export default async function ProfilePage({
         {active === "saved" ? (
           <SavedView userId={user.id} savedIds={savedIds} viewerId={viewer?.id ?? null} />
         ) : null}
-        {active === "boards" ? <BoardsView userId={user.id} username={user.username} /> : null}
+        {active === "boards" ? <BoardsView userId={user.id} /> : null}
       </div>
     </div>
   );

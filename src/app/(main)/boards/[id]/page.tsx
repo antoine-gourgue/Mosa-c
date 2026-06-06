@@ -37,11 +37,11 @@ export default async function BoardPage({
   params: Promise<{ id: string }>;
 }): Promise<ReactElement> {
   const { id } = await params;
-  const board = await getBoardWithPins(id);
+  const viewer = await getCurrentUser();
+  const board = await getBoardWithPins(id, viewer?.id ?? null);
   if (board === null) {
     notFound();
   }
-  const viewer = await getCurrentUser();
   const savedIds = viewer === null ? [] : await getSavedPinIds(viewer.id);
   const count = board.pins.length;
 
