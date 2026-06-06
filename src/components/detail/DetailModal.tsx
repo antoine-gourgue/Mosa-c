@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 import type { MouseEvent, ReactElement, ReactNode } from "react";
 import { IconButton } from "@/components/ui";
@@ -12,12 +12,18 @@ import { DURATION, REDUCED_MOTION, gsap, useGSAP } from "@/lib/gsap";
  * scales and fades in on open and runs an exit transition before closing.
  * Closes on Escape or a click outside the card; a close button sits top-right.
  *
+ * Because the modal lives in a parallel route slot that is not reset when
+ * navigating forward to a non-intercepted route (e.g. a creator profile), it
+ * unmounts itself as soon as the path leaves a pin route so it never lingers
+ * over the destination page.
+ *
  * @param props - The detail content to display inside the card.
  * @param props.children - The pin detail content.
- * @returns The modal overlay element.
+ * @returns The modal overlay element, or null once the route is no longer a pin.
  */
-export function DetailModal({ children }: { children: ReactNode }): ReactElement {
+export function DetailModal({ children }: { children: ReactNode }): ReactElement | null {
   const router = useRouter();
+  const pathname = usePathname();
   const scrimRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -80,6 +86,10 @@ export function DetailModal({ children }: { children: ReactNode }): ReactElement
   const stop = (event: MouseEvent<HTMLDivElement>): void => {
     event.stopPropagation();
   };
+
+  if (!pathname.startsWith("/pin/")) {
+    return null;
+  }
 
   return (
     <div
