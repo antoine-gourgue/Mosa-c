@@ -37,7 +37,7 @@ export async function SearchResults({ query, sort }: SearchResultsProps): Promis
           No ideas matched &ldquo;{query}&rdquo;.
         </div>
       ) : (
-        <PinFeed pins={results} savedIds={savedIds} viewerId={user?.id ?? null} />
+        <PinFeed key={sort} pins={results} savedIds={savedIds} viewerId={user?.id ?? null} />
       )}
     </>
   );
