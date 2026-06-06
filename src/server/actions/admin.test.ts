@@ -6,7 +6,7 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     user: { findUnique: vi.fn(), update: vi.fn(), delete: vi.fn() },
-    pin: { delete: vi.fn() },
+    pin: { delete: vi.fn(), update: vi.fn() },
     comment: { delete: vi.fn() },
     report: { findUnique: vi.fn(), update: vi.fn() },
     category: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
@@ -18,6 +18,7 @@ import { prisma } from "@/lib/prisma";
 import {
   adminDeleteComment,
   adminDeletePin,
+  adminUpdatePin,
   adminUpdateUser,
   createCategory,
   deleteCategory,
@@ -30,7 +31,7 @@ import {
 
 const db = prisma as unknown as {
   user: { findUnique: Mock; update: Mock; delete: Mock };
-  pin: { delete: Mock };
+  pin: { delete: Mock; update: Mock };
   comment: { delete: Mock };
   report: { findUnique: Mock; update: Mock };
   category: { findUnique: Mock; create: Mock; update: Mock; delete: Mock };
@@ -132,6 +133,34 @@ describe("admin actions", () => {
     asAdmin();
     await adminDeleteComment("c1");
     expect(db.comment.delete).toHaveBeenCalledWith({ where: { id: "c1" } });
+  });
+
+  it("updates a pin and connects a category", async () => {
+    asAdmin();
+    await adminUpdatePin("pin1", { title: "New", description: "", link: "", categoryId: "cat1" });
+    expect(db.pin.update).toHaveBeenCalledWith({
+      where: { id: "pin1" },
+      data: { title: "New", description: null, link: null, category: { connect: { id: "cat1" } } },
+    });
+  });
+
+  it("disconnects the category when none is given", async () => {
+    asAdmin();
+    await adminUpdatePin("pin1", {
+      title: "New",
+      description: "Desc",
+      link: "https://x.example",
+      categoryId: null,
+    });
+    expect(db.pin.update).toHaveBeenCalledWith({
+      where: { id: "pin1" },
+      data: {
+        title: "New",
+        description: "Desc",
+        link: "https://x.example",
+        category: { disconnect: true },
+      },
+    });
   });
 
   it("rejects moderation from non-admins", async () => {

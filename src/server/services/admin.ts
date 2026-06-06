@@ -182,6 +182,74 @@ export async function getAdminUserDetail(id: string): Promise<AdminUserDetail | 
 }
 
 /**
+ * Full detail for a single pin shown on the admin pin page.
+ */
+export type AdminPinDetail = {
+  id: string;
+  title: string;
+  description: string | null;
+  imageUrl: string;
+  width: number;
+  height: number;
+  link: string | null;
+  createdAt: Date;
+  creatorId: string;
+  creatorName: string;
+  categoryId: string | null;
+  counts: { likes: number; comments: number; downloads: number; saves: number; reports: number };
+};
+
+/**
+ * Loads a single pin's detail, creator and engagement for the admin pin page,
+ * or null when the pin does not exist.
+ *
+ * @param id - The pin id.
+ * @returns The pin detail, or null.
+ */
+export async function getAdminPinDetail(id: string): Promise<AdminPinDetail | null> {
+  const pin = await prisma.pin.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      imageUrl: true,
+      width: true,
+      height: true,
+      link: true,
+      createdAt: true,
+      downloadCount: true,
+      categoryId: true,
+      creator: { select: { id: true, name: true } },
+      _count: { select: { likes: true, comments: true, saves: true, reports: true } },
+    },
+  });
+  if (pin === null) {
+    return null;
+  }
+  return {
+    id: pin.id,
+    title: pin.title,
+    description: pin.description,
+    imageUrl: pin.imageUrl,
+    width: pin.width,
+    height: pin.height,
+    link: pin.link,
+    createdAt: pin.createdAt,
+    creatorId: pin.creator.id,
+    creatorName: pin.creator.name,
+    categoryId: pin.categoryId,
+    counts: {
+      likes: pin._count.likes,
+      comments: pin._count.comments,
+      downloads: pin.downloadCount,
+      saves: pin._count.saves,
+      reports: pin._count.reports,
+    },
+  };
+}
+
+/**
  * Number of pins shown per page in the admin moderation table.
  */
 export const ADMIN_PINS_PAGE_SIZE = 20;

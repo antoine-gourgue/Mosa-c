@@ -29,7 +29,7 @@ const COLUMNS: Column<AdminReportRow>[] = [
     key: "pin",
     header: "Pin",
     render: (report) => (
-      <Link href={`/pin/${report.pinId}`} className="font-semibold text-ink hover:underline">
+      <Link href={`/admin/pins/${report.pinId}`} className="font-semibold text-ink hover:underline">
         {report.pinTitle}
       </Link>
     ),
