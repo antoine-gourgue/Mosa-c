@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { ChangeEvent, ReactElement } from "react";
-import { Avatar, IconButton, Pill } from "@/components/ui";
+import { Avatar, IconButton } from "@/components/ui";
 import { BellIcon, Logo, PlusIcon, SearchIcon, StackIcon } from "@/icons";
 
 /**
@@ -43,15 +43,6 @@ export function TopNav({ user, unreadCount }: TopNavProps): ReactElement {
         </span>
         <span className="hidden text-[21px] font-bold text-accent sm:inline">Mosaic</span>
       </Link>
-
-      <div className="hidden shrink-0 items-center gap-2 md:flex">
-        <Pill href="/" active={pathname === "/"}>
-          Home
-        </Pill>
-        <Pill href="/boards" active={pathname.startsWith("/boards")}>
-          Saved
-        </Pill>
-      </div>
 
       <div className="relative flex-1">
         <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-soft">
