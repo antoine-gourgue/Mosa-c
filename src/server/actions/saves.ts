@@ -31,3 +31,55 @@ export async function toggleSave(pinId: string): Promise<{ saved: boolean }> {
   revalidatePath("/boards");
   return { saved: existing === null };
 }
+
+/**
+ * Saves a pin into a specific board chosen by the current user. The default
+ * Quick Saves board is backed by a Save row; other boards by a BoardPin. The
+ * user must own or be an editor of the board. Saving is idempotent.
+ *
+ * @param pinId - The pin id.
+ * @param boardId - The target board id.
+ * @returns A success result, or a failure with an error message.
+ */
+export async function savePinToBoard(
+  pinId: string,
+  boardId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: "You must be signed in to save pins." };
+  }
+  const board = await prisma.board.findUnique({
+    where: { id: boardId },
+    select: { isDefault: true },
+  });
+  if (board === null) {
+    return { ok: false, error: "Board not found." };
+  }
+  const member = await prisma.boardMember.findUnique({
+    where: { boardId_userId: { boardId, userId: user.id } },
+    select: { role: true },
+  });
+  if (member === null || member.role === "VIEWER") {
+    return { ok: false, error: "You cannot save to this board." };
+  }
+
+  if (board.isDefault) {
+    await prisma.save.upsert({
+      where: { userId_pinId: { userId: user.id, pinId } },
+      update: {},
+      create: { userId: user.id, pinId },
+    });
+  } else {
+    await prisma.boardPin.upsert({
+      where: { boardId_pinId: { boardId, pinId } },
+      update: {},
+      create: { boardId, pinId },
+    });
+  }
+
+  revalidatePath("/");
+  revalidatePath("/boards");
+  revalidatePath(`/boards/${boardId}`);
+  return { ok: true };
+}
