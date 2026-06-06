@@ -63,6 +63,16 @@ test("admins can triage the reports queue", async ({ page }) => {
   await expect(page.getByText("Report dismissed")).toBeVisible();
 });
 
+test("admins can open a user's detail and edit it", async ({ page }) => {
+  await loginAsAdmin(page);
+  await page.goto("/admin/users");
+  await page.getByRole("link", { name: "Northlight" }).click();
+  await expect(page.getByRole("heading", { name: "Northlight" })).toBeVisible();
+  await page.getByLabel("Name").fill("Northlight Studio");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("Profile updated")).toBeVisible();
+});
+
 test("admins can create a category", async ({ page }) => {
   await loginAsAdmin(page);
   await page.goto("/admin/categories");

@@ -13,6 +13,10 @@ const categorySchema = z.object({
   label: z.string().trim().min(1).max(40),
   imageUrl: z.url(),
 });
+const userProfileSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  bio: z.string().trim().max(300),
+});
 
 /**
  * Authorizes the caller as an admin, throwing when they are not signed in or
@@ -241,6 +245,28 @@ export async function setUserDisabled(userId: string, disabled: boolean): Promis
   }
   await prisma.user.update({ where: { id: userId }, data: { disabled } });
   revalidateAdmin();
+}
+
+/**
+ * Updates a user's display name and bio as an admin override.
+ *
+ * @param userId - The target user id.
+ * @param name - The new display name.
+ * @param bio - The new bio (blank clears it).
+ * @returns A promise that resolves once the user is updated.
+ */
+export async function adminUpdateUser(userId: string, name: string, bio: string): Promise<void> {
+  await requireAdminUser();
+  const parsed = userProfileSchema.safeParse({ name, bio });
+  if (!parsed.success) {
+    throw new AppError("VALIDATION", "Enter a valid name and a bio under 300 characters.");
+  }
+  await prisma.user.update({
+    where: { id: userId },
+    data: { name: parsed.data.name, bio: parsed.data.bio === "" ? null : parsed.data.bio },
+  });
+  revalidateAdmin();
+  revalidatePath(`/admin/users/${userId}`);
 }
 
 /**

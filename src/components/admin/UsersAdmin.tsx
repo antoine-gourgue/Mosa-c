@@ -64,10 +64,10 @@ export function UsersAdmin({ data, query, currentUserId }: UsersAdminProps): Rea
       header: "User",
       render: (user) => (
         <div>
-          <div className="font-semibold text-ink">
+          <Link href={`/admin/users/${user.id}`} className="font-semibold text-ink hover:underline">
             {user.name}
             {user.verified ? <span className="ml-1 text-accent">✓</span> : null}
-          </div>
+          </Link>
           <div className="text-ink-soft">{user.email}</div>
         </div>
       ),

@@ -90,6 +90,98 @@ export async function getAdminUsers(query: string, page: number): Promise<AdminU
 }
 
 /**
+ * Full detail for a single user shown on the admin user page.
+ */
+export type AdminUserDetail = {
+  id: string;
+  name: string;
+  username: string | null;
+  email: string;
+  bio: string | null;
+  avatarUrl: string | null;
+  role: "USER" | "ADMIN";
+  verified: boolean;
+  disabled: boolean;
+  createdAt: Date;
+  counts: { pins: number; comments: number; boards: number; followers: number; following: number };
+  recentPins: { id: string; title: string; createdAt: Date }[];
+  recentComments: { id: string; body: string; pinId: string; pinTitle: string; createdAt: Date }[];
+};
+
+/**
+ * Loads a single user's profile, counts and recent activity for the admin user
+ * page, or null when the user does not exist.
+ *
+ * @param id - The user id.
+ * @returns The user detail, or null.
+ */
+export async function getAdminUserDetail(id: string): Promise<AdminUserDetail | null> {
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      email: true,
+      bio: true,
+      avatarUrl: true,
+      role: true,
+      verified: true,
+      disabled: true,
+      createdAt: true,
+      _count: {
+        select: { pins: true, comments: true, boards: true, followers: true, following: true },
+      },
+      pins: {
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: { id: true, title: true, createdAt: true },
+      },
+      comments: {
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          body: true,
+          createdAt: true,
+          pin: { select: { id: true, title: true } },
+        },
+      },
+    },
+  });
+  if (user === null) {
+    return null;
+  }
+  return {
+    id: user.id,
+    name: user.name,
+    username: user.username,
+    email: user.email,
+    bio: user.bio,
+    avatarUrl: user.avatarUrl,
+    role: user.role,
+    verified: user.verified,
+    disabled: user.disabled,
+    createdAt: user.createdAt,
+    counts: {
+      pins: user._count.pins,
+      comments: user._count.comments,
+      boards: user._count.boards,
+      followers: user._count.followers,
+      following: user._count.following,
+    },
+    recentPins: user.pins,
+    recentComments: user.comments.map((comment) => ({
+      id: comment.id,
+      body: comment.body,
+      pinId: comment.pin.id,
+      pinTitle: comment.pin.title,
+      createdAt: comment.createdAt,
+    })),
+  };
+}
+
+/**
  * Number of pins shown per page in the admin moderation table.
  */
 export const ADMIN_PINS_PAGE_SIZE = 20;
@@ -128,6 +220,7 @@ export type AdminPinsPage = {
 export type AdminCommentRow = {
   id: string;
   body: string;
+  authorId: string;
   authorName: string;
   pinId: string;
   pinTitle: string;
@@ -215,7 +308,7 @@ export async function getAdminComments(page: number): Promise<AdminCommentsPage>
         id: true,
         body: true,
         createdAt: true,
-        author: { select: { name: true } },
+        author: { select: { id: true, name: true } },
         pin: { select: { id: true, title: true } },
       },
     }),
@@ -224,6 +317,7 @@ export async function getAdminComments(page: number): Promise<AdminCommentsPage>
     rows: rows.map((comment) => ({
       id: comment.id,
       body: comment.body,
+      authorId: comment.author.id,
       authorName: comment.author.name,
       pinId: comment.pin.id,
       pinTitle: comment.pin.title,
