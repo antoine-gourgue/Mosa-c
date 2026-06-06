@@ -238,6 +238,7 @@ async function main(): Promise<void> {
       where: { email: `${creator.key}@mosaic.app` },
       update: {
         name: creator.name,
+        username: creator.key,
         avatarUrl: creator.avatarUrl,
         followersLabel: creator.followersLabel,
         verified: true,
@@ -246,6 +247,7 @@ async function main(): Promise<void> {
         id: `user_${creator.key}`,
         email: `${creator.key}@mosaic.app`,
         name: creator.name,
+        username: creator.key,
         avatarUrl: creator.avatarUrl,
         followersLabel: creator.followersLabel,
         verified: true,
@@ -256,11 +258,12 @@ async function main(): Promise<void> {
   const demoPasswordHash = await hash("password123", 12);
   await prisma.user.upsert({
     where: { email: "demo@mosaic.app" },
-    update: { name: "You", passwordHash: demoPasswordHash },
+    update: { name: "You", username: "you", passwordHash: demoPasswordHash },
     create: {
       id: "user_demo",
       email: "demo@mosaic.app",
       name: "You",
+      username: "you",
       avatarUrl: "/images/creator1.png",
       passwordHash: demoPasswordHash,
     },

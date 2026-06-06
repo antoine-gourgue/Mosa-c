@@ -6,6 +6,8 @@ import type { Board, Category, Creator, Pin } from "@/types/domain";
 export type CreatorRow = {
   id: string;
   name: string;
+  username: string | null;
+  bio: string | null;
   avatarUrl: string | null;
   followersLabel: string | null;
   verified: boolean;
@@ -61,6 +63,8 @@ export function toCreator(row: CreatorRow): Creator {
   return {
     id: row.id,
     name: row.name,
+    username: row.username,
+    bio: row.bio,
     avatarUrl: row.avatarUrl,
     followersLabel: row.followersLabel,
     verified: row.verified,

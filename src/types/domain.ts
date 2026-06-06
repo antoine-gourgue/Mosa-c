@@ -4,6 +4,8 @@
 export type Creator = {
   id: string;
   name: string;
+  username: string | null;
+  bio: string | null;
   avatarUrl: string | null;
   followersLabel: string | null;
   verified: boolean;
