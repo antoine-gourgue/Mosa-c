@@ -32,6 +32,8 @@ const envSchema = z.object({
   SUPABASE_URL: optionalUrl,
   SUPABASE_SERVICE_ROLE_KEY: optionalSecret,
   SUPABASE_STORAGE_BUCKET: z.preprocess(blankToUndefined, z.string().default("pins")),
+  UMAMI_SRC: optionalUrl,
+  UMAMI_WEBSITE_ID: optionalSecret,
   NEXT_PUBLIC_APP_URL: optionalUrl,
 });
 

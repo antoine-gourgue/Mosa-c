@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import type { ReactElement, ReactNode } from "react";
+import { env } from "@/lib/env";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
@@ -22,16 +24,26 @@ export const viewport: Viewport = {
 };
 
 /**
- * Root layout wrapping every page with the HTML document shell.
+ * Root layout wrapping every page with the HTML document shell. The Umami
+ * analytics script is injected only when both its source and website id are
+ * configured.
  *
  * @param props - Layout props.
  * @param props.children - The route subtree to render inside the document body.
  * @returns The application HTML shell.
  */
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>): ReactElement {
+  const umamiEnabled = env.UMAMI_SRC !== undefined && env.UMAMI_WEBSITE_ID !== undefined;
   return (
     <html lang="en">
       <body>{children}</body>
+      {umamiEnabled ? (
+        <Script
+          src={env.UMAMI_SRC}
+          data-website-id={env.UMAMI_WEBSITE_ID}
+          strategy="afterInteractive"
+        />
+      ) : null}
     </html>
   );
 }
