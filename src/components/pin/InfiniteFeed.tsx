@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import { Spinner } from "@/components/ui";
 import { loadMoreFeed } from "@/server/actions/feed";
-import type { FeedSource } from "@/server/services";
+import type { FeedSort, FeedSource } from "@/server/services";
 import type { Pin } from "@/types/domain";
 import { PinFeed } from "./PinFeed";
 
@@ -13,54 +13,54 @@ import { PinFeed } from "./PinFeed";
  */
 export type InfiniteFeedProps = {
   initialPins: Pin[];
-  initialCursor: string | null;
+  initialHasMore: boolean;
   savedIds: string[];
   viewerId: string | null;
-  category: string | null;
   feed: FeedSource;
+  sort: FeedSort;
 };
 
 /**
  * Client feed that renders an initial page of pins and appends more as the user
  * scrolls, using an IntersectionObserver sentinel and the loadMoreFeed action.
- * Reset across feed sources by keying this component on the source.
+ * Reset across feed sources and sorts by keying this component on them.
  *
- * @param props - The initial page, cursor, saved ids, viewer and feed source.
+ * @param props - The initial page, saved ids, viewer, feed source and sort.
  * @returns The infinite feed element.
  */
 export function InfiniteFeed({
   initialPins,
-  initialCursor,
+  initialHasMore,
   savedIds,
   viewerId,
-  category,
   feed,
+  sort,
 }: InfiniteFeedProps): ReactElement {
   const [pins, setPins] = useState<Pin[]>(initialPins);
-  const [cursor, setCursor] = useState<string | null>(initialCursor);
+  const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
 
   const loadMore = useCallback(async (): Promise<void> => {
-    if (loadingRef.current || cursor === null) {
+    if (loadingRef.current || !hasMore) {
       return;
     }
     loadingRef.current = true;
     setLoading(true);
     try {
-      const page = await loadMoreFeed({ cursor, category, feed });
+      const page = await loadMoreFeed({ skip: pins.length, feed, sort });
       setPins((previous) => [...previous, ...page.pins]);
-      setCursor(page.nextCursor);
+      setHasMore(page.hasMore);
     } finally {
       loadingRef.current = false;
       setLoading(false);
     }
-  }, [cursor, category, feed]);
+  }, [hasMore, pins.length, feed, sort]);
 
   useEffect(() => {
     const element = sentinelRef.current;
-    if (element === null || cursor === null) {
+    if (element === null || !hasMore) {
       return;
     }
     const observer = new IntersectionObserver(
@@ -73,12 +73,12 @@ export function InfiniteFeed({
     );
     observer.observe(element);
     return () => observer.disconnect();
-  }, [loadMore, cursor]);
+  }, [loadMore, hasMore]);
 
   return (
     <>
       <PinFeed pins={pins} savedIds={savedIds} viewerId={viewerId} />
-      {cursor !== null ? <div ref={sentinelRef} className="h-10" aria-hidden /> : null}
+      {hasMore ? <div ref={sentinelRef} className="h-10" aria-hidden /> : null}
       {loading ? (
         <div className="flex justify-center py-8">
           <Spinner />

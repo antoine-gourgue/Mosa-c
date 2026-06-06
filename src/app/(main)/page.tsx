@@ -2,7 +2,8 @@ import { Suspense } from "react";
 import type { ReactElement } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { getHomeFeed, getSavedPinIds } from "@/server/services";
-import type { FeedSource } from "@/server/services";
+import type { FeedSort, FeedSource } from "@/server/services";
+import { FeedFilter } from "@/components/feed";
 import { InfiniteFeed, PinCardSkeleton } from "@/components/pin";
 
 /**
@@ -16,24 +17,34 @@ function resolveFeed(value: string | undefined): FeedSource {
 }
 
 /**
+ * Resolves the feed sort from the URL query.
+ *
+ * @param value - The raw `sort` query value.
+ * @returns The feed sort, defaulting to "recent".
+ */
+function resolveSort(value: string | undefined): FeedSort {
+  return value === "likes" || value === "downloads" || value === "comments" ? value : "recent";
+}
+
+/**
  * Fetches the first feed page and the viewer's saved ids, then renders the
  * infinite feed (or an empty state).
  *
- * @param props - The active category slug and feed source.
- * @param props.category - The active category slug, or null for all.
+ * @param props - The feed source and sort.
  * @param props.feed - The active feed source.
+ * @param props.sort - The active feed sort.
  * @returns The populated feed.
  */
 async function FeedContent({
-  category,
   feed,
+  sort,
 }: {
-  category: string | null;
   feed: FeedSource;
+  sort: FeedSort;
 }): Promise<ReactElement> {
   const user = await getCurrentUser();
   const [page, savedIds] = await Promise.all([
-    getHomeFeed({ category, feed, viewerId: user?.id ?? null }),
+    getHomeFeed({ feed, sort, viewerId: user?.id ?? null }),
     user === null ? Promise.resolve<string[]>([]) : getSavedPinIds(user.id),
   ]);
 
@@ -49,13 +60,13 @@ async function FeedContent({
 
   return (
     <InfiniteFeed
-      key={`${feed}:${category ?? "all"}`}
+      key={`${feed}:${sort}`}
       initialPins={page.pins}
-      initialCursor={page.nextCursor}
+      initialHasMore={page.hasMore}
       savedIds={savedIds}
       viewerId={user?.id ?? null}
-      category={category}
       feed={feed}
+      sort={sort}
     />
   );
 }
@@ -76,8 +87,8 @@ function FeedSkeleton(): ReactElement {
 }
 
 /**
- * Home route: the masonry feed of pins with infinite scroll, honoring the
- * `category` and `feed` URL parameters.
+ * Home route: the masonry feed of pins with infinite scroll and a sort filter,
+ * honoring the `feed` and `sort` URL parameters.
  *
  * @param props - Route props.
  * @param props.searchParams - The resolved URL search parameters.
@@ -86,15 +97,20 @@ function FeedSkeleton(): ReactElement {
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; feed?: string }>;
+  searchParams: Promise<{ feed?: string; sort?: string }>;
 }): Promise<ReactElement> {
-  const { category, feed } = await searchParams;
-  const activeCategory = category ?? null;
+  const { feed, sort } = await searchParams;
   const source = resolveFeed(feed);
+  const order = resolveSort(sort);
 
   return (
-    <Suspense key={`${source}:${activeCategory ?? "all"}`} fallback={<FeedSkeleton />}>
-      <FeedContent category={activeCategory} feed={source} />
-    </Suspense>
+    <>
+      <div className="mb-2 flex items-center justify-end">
+        <FeedFilter active={order} />
+      </div>
+      <Suspense key={`${source}:${order}`} fallback={<FeedSkeleton />}>
+        <FeedContent feed={source} sort={order} />
+      </Suspense>
+    </>
   );
 }
