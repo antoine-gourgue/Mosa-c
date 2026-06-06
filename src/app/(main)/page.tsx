@@ -3,7 +3,7 @@ import type { ReactElement } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { getHomeFeed, getSavedPinIds } from "@/server/services";
 import type { FeedSort, FeedSource } from "@/server/services";
-import { FeedFilter } from "@/components/feed";
+import { FeedFilter, FeedTabs } from "@/components/feed";
 import { InfiniteFeed, PinCardSkeleton } from "@/components/pin";
 
 /**
@@ -105,8 +105,11 @@ export default async function HomePage({
 
   return (
     <>
-      <div className="mb-2 flex items-center justify-end">
-        <FeedFilter active={order} />
+      <div className="mb-4 flex items-center justify-between gap-3 border-b border-line">
+        <FeedTabs active={source} sort={order} />
+        <div className="pb-1">
+          <FeedFilter active={order} />
+        </div>
       </div>
       <Suspense key={`${source}:${order}`} fallback={<FeedSkeleton />}>
         <FeedContent feed={source} sort={order} />
