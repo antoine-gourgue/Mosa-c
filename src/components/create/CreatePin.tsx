@@ -77,46 +77,50 @@ export function CreatePin({ boards }: CreatePinProps): ReactElement {
   };
 
   return (
-    <div className="mx-auto max-w-[760px]">
+    <div className="mx-auto max-w-[940px]">
       <h1 className="text-[32px] font-extrabold text-ink">Create Pin</h1>
       <p className="mt-1 text-ink-soft">Add an image and a few details to share your idea.</p>
-      <div className="mt-7 grid grid-cols-1 gap-7 md:grid-cols-2">
-        <UploadDropzone value={image} onChange={setImage} />
-        <div className="flex flex-col gap-4">
-          <Input
-            label="Title"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            placeholder="Add a title"
-          />
-          <Textarea
-            label="Description"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder="What is your Pin about?"
-            rows={4}
-          />
-          <Input
-            label="Link"
-            value={link}
-            onChange={(event) => setLink(event.target.value)}
-            placeholder="Add a destination link"
-          />
-          <Select label="Board" value={board} onChange={(event) => setBoard(event.target.value)}>
-            {boards.map((option) => (
-              <option key={option.id} value={option.name}>
-                {option.name}
-              </option>
-            ))}
-          </Select>
-          {error !== null ? (
-            <p role="alert" className="text-sm text-accent">
-              {error}
-            </p>
-          ) : null}
-          <Button fullWidth className="mt-2" loading={pending} onClick={onPublish}>
-            Publish
-          </Button>
+      <div className="mt-6 rounded-[28px] border border-line bg-bg p-5 shadow-pop md:p-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,400px)_1fr]">
+          <UploadDropzone value={image} onChange={setImage} />
+          <div className="flex flex-col gap-4">
+            <Input
+              label="Title"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="Add a title"
+            />
+            <Textarea
+              label="Description"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder="What is your Pin about?"
+              rows={4}
+            />
+            <Input
+              label="Link"
+              value={link}
+              onChange={(event) => setLink(event.target.value)}
+              placeholder="Add a destination link"
+            />
+            <Select label="Board" value={board} onChange={(event) => setBoard(event.target.value)}>
+              {boards.map((option) => (
+                <option key={option.id} value={option.name}>
+                  {option.name}
+                </option>
+              ))}
+            </Select>
+            <div className="mt-auto pt-2">
+              {error !== null ? (
+                <p role="alert" className="mb-2 text-sm text-accent">
+                  {error}
+                </p>
+              ) : null}
+              <Button fullWidth loading={pending} onClick={onPublish}>
+                Publish
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
