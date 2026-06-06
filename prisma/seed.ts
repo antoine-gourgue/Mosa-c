@@ -280,6 +280,12 @@ async function main(): Promise<void> {
     },
   });
 
+  await prisma.boardMember.upsert({
+    where: { boardId_userId: { boardId: "board_demo_quick", userId: "user_demo" } },
+    update: { role: "OWNER" },
+    create: { boardId: "board_demo_quick", userId: "user_demo", role: "OWNER" },
+  });
+
   for (const pin of pins) {
     await prisma.pin.upsert({
       where: { id: `pin_${pin.ref}` },
