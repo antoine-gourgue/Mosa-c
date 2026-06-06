@@ -57,6 +57,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
           initialSaved={saved}
           initialLiked={like.liked}
           likeCount={like.count}
+          downloadCount={pin.downloadCount}
         />
         {pin.category !== null ? (
           <span className="text-sm text-ink-soft">
