@@ -25,8 +25,11 @@ test("non-admins are redirected away from /admin", async ({ page }) => {
   await page.waitForURL("/");
 });
 
-test("admins can open the back office", async ({ page }) => {
+test("admins can open the dashboard and navigate the back office", async ({ page }) => {
   await loginAsAdmin(page);
   await page.goto("/admin");
-  await expect(page.getByRole("heading", { name: "Admin" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(page.getByText("Pins", { exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Categories" }).click();
+  await expect(page.getByRole("heading", { name: "Categories" })).toBeVisible();
 });
