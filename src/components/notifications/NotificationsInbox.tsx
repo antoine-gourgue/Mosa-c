@@ -163,7 +163,7 @@ export function NotificationsInbox({ items }: NotificationsInboxProps): ReactEle
 
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px] leading-snug text-ink">{item.message}</p>
-                    <p className="text-[13px] text-ink-faint">
+                    <p className="text-[13px] text-ink-soft">
                       {formatRelativeTime(item.createdAt)}
                     </p>
                   </div>

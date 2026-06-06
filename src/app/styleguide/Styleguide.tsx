@@ -46,7 +46,7 @@ type SectionProps = {
 function Section({ title, children }: SectionProps): ReactElement {
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="text-sm font-bold uppercase tracking-wide text-ink-faint">{title}</h2>
+      <h2 className="text-sm font-bold uppercase tracking-wide text-ink-soft">{title}</h2>
       <div className="flex flex-wrap items-center gap-4">{children}</div>
     </section>
   );

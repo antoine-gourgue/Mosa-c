@@ -174,7 +174,7 @@ export function PinCard({
           </div>
         )}
         {pin.likeCount > 0 || pin.commentCount > 0 || downloads > 0 ? (
-          <div className="mt-1 flex items-center gap-3 text-[13px] text-ink-faint">
+          <div className="mt-1 flex items-center gap-3 text-[13px] text-ink-soft">
             {pin.likeCount > 0 ? (
               <span className="inline-flex items-center gap-1">
                 <HeartIcon size={14} />
