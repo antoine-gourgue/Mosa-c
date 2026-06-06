@@ -1,0 +1,114 @@
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import type { ReactElement } from "react";
+import { PinFeed } from "@/components/pin";
+import { ProfileHeader, ProfileTabs } from "@/components/profile";
+import type { ProfileTab } from "@/components/profile";
+import { getCurrentUser } from "@/lib/auth";
+import {
+  getCreatedPins,
+  getFollowCounts,
+  getSavedPinIds,
+  getUserByUsername,
+  isFollowing,
+} from "@/server/services";
+
+/**
+ * Resolves the active profile tab from the URL query.
+ *
+ * @param value - The raw `tab` query value.
+ * @returns The active tab, defaulting to created.
+ */
+function resolveTab(value: string | undefined): ProfileTab {
+  return value === "saved" || value === "boards" ? value : "created";
+}
+
+/**
+ * Builds the profile page metadata.
+ *
+ * @param props - Route props.
+ * @param props.params - The resolved route params.
+ * @returns The page metadata.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}): Promise<Metadata> {
+  const { username } = await params;
+  return { title: `@${username}` };
+}
+
+/**
+ * Renders the created pins for a profile.
+ *
+ * @param props - The profile user id and the viewer's saved ids.
+ * @param props.userId - The profile user id.
+ * @param props.savedIds - The viewer's saved pin ids.
+ * @returns The created pins view.
+ */
+async function CreatedView({
+  userId,
+  savedIds,
+}: {
+  userId: string;
+  savedIds: string[];
+}): Promise<ReactElement> {
+  const pins = await getCreatedPins(userId);
+  if (pins.length === 0) {
+    return <p className="py-16 text-center text-ink-soft">No published pins yet.</p>;
+  }
+  return <PinFeed pins={pins} savedIds={savedIds} />;
+}
+
+/**
+ * Public profile route at `/u/[username]`: header, tabs and the active tab's
+ * content.
+ *
+ * @param props - Route props.
+ * @param props.params - The resolved route params with the username.
+ * @param props.searchParams - The resolved URL search params.
+ * @returns The profile page.
+ */
+export default async function ProfilePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ username: string }>;
+  searchParams: Promise<{ tab?: string }>;
+}): Promise<ReactElement> {
+  const [{ username }, { tab }] = await Promise.all([params, searchParams]);
+  const user = await getUserByUsername(username);
+  if (user === null) {
+    notFound();
+  }
+
+  const viewer = await getCurrentUser();
+  const isOwnProfile = viewer?.id === user.id;
+  const [counts, following, savedIds] = await Promise.all([
+    getFollowCounts(user.id),
+    viewer !== null && !isOwnProfile ? isFollowing(viewer.id, user.id) : Promise.resolve(false),
+    viewer !== null ? getSavedPinIds(viewer.id) : Promise.resolve<string[]>([]),
+  ]);
+  const active = resolveTab(tab);
+
+  return (
+    <div className="mx-auto max-w-[1180px]">
+      <ProfileHeader
+        user={user}
+        followers={counts.followers}
+        following={counts.following}
+        initialFollowing={following}
+        isOwnProfile={isOwnProfile}
+      />
+      <ProfileTabs username={username} active={active} />
+      <div className="mt-6">
+        {active === "created" ? (
+          <CreatedView userId={user.id} savedIds={savedIds} />
+        ) : (
+          <p className="py-16 text-center text-ink-soft">Coming soon.</p>
+        )}
+      </div>
+    </div>
+  );
+}
