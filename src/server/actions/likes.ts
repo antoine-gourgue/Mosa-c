@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { createNotification } from "@/server/notifications";
 import { AppError } from "@/server/result";
 
 /**
@@ -23,6 +24,15 @@ export async function toggleLike(pinId: string): Promise<{ liked: boolean; count
 
   if (existing === null) {
     await prisma.like.create({ data: { userId: user.id, pinId } });
+    const pin = await prisma.pin.findUnique({ where: { id: pinId }, select: { creatorId: true } });
+    if (pin !== null) {
+      await createNotification({
+        type: "LIKE",
+        recipientId: pin.creatorId,
+        actorId: user.id,
+        pinId,
+      });
+    }
   } else {
     await prisma.like.delete({ where: key });
   }

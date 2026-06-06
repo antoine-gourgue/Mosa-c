@@ -3,7 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/auth", () => ({ getCurrentUser: vi.fn() }));
 vi.mock("@/lib/prisma", () => ({
-  prisma: { follow: { findUnique: vi.fn(), create: vi.fn(), delete: vi.fn() } },
+  prisma: {
+    follow: { findUnique: vi.fn(), create: vi.fn(), delete: vi.fn() },
+    notification: { findFirst: vi.fn(), create: vi.fn() },
+  },
 }));
 
 import { getCurrentUser } from "@/lib/auth";
@@ -12,6 +15,7 @@ import { toggleFollow } from "./follows";
 
 const db = prisma as unknown as {
   follow: { findUnique: Mock; create: Mock; delete: Mock };
+  notification: { findFirst: Mock; create: Mock };
 };
 
 describe("toggleFollow", () => {
@@ -27,8 +31,10 @@ describe("toggleFollow", () => {
 
   it("follows a creator when not already following", async () => {
     db.follow.findUnique.mockResolvedValue(null);
+    db.notification.findFirst.mockResolvedValue(null);
     const result = await toggleFollow("creator1");
     expect(db.follow.create).toHaveBeenCalledOnce();
+    expect(db.notification.create).toHaveBeenCalledOnce();
     expect(result).toEqual({ following: true });
   });
 
