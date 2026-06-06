@@ -3,6 +3,7 @@ import type { ReactElement, ReactNode } from "react";
 import { ToastProvider } from "@/components/ui";
 import { Fab, TopNav } from "@/components/layout";
 import { getCurrentUser } from "@/lib/auth";
+import { getCreatorById } from "@/server/services";
 
 /**
  * Authenticated application shell wrapping every main route with the sticky top
@@ -22,6 +23,7 @@ export default async function MainLayout({
   modal: ReactNode;
 }): Promise<ReactElement> {
   const user = await getCurrentUser();
+  const profile = user === null ? null : await getCreatorById(user.id);
   return (
     <ToastProvider>
       <a
@@ -31,7 +33,13 @@ export default async function MainLayout({
         Skip to content
       </a>
       <Suspense>
-        <TopNav user={{ name: user?.name ?? "You", image: user?.image ?? null }} />
+        <TopNav
+          user={{
+            name: user?.name ?? "You",
+            image: user?.image ?? null,
+            username: profile?.username ?? null,
+          }}
+        />
       </Suspense>
       <main id="main-content" tabIndex={-1} className="px-6 pb-20 pt-4">
         {children}

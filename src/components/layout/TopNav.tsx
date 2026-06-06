@@ -11,7 +11,7 @@ import { BellIcon, Logo, PlusIcon, SearchIcon, StackIcon } from "@/icons";
  * Props for the {@link TopNav} component.
  */
 export type TopNavProps = {
-  user: { name: string; image: string | null };
+  user: { name: string; image: string | null; username: string | null };
 };
 
 /**
@@ -87,7 +87,11 @@ export function TopNav({ user }: TopNavProps): ReactElement {
             <StackIcon size={22} />
           </IconButton>
         </div>
-        <Link href="/boards" aria-label="Profile" className="ml-1 shrink-0">
+        <Link
+          href={user.username !== null ? `/u/${user.username}` : "/boards"}
+          aria-label="Profile"
+          className="ml-1 shrink-0"
+        >
           <Avatar name={user.name} src={user.image ?? undefined} size={44} />
         </Link>
       </div>
