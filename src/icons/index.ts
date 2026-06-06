@@ -19,5 +19,6 @@ export {
   SparkleIcon,
   OrganizeIcon,
   NotesIcon,
+  ChevronDownIcon,
 } from "./glyphs";
 export { Logo } from "./Logo";
