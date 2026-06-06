@@ -6,13 +6,13 @@ import type { ReactElement } from "react";
 import { Button, ConfirmDialog, IconButton, Menu, useToast } from "@/components/ui";
 import { LikeButton } from "@/components/pin";
 import { DownloadIcon, MoreIcon, ShareIcon } from "@/icons";
-import { cn } from "@/lib/cn";
 import { downloadPin } from "@/lib/download";
 import { pinUrl, sharePin } from "@/lib/share";
 import { recordDownload } from "@/server/actions/downloads";
 import { deletePin } from "@/server/actions/pins";
-import { toggleSave } from "@/server/actions/saves";
 import type { MenuItem } from "@/components/ui";
+import { SaveToBoard } from "./SaveToBoard";
+import type { SaveBoardOption } from "./SaveToBoard";
 
 /**
  * Props for the {@link DetailActions} component.
@@ -22,20 +22,19 @@ export type DetailActionsProps = {
   title: string;
   imageUrl: string;
   link: string | null;
-  initialSaved: boolean;
   initialLiked: boolean;
   likeCount: number;
   downloadCount: number;
   isOwner: boolean;
+  boards: SaveBoardOption[];
 };
 
 /**
  * Action row of the pin detail: an overflow menu and Like on the left, Download,
- * Share, Visit and a Save toggle on the right. Saving updates optimistically and
- * shows the "Saved to Quick Saves" toast; downloading saves the image and
- * increments the pin's download count.
+ * Share, Visit and a board-targeted Save on the right. Downloading saves the
+ * image and increments the pin's download count.
  *
- * @param props - The pin identity, link and initial engagement state.
+ * @param props - The pin identity, link, engagement state and the user's boards.
  * @returns The actions row element.
  */
 export function DetailActions({
@@ -43,40 +42,17 @@ export function DetailActions({
   title,
   imageUrl,
   link,
-  initialSaved,
   initialLiked,
   likeCount,
   downloadCount,
   isOwner,
+  boards,
 }: DetailActionsProps): ReactElement {
-  const [saved, setSaved] = useState(initialSaved);
   const [downloads, setDownloads] = useState(downloadCount);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, startDelete] = useTransition();
-  const [, startTransition] = useTransition();
   const { show } = useToast();
   const router = useRouter();
-
-  const onSave = (): void => {
-    const wasSaved = saved;
-    setSaved(!wasSaved);
-    if (!wasSaved) {
-      show({
-        title: "Saved to Quick Saves",
-        description: title,
-        img: imageUrl,
-        action: { label: "View", onClick: () => router.push("/boards") },
-      });
-    }
-    startTransition(async () => {
-      try {
-        const result = await toggleSave(pinId);
-        setSaved(result.saved);
-      } catch {
-        setSaved(wasSaved);
-      }
-    });
-  };
 
   const onShare = async (): Promise<void> => {
     const outcome = await sharePin({ url: pinUrl(pinId), title });
@@ -174,21 +150,10 @@ export function DetailActions({
             <a href={link} target="_blank" rel="noreferrer noopener">
               <Button variant="ghost">Visit</Button>
             </a>
-          ) : (
-            <Button variant="ghost" disabled>
-              Visit
-            </Button>
-          )}
-          <button
-            type="button"
-            onClick={onSave}
-            className={cn(
-              "h-11 cursor-pointer rounded-full px-5 text-[15px] font-semibold text-bg transition-colors duration-150",
-              saved ? "bg-ink hover:bg-ink/90" : "bg-accent hover:bg-accent-press",
-            )}
-          >
-            {saved ? "Saved" : "Save"}
-          </button>
+          ) : null}
+          {boards.length > 0 ? (
+            <SaveToBoard pinId={pinId} title={title} imageUrl={imageUrl} boards={boards} />
+          ) : null}
         </div>
       </div>
     </>

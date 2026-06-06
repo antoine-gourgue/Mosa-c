@@ -5,3 +5,5 @@ export { DetailActions } from "./DetailActions";
 export type { DetailActionsProps } from "./DetailActions";
 export { CreatorRow } from "./CreatorRow";
 export type { CreatorRowProps } from "./CreatorRow";
+export { SaveToBoard } from "./SaveToBoard";
+export type { SaveToBoardProps, SaveBoardOption } from "./SaveToBoard";

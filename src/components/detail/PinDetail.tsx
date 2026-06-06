@@ -3,7 +3,13 @@ import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 import { Divider } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
-import { getComments, getLikeState, getPinById, isFollowing, isSaved } from "@/server/services";
+import {
+  getBoardsForUser,
+  getComments,
+  getLikeState,
+  getPinById,
+  isFollowing,
+} from "@/server/services";
 import { DetailActions } from "./DetailActions";
 import { CreatorRow } from "./CreatorRow";
 import { Comments } from "./Comments";
@@ -29,11 +35,11 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
     notFound();
   }
   const user = await getCurrentUser();
-  const [saved, following, like, comments] = await Promise.all([
-    user === null ? Promise.resolve(false) : isSaved(user.id, pin.id),
+  const [following, like, comments, boards] = await Promise.all([
     user === null ? Promise.resolve(false) : isFollowing(user.id, pin.creator.id),
     getLikeState(pin.id, user?.id ?? null),
     getComments(pin.id),
+    user === null ? Promise.resolve([]) : getBoardsForUser(user.id),
   ]);
 
   return (
@@ -54,11 +60,15 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
           title={pin.title}
           imageUrl={pin.imageUrl}
           link={pin.link}
-          initialSaved={saved}
           initialLiked={like.liked}
           likeCount={like.count}
           downloadCount={pin.downloadCount}
           isOwner={user?.id === pin.creator.id}
+          boards={boards.map((board) => ({
+            id: board.id,
+            name: board.name,
+            isDefault: board.isDefault,
+          }))}
         />
         {pin.category !== null ? (
           <span className="text-sm text-ink-soft">
