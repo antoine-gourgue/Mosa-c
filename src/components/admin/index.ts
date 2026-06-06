@@ -5,3 +5,4 @@ export { DataTable } from "./DataTable";
 export type { Column, DataTableProps } from "./DataTable";
 export { AdminPlaceholder } from "./AdminPlaceholder";
 export { UsersAdmin } from "./UsersAdmin";
+export { ModerationAdmin } from "./ModerationAdmin";

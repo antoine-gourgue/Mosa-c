@@ -43,3 +43,13 @@ test("admins can list and search users", async ({ page }) => {
   await expect(page.getByText("north@mosaic.app")).toBeVisible();
   await expect(page.getByText("admin@mosaic.app")).toHaveCount(0);
 });
+
+test("admins can moderate pins and comments", async ({ page }) => {
+  await loginAsAdmin(page);
+  await page.goto("/admin/moderation");
+  await expect(page.getByRole("heading", { name: "Moderation" })).toBeVisible();
+  await page.getByLabel("Search pins").fill("Paris");
+  await expect(page.getByText("Paris at dusk")).toBeVisible();
+  await page.getByRole("link", { name: "comments" }).click();
+  await expect(page.getByRole("columnheader", { name: "Author" })).toBeVisible();
+});

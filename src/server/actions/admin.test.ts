@@ -4,15 +4,27 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/auth", () => ({ getCurrentUser: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/prisma", () => ({
-  prisma: { user: { findUnique: vi.fn(), update: vi.fn(), delete: vi.fn() } },
+  prisma: {
+    user: { findUnique: vi.fn(), update: vi.fn(), delete: vi.fn() },
+    pin: { delete: vi.fn() },
+    comment: { delete: vi.fn() },
+  },
 }));
 
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { deleteUser, setUserDisabled, setUserRole } from "./admin";
+import {
+  adminDeleteComment,
+  adminDeletePin,
+  deleteUser,
+  setUserDisabled,
+  setUserRole,
+} from "./admin";
 
 const db = prisma as unknown as {
   user: { findUnique: Mock; update: Mock; delete: Mock };
+  pin: { delete: Mock };
+  comment: { delete: Mock };
 };
 
 /**
@@ -81,5 +93,32 @@ describe("admin actions", () => {
     asAdmin();
     await deleteUser("u2");
     expect(db.user.delete).toHaveBeenCalledWith({ where: { id: "u2" } });
+  });
+
+  it("lets an admin remove any pin", async () => {
+    asAdmin();
+    await adminDeletePin("pin1");
+    expect(db.pin.delete).toHaveBeenCalledWith({ where: { id: "pin1" } });
+  });
+
+  it("lets an admin remove any comment", async () => {
+    asAdmin();
+    await adminDeleteComment("c1");
+    expect(db.comment.delete).toHaveBeenCalledWith({ where: { id: "c1" } });
+  });
+
+  it("rejects moderation from non-admins", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue({
+      id: "u1",
+      name: "U",
+      email: "u@x.com",
+      image: null,
+      role: "USER",
+    });
+    db.user.findUnique.mockResolvedValue({ role: "USER" });
+    await expect(adminDeletePin("pin1")).rejects.toThrow();
+    await expect(adminDeleteComment("c1")).rejects.toThrow();
+    expect(db.pin.delete).not.toHaveBeenCalled();
+    expect(db.comment.delete).not.toHaveBeenCalled();
   });
 });
