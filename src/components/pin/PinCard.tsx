@@ -81,10 +81,20 @@ export function PinCard({ pin, saved, onToggleSave, count }: PinCardProps): Reac
 
       <div className="px-1 pt-2">
         <p className="line-clamp-2 text-[15px] font-semibold text-ink">{pin.title}</p>
-        <div className="mt-1 flex items-center gap-1.5">
-          <Avatar src={pin.creator.avatarUrl ?? undefined} name={pin.creator.name} size={22} />
-          <span className="text-[13px] text-ink-soft">{pin.creator.name}</span>
-        </div>
+        {pin.creator.username !== null ? (
+          <Link
+            href={`/u/${pin.creator.username}`}
+            className="mt-1 flex w-fit items-center gap-1.5 hover:underline"
+          >
+            <Avatar src={pin.creator.avatarUrl ?? undefined} name={pin.creator.name} size={22} />
+            <span className="text-[13px] text-ink-soft">{pin.creator.name}</span>
+          </Link>
+        ) : (
+          <div className="mt-1 flex items-center gap-1.5">
+            <Avatar src={pin.creator.avatarUrl ?? undefined} name={pin.creator.name} size={22} />
+            <span className="text-[13px] text-ink-soft">{pin.creator.name}</span>
+          </div>
+        )}
       </div>
     </div>
   );

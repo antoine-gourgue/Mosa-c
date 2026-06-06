@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
 import { Avatar } from "@/components/ui";
@@ -41,18 +42,23 @@ export function CreatorRow({ creator, initialFollowing }: CreatorRowProps): Reac
 
   return (
     <div className="flex items-center gap-3">
-      <Avatar
-        src={creator.avatarUrl ?? undefined}
-        name={creator.name}
-        size={48}
-        verified={creator.verified}
-      />
-      <div className="flex flex-col">
-        <span className="font-semibold text-ink">{creator.name}</span>
-        {creator.followersLabel !== null ? (
-          <span className="text-sm text-ink-soft">{creator.followersLabel} followers</span>
-        ) : null}
-      </div>
+      <Link
+        href={creator.username !== null ? `/u/${creator.username}` : "#"}
+        className="flex items-center gap-3"
+      >
+        <Avatar
+          src={creator.avatarUrl ?? undefined}
+          name={creator.name}
+          size={48}
+          verified={creator.verified}
+        />
+        <div className="flex flex-col text-left">
+          <span className="font-semibold text-ink hover:underline">{creator.name}</span>
+          {creator.followersLabel !== null ? (
+            <span className="text-sm text-ink-soft">{creator.followersLabel} followers</span>
+          ) : null}
+        </div>
+      </Link>
       <button
         type="button"
         onClick={onToggle}

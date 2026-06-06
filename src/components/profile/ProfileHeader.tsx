@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactElement } from "react";
 import { Avatar } from "@/components/ui";
 import type { Creator } from "@/types/domain";
@@ -43,7 +44,14 @@ export function ProfileHeader({
         <span className="font-semibold text-ink">{followers}</span> followers ·{" "}
         <span className="font-semibold text-ink">{following}</span> following
       </p>
-      {isOwnProfile ? null : (
+      {isOwnProfile ? (
+        <Link
+          href="/settings/profile"
+          className="h-11 rounded-full bg-surface px-5 text-[15px] font-semibold leading-[44px] text-ink transition-colors hover:bg-surface-2"
+        >
+          Edit profile
+        </Link>
+      ) : (
         <FollowButton creatorId={user.id} initialFollowing={initialFollowing} />
       )}
     </header>
