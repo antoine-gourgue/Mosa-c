@@ -45,6 +45,7 @@ model User {
   followersLabel String?
   verified       Boolean   @default(false)
   role           Role      @default(USER)
+  disabled       Boolean   @default(false)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
