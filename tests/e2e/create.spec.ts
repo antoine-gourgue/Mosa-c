@@ -12,6 +12,6 @@ test("uploading an image and publishing creates a pin on the board", async ({ pa
   await page.getByLabel("Title").fill(title);
   await page.getByRole("button", { name: "Publish" }).click();
 
-  await page.waitForURL("/boards");
+  await page.waitForURL(/\/boards/);
   await expect(page.getByText(title)).toBeVisible();
 });

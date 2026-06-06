@@ -68,9 +68,28 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
       creatorId: user.id,
     },
   });
-  await prisma.save.create({ data: { userId: user.id, pinId: pin.id } });
+
+  const boardName = (formData.get("board")?.toString() ?? "").trim() || "Quick Saves";
+  const board =
+    (await prisma.board.findFirst({
+      where: { ownerId: user.id, name: { equals: boardName, mode: "insensitive" } },
+    })) ?? (await prisma.board.create({ data: { ownerId: user.id, name: boardName } }));
+
+  if (board.isDefault) {
+    await prisma.save.upsert({
+      where: { userId_pinId: { userId: user.id, pinId: pin.id } },
+      update: {},
+      create: { userId: user.id, pinId: pin.id },
+    });
+  } else {
+    await prisma.boardPin.upsert({
+      where: { boardId_pinId: { boardId: board.id, pinId: pin.id } },
+      update: {},
+      create: { boardId: board.id, pinId: pin.id },
+    });
+  }
 
   revalidatePath("/");
   revalidatePath("/boards");
-  redirect("/boards");
+  redirect(`/boards/${board.id}`);
 }
