@@ -26,9 +26,11 @@ export default async function SearchPage({
   const { q } = await searchParams;
   const query = (q ?? "").trim();
 
-  return (
+  return query === "" ? (
     <div className="mx-auto max-w-[1180px]">
-      {query === "" ? <SearchDiscovery /> : <SearchResults query={query} />}
+      <SearchDiscovery />
     </div>
+  ) : (
+    <SearchResults query={query} />
   );
 }
