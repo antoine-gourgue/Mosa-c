@@ -52,11 +52,6 @@ export function TopNav({ user, unreadCount }: TopNavProps): ReactElement {
           <input
             value={query}
             onChange={onSearchChange}
-            onFocus={() => {
-              if (!pathname.startsWith("/search")) {
-                router.push("/search");
-              }
-            }}
             placeholder="Search for ideas"
             aria-label="Search"
             className="h-12 w-full rounded-3xl bg-surface pl-11 pr-4 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
