@@ -5,7 +5,7 @@ test("uploading an image and publishing creates a pin on the board", async ({ pa
   await login(page);
   await page.goto("/create");
 
-  await page.setInputFiles('input[type="file"]', "public/images/pug.png");
+  await page.setInputFiles('input[type="file"]', "public/images/creator1.png");
   await expect(page.getByLabel("Selected preview")).toBeVisible();
 
   const title = `Playwright Pin ${Date.now()}`;

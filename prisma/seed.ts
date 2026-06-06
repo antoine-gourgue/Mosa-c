@@ -33,6 +33,19 @@ type PinSeed = {
   description: string;
 };
 
+/**
+ * Builds a cropped Unsplash delivery URL at the given dimensions so the stored
+ * width and height always match the served image.
+ *
+ * @param id - The Unsplash photo id (the part after `photo-`).
+ * @param width - The desired crop width in pixels.
+ * @param height - The desired crop height in pixels.
+ * @returns The fully-qualified image URL.
+ */
+function unsplash(id: string, width: number, height: number): string {
+  return `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${width}&h=${height}&q=80`;
+}
+
 const creators: CreatorSeed[] = [
   { key: "mira", name: "Mira Solène", avatarUrl: "/images/wattped.png", followersLabel: "27m" },
   { key: "atlas", name: "Studio Atlas", avatarUrl: "/images/creator1.png", followersLabel: "8.5m" },
@@ -41,166 +54,174 @@ const creators: CreatorSeed[] = [
 ];
 
 const categories: CategorySeed[] = [
-  { label: "Art", imageUrl: "/images/artflowers.png" },
-  { label: "Photography", imageUrl: "/images/photography.png" },
-  { label: "Auto", imageUrl: "/images/car.png" },
-  { label: "Wallpaper", imageUrl: "/images/galaxy.png" },
-  { label: "Animals", imageUrl: "/images/fox.png" },
-  { label: "Astronomy", imageUrl: "/images/astronomy.png" },
-  { label: "Design", imageUrl: "/images/design.png" },
-  { label: "Food", imageUrl: "/images/oranges.png" },
+  { label: "Travel", imageUrl: unsplash("1501785888041-af3ef285b470", 500, 500) },
+  { label: "Mountains", imageUrl: unsplash("1506905925346-21bda4d32df4", 500, 500) },
+  { label: "Nature", imageUrl: unsplash("1441974231531-c6227db76b6e", 500, 500) },
+  { label: "Food", imageUrl: unsplash("1504674900247-0877df9cc836", 500, 500) },
+  { label: "Animals", imageUrl: unsplash("1518791841217-8f162f1e1131", 500, 500) },
+  { label: "City", imageUrl: unsplash("1480714378408-67cf0d13bc1b", 500, 500) },
 ];
 
 const pins: PinSeed[] = [
   {
     ref: 1,
-    imageUrl: "/images/orchid.png",
-    width: 344,
-    height: 370,
-    title: "All Over You — orchid study",
-    creator: "mira",
-    category: "Art",
-    description: "Saturated florals from the All Over You series. Warm tones, soft focus.",
-  },
-  {
-    ref: 13,
-    imageUrl: "/images/bird.png",
-    width: 750,
-    height: 1200,
-    title: "Dove on pink steps",
-    creator: "north",
-    category: "Photography",
-    description: "A single dove resting on minimal pink architecture against a pale sky.",
+    imageUrl: unsplash("1501785888041-af3ef285b470", 600, 460),
+    width: 600,
+    height: 460,
+    title: "Lago di Braies, Dolomites",
+    creator: "atlas",
+    category: "Travel",
+    description: "Turquoise water and wooden rowboats beneath the Dolomite cliffs.",
   },
   {
     ref: 2,
-    imageUrl: "/images/car.png",
-    width: 352,
-    height: 464,
-    title: "Vintage roadster, top-down",
-    creator: "atlas",
-    category: "Auto",
-    description: "Classic red convertible shot from above on open asphalt.",
-  },
-  {
-    ref: 5,
-    imageUrl: "/images/galaxy.png",
-    width: 352,
-    height: 176,
-    title: "Galaxy wallpaper",
+    imageUrl: unsplash("1469474968028-56623f02e42e", 600, 520),
+    width: 600,
+    height: 520,
+    title: "Above the green valley",
     creator: "north",
-    category: "Wallpaper",
-    description: "Deep purple nebula — phone & desktop wallpaper.",
-  },
-  {
-    ref: 6,
-    imageUrl: "/images/pug.png",
-    width: 352,
-    height: 176,
-    title: "Pug in round glasses",
-    creator: "bloom",
-    category: "Animals",
-    description: "The most studious pug you'll meet today.",
-  },
-  {
-    ref: 14,
-    imageUrl: "/images/starburst.png",
-    width: 336,
-    height: 464,
-    title: "Star burst, long exposure",
-    creator: "atlas",
-    category: "Astronomy",
-    description: "Radial star trails captured over a clear night sky.",
-  },
-  {
-    ref: 8,
-    imageUrl: "/images/design.png",
-    width: 352,
-    height: 170,
-    title: "Studio desk setup",
-    creator: "atlas",
-    category: "Design",
-    description: "Minimal workspace, plants, and a wide display.",
-  },
-  {
-    ref: 11,
-    imageUrl: "/images/artflowers.png",
-    width: 352,
-    height: 172,
-    title: "Dutch florals",
-    creator: "bloom",
-    category: "Art",
-    description: "Old-master still life with roses and poppies.",
-  },
-  {
-    ref: 7,
-    imageUrl: "/images/astronomy.png",
-    width: 352,
-    height: 170,
-    title: "Deep sky",
-    creator: "north",
-    category: "Astronomy",
-    description: "The Milky Way arcing over the horizon.",
-  },
-  {
-    ref: 15,
-    imageUrl: "/images/andromeda.png",
-    width: 352,
-    height: 504,
-    title: "Andromeda galaxy",
-    creator: "atlas",
-    category: "Astronomy",
-    description: "Our nearest spiral neighbour, 2.5 million light-years away.",
-  },
-  {
-    ref: 9,
-    imageUrl: "/images/photography.png",
-    width: 352,
-    height: 172,
-    title: "Boardwalk at dusk",
-    creator: "north",
-    category: "Photography",
-    description: "A lone figure on a wooden pier under a heavy sky.",
-  },
-  {
-    ref: 10,
-    imageUrl: "/images/fox.png",
-    width: 352,
-    height: 172,
-    title: "Wild fox",
-    creator: "bloom",
-    category: "Animals",
-    description: "Red fox standing alert in blue evening light.",
-  },
-  {
-    ref: 4,
-    imageUrl: "/images/oranges.png",
-    width: 352,
-    height: 184,
-    title: "Citrus studies",
-    creator: "bloom",
-    category: "Food",
-    description: "Cross-sections of fresh oranges, top-down.",
+    category: "Nature",
+    description: "A lone hiker on a ridge above mist-filled, forested hills.",
   },
   {
     ref: 3,
-    imageUrl: "/images/sunset.png",
-    width: 352,
-    height: 160,
-    title: "Golden hour ridge",
+    imageUrl: unsplash("1470770841072-f978cf4d019e", 600, 500),
+    width: 600,
+    height: 500,
+    title: "Lakeside cabin in the Alps",
+    creator: "atlas",
+    category: "Travel",
+    description: "A wooden boathouse on a still mountain lake at first light.",
+  },
+  {
+    ref: 4,
+    imageUrl: unsplash("1426604966848-d7adac402bff", 600, 440),
+    width: 600,
+    height: 440,
+    title: "El Capitan, Yosemite",
     creator: "north",
-    category: "Photography",
-    description: "Sun dipping below a dark treeline.",
+    category: "Mountains",
+    description: "Morning light on the granite face above the valley meadow.",
+  },
+  {
+    ref: 5,
+    imageUrl: unsplash("1441974231531-c6227db76b6e", 600, 760),
+    width: 600,
+    height: 760,
+    title: "Path through the woods",
+    creator: "bloom",
+    category: "Nature",
+    description: "A quiet trail winding between tall trees in soft afternoon light.",
+  },
+  {
+    ref: 6,
+    imageUrl: unsplash("1493246507139-91e8fad9978e", 600, 440),
+    width: 600,
+    height: 440,
+    title: "Moraine Lake at sunrise",
+    creator: "atlas",
+    category: "Mountains",
+    description: "Alpenglow over the Valley of the Ten Peaks in Banff, Canada.",
+  },
+  {
+    ref: 7,
+    imageUrl: unsplash("1518791841217-8f162f1e1131", 600, 600),
+    width: 600,
+    height: 600,
+    title: "Curious tabby",
+    creator: "bloom",
+    category: "Animals",
+    description: "A tabby cat caught mid-stare on a soft grey couch.",
+  },
+  {
+    ref: 8,
+    imageUrl: unsplash("1543466835-00a7907e9de1", 600, 640),
+    width: 600,
+    height: 640,
+    title: "Happy beagle",
+    creator: "mira",
+    category: "Animals",
+    description: "A grinning beagle on a woodland walk.",
+  },
+  {
+    ref: 9,
+    imageUrl: unsplash("1504674900247-0877df9cc836", 600, 460),
+    width: 600,
+    height: 460,
+    title: "Thai beef salad",
+    creator: "bloom",
+    category: "Food",
+    description: "Seared beef with crisp greens, chilli and cashews.",
+  },
+  {
+    ref: 10,
+    imageUrl: unsplash("1565299624946-b28f40a0ae38", 600, 600),
+    width: 600,
+    height: 600,
+    title: "Wood-fired pizza",
+    creator: "bloom",
+    category: "Food",
+    description: "A blistered pizza topped with red onion and fresh coriander.",
+  },
+  {
+    ref: 11,
+    imageUrl: unsplash("1540189549336-e6e99c3679fe", 600, 760),
+    width: 600,
+    height: 760,
+    title: "Garden bowl & juice",
+    creator: "mira",
+    category: "Food",
+    description: "A crunchy salad bowl with a glass of fresh orange juice.",
   },
   {
     ref: 12,
-    imageUrl: "/images/orchidwide.png",
-    width: 640,
-    height: 300,
-    title: "Bloom series — wide",
+    imageUrl: unsplash("1502602898657-3e91760cbb34", 600, 600),
+    width: 600,
+    height: 600,
+    title: "Paris at dusk",
+    creator: "north",
+    category: "Travel",
+    description: "The Eiffel Tower glowing over the Seine at blue hour.",
+  },
+  {
+    ref: 13,
+    imageUrl: unsplash("1499856871958-5b9627545d1a", 600, 440),
+    width: 600,
+    height: 440,
+    title: "Pont Alexandre III",
+    creator: "north",
+    category: "Travel",
+    description: "Golden lamps lining the most ornate bridge in Paris.",
+  },
+  {
+    ref: 14,
+    imageUrl: unsplash("1542051841857-5f90071e7989", 600, 760),
+    width: 600,
+    height: 760,
+    title: "Shibuya after dark",
     creator: "mira",
-    category: "Art",
-    description: "All Over You with the orchid motif, landscape crop.",
+    category: "City",
+    description: "Neon signs and crossings in the heart of Tokyo at night.",
+  },
+  {
+    ref: 15,
+    imageUrl: unsplash("1480714378408-67cf0d13bc1b", 600, 440),
+    width: 600,
+    height: 440,
+    title: "Manhattan sunset",
+    creator: "atlas",
+    category: "City",
+    description: "Low sunlight raking across the Midtown skyline.",
+  },
+  {
+    ref: 16,
+    imageUrl: unsplash("1506905925346-21bda4d32df4", 600, 460),
+    width: 600,
+    height: 460,
+    title: "Peaks above the clouds",
+    creator: "north",
+    category: "Mountains",
+    description: "Snowy summits rising over a sea of cloud at sunset.",
   },
 ];
 
@@ -220,10 +241,17 @@ function slugify(label: string): string {
 /**
  * Seeds creators, categories, pins and a demo user with a default board, a few
  * saves and a follow. Idempotent through upserts keyed by stable identifiers.
+ * This demo dataset is for development only and refuses to run in production.
  *
  * @returns A promise that resolves when seeding completes.
  */
 async function main(): Promise<void> {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "Refusing to seed: the demo dataset (including a demo account) must not run in production.",
+    );
+  }
+
   for (const category of categories) {
     const slug = slugify(category.label);
     await prisma.category.upsert({
@@ -295,6 +323,7 @@ async function main(): Promise<void> {
         imageUrl: pin.imageUrl,
         width: pin.width,
         height: pin.height,
+        category: { connect: { slug: slugify(pin.category) } },
       },
       create: {
         id: `pin_${pin.ref}`,
@@ -309,7 +338,13 @@ async function main(): Promise<void> {
     });
   }
 
-  for (const ref of [14, 15]) {
+  const seededPinIds = pins.map((pin) => `pin_${pin.ref}`);
+  await prisma.pin.deleteMany({ where: { id: { notIn: seededPinIds } } });
+
+  const seededSlugs = categories.map((category) => slugify(category.label));
+  await prisma.category.deleteMany({ where: { slug: { notIn: seededSlugs } } });
+
+  for (const ref of [1, 6]) {
     await prisma.save.upsert({
       where: { userId_pinId: { userId: "user_demo", pinId: `pin_${ref}` } },
       update: {},

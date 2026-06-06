@@ -1,63 +1,98 @@
+<div align="center">
+
 # Mosaic
 
-A Pinterest-like image board to discover pins, save ideas, build boards, follow creators and publish content.
+A Pinterest-style image board — discover pins, save ideas into boards, follow
+creators, comment and publish your own content.
+
+</div>
+
+![Home feed](.github/screenshots/home.png)
+
+<table>
+  <tr>
+    <td width="50%"><img src=".github/screenshots/pin.png" alt="Pin detail" /></td>
+    <td width="50%"><img src=".github/screenshots/search.png" alt="Search" /></td>
+  </tr>
+</table>
+
+## Features
+
+- **Pins** — create (with client-side image compression), view, download and
+  delete, with like, comment and download counters.
+- **Boards** — full CRUD, a default Quick Saves board, save-to-board and
+  multi-user collaboration.
+- **Social** — follow creators, a notifications inbox and follower counts.
+- **Discovery** — a masonry home feed with For You / Following tabs, engagement
+  sorting and infinite scroll, plus search with sorting.
+- **Responsive** — a desktop top bar and a dedicated mobile bottom navigation.
+- **Accessible & animated** — WCAG-minded contrast and focus handling, GSAP
+  motion that respects `prefers-reduced-motion`.
 
 ## Tech stack
 
-| Concern         | Choice                                           |
-| --------------- | ------------------------------------------------ |
-| Framework       | Next.js (App Router) + React                     |
-| Language        | TypeScript (`strict`, no implicit `any`)         |
-| Styling         | Tailwind CSS + design tokens                     |
-| Animation       | GSAP (`@gsap/react` `useGSAP`)                   |
-| Database        | PostgreSQL (Docker)                              |
-| ORM             | Prisma                                           |
-| Auth            | Auth.js (NextAuth) — credentials + OAuth-ready   |
-| Testing         | Vitest + React Testing Library, Playwright (e2e) |
-| CI/CD           | GitHub Actions (lint, typecheck, test, build)    |
-| Package manager | npm                                              |
-
-## Project conventions
-
-- **TypeScript strict everywhere.** No implicit `any`, no non-null assertions without justification.
-- **Documentation:** JSDoc only, written in **English**. No inline `//` comments and no `/* ... */` block comments outside of JSDoc.
-- **Design system first.** Every UI element is a reusable component configurable through props (`size`, `variant`, `color`, ...). See [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md).
-- **Clean architecture.** Pages stay thin; logic lives in `server/`, `lib/`, `hooks/`. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+| Concern   | Choice                                                  |
+| --------- | ------------------------------------------------------- |
+| Framework | Next.js (App Router) + React                            |
+| Language  | TypeScript (`strict`)                                   |
+| Styling   | Tailwind CSS + design tokens                            |
+| Animation | GSAP (`@gsap/react`)                                    |
+| Database  | PostgreSQL + Prisma                                     |
+| Auth      | Auth.js (NextAuth) — credentials + Google               |
+| Storage   | Supabase Storage (uploaded images)                      |
+| Analytics | Umami (optional)                                        |
+| Testing   | Vitest + Testing Library, Playwright (e2e + a11y)       |
+| CI/CD     | GitHub Actions + Docker deploy, release-please releases |
 
 ## Getting started
 
 ```bash
 npm install
-docker compose up -d            # start PostgreSQL
-cp .env.example .env            # then fill the secrets
-npx prisma migrate dev          # apply schema
-npx prisma db seed              # seed demo content
-npm run dev                     # http://localhost:3000
+docker compose up -d        # start PostgreSQL
+cp .env.example .env        # then fill in the secrets
+npx prisma migrate dev      # apply the schema
+npm run db:seed             # seed demo content (development only)
+npm run dev                 # http://localhost:3000
 ```
 
-## Workflow
+Sign in to the seeded demo account with `demo@mosaic.app` / `password123`.
 
-Work is tracked as GitHub Issues grouped into Milestones (epics) on a Projects board.
+> The seed is a **development-only** demo dataset and refuses to run when
+> `NODE_ENV=production`. Production deployments apply migrations only
+> (`prisma migrate deploy`); they are never seeded.
 
-- One branch per ticket: `feature/<issue-number>-<slug>` (or `chore/`, `fix/`).
-- Conventional commits (`feat:`, `fix:`, `chore:`, ...).
-- A pull request closes its issue (`Closes #<n>`); CI must be green before merge.
+<img src=".github/screenshots/mobile.png" alt="Mobile" width="280" align="right" />
 
-### Git hooks
+## Scripts
 
-Husky installs hooks on `npm install` (via the `prepare` script):
+| Script               | Purpose                       |
+| -------------------- | ----------------------------- |
+| `npm run dev`        | Start the dev server          |
+| `npm run build`      | Production build              |
+| `npm run lint`       | ESLint                        |
+| `npm run typecheck`  | TypeScript, no emit           |
+| `npm test`           | Unit tests (Vitest)           |
+| `npm run test:e2e`   | End-to-end tests (Playwright) |
+| `npm run db:migrate` | Apply migrations (dev)        |
+| `npm run db:seed`    | Seed demo content             |
+| `npm run db:studio`  | Open Prisma Studio            |
 
-- **pre-commit** runs `lint-staged` — ESLint (`--fix`) and Prettier on staged files.
-- **commit-msg** runs `commitlint` to enforce the Conventional Commits format.
+## Conventions
 
-A non-conventional message (e.g. `update stuff`) is rejected; use `type(scope): subject`.
+- **TypeScript strict** throughout.
+- **JSDoc-only** documentation, in English — no inline `//` or block comments.
+- **Design-system first**: reusable components configured through props.
+- **Conventional Commits** (Angular style); one branch and PR per change.
 
-See [`PROJECT_PLAN.md`](PROJECT_PLAN.md) for the full epic and ticket breakdown.
+## Releases
 
-## Documentation
+Versioning is automated with [release-please](https://github.com/googleapis/release-please).
+Each `feat`/`fix` merged to `main` updates a release PR that bumps the version
+and the [`CHANGELOG.md`](CHANGELOG.md); merging it tags the release and the CD
+pipeline deploys it.
 
-- [`PROJECT_PLAN.md`](PROJECT_PLAN.md) — epics, milestones and tickets.
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — folder structure and layering.
-- [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) — coding, naming and documentation rules.
-- [`docs/DESIGN_TOKENS.md`](docs/DESIGN_TOKENS.md) — colors, spacing, radius, typography.
-- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — production deployment on a VPS (Docker + Supabase).
+## Deployment
+
+The app ships as a standalone Docker image. `docker-compose.prod.yml` runs
+PostgreSQL, a one-off migration step (`prisma migrate deploy`) and the app.
+GitHub Actions builds and deploys to the host on every push to `main`.
