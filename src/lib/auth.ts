@@ -10,7 +10,7 @@ import { env } from "@/lib/env";
 import { verifyPassword } from "@/lib/password";
 import { signInSchema } from "@/lib/validation/auth";
 import { authConfig } from "@/lib/auth.config";
-import { ensureUsername } from "@/server/username";
+import { ensureUserSetup } from "@/server/onboarding";
 
 const credentialsProvider = Credentials({
   credentials: {
@@ -58,7 +58,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   events: {
     async signIn({ user }) {
       if (typeof user.id === "string") {
-        await ensureUsername(user.id);
+        await ensureUserSetup(user.id);
       }
     },
   },
