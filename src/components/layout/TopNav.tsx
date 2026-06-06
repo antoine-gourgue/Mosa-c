@@ -61,10 +61,10 @@ export function TopNav({ user, unreadCount }: TopNavProps): ReactElement {
       </div>
 
       <div className="flex shrink-0 items-center gap-1">
-        <IconButton label="Create" onClick={() => router.push("/create")}>
-          <PlusIcon />
-        </IconButton>
         <div className="hidden items-center gap-1 sm:flex">
+          <IconButton label="Create" onClick={() => router.push("/create")}>
+            <PlusIcon />
+          </IconButton>
           <IconButton
             label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
             active={pathname.startsWith("/notifications")}

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { ReactElement, ReactNode } from "react";
 import { ToastProvider } from "@/components/ui";
-import { Fab, TopNav } from "@/components/layout";
+import { BottomNav, Fab, TopNav } from "@/components/layout";
 import { getCurrentUser } from "@/lib/auth";
 import { getCreatorById, getUnreadCount } from "@/server/services";
 
@@ -45,10 +45,11 @@ export default async function MainLayout({
           unreadCount={unreadCount}
         />
       </Suspense>
-      <main id="main-content" tabIndex={-1} className="px-6 pb-20 pt-4">
+      <main id="main-content" tabIndex={-1} className="px-6 pb-24 pt-4 sm:pb-20">
         {children}
       </main>
       <Fab />
+      {user !== null ? <BottomNav unreadCount={unreadCount} /> : null}
       {modal}
     </ToastProvider>
   );

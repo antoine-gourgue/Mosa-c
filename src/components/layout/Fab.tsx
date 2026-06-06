@@ -30,7 +30,7 @@ export function Fab(): ReactElement | null {
     <Link
       href="/create"
       aria-label="Create Pin"
-      className="fixed bottom-6 right-6 z-40 grid size-16 place-items-center rounded-full bg-bg text-ink shadow-pop transition duration-150 hover:bg-surface active:scale-95"
+      className="fixed bottom-6 right-6 z-40 hidden size-16 place-items-center rounded-full bg-bg text-ink shadow-pop transition duration-150 hover:bg-surface active:scale-95 sm:grid"
     >
       <PlusIcon size={28} />
     </Link>
