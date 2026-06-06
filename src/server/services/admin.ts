@@ -236,10 +236,79 @@ export async function getAdminComments(page: number): Promise<AdminCommentsPage>
 }
 
 /**
+ * Number of reports shown per page in the admin reports queue.
+ */
+export const ADMIN_REPORTS_PAGE_SIZE = 20;
+
+/**
+ * A report row in the admin reports queue.
+ */
+export type AdminReportRow = {
+  id: string;
+  reason: string | null;
+  reporterName: string;
+  reporterEmail: string;
+  pinId: string;
+  pinTitle: string;
+  createdAt: Date;
+};
+
+/**
+ * A page of pending reports.
+ */
+export type AdminReportsPage = {
+  rows: AdminReportRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+/**
+ * Lists pending reports for the moderation queue, oldest first and paginated.
+ *
+ * @param page - The 1-based page number.
+ * @returns The pending reports and pagination metadata.
+ */
+export async function getAdminReports(page: number): Promise<AdminReportsPage> {
+  const current = Math.max(1, page);
+  const where = { status: "PENDING" as const };
+  const [total, rows] = await Promise.all([
+    prisma.report.count({ where }),
+    prisma.report.findMany({
+      where,
+      orderBy: { createdAt: "asc" },
+      skip: (current - 1) * ADMIN_REPORTS_PAGE_SIZE,
+      take: ADMIN_REPORTS_PAGE_SIZE,
+      select: {
+        id: true,
+        reason: true,
+        createdAt: true,
+        reporter: { select: { name: true, email: true } },
+        pin: { select: { id: true, title: true } },
+      },
+    }),
+  ]);
+  return {
+    rows: rows.map((report) => ({
+      id: report.id,
+      reason: report.reason,
+      reporterName: report.reporter.name,
+      reporterEmail: report.reporter.email,
+      pinId: report.pin.id,
+      pinTitle: report.pin.title,
+      createdAt: report.createdAt,
+    })),
+    total,
+    page: current,
+    pageSize: ADMIN_REPORTS_PAGE_SIZE,
+  };
+}
+
+/**
  * Aggregate counts and recent activity shown on the admin dashboard.
  */
 export type AdminOverview = {
-  counts: { users: number; pins: number; comments: number; boards: number };
+  counts: { users: number; pins: number; comments: number; boards: number; pendingReports: number };
   recentUsers: {
     id: string;
     name: string;
@@ -263,31 +332,33 @@ export type AdminOverview = {
  * @returns The dashboard overview data.
  */
 export async function getAdminOverview(): Promise<AdminOverview> {
-  const [users, pins, comments, boards, recentUsers, recentPins] = await Promise.all([
-    prisma.user.count(),
-    prisma.pin.count(),
-    prisma.comment.count(),
-    prisma.board.count(),
-    prisma.user.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 6,
-      select: { id: true, name: true, email: true, role: true, createdAt: true },
-    }),
-    prisma.pin.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 6,
-      select: {
-        id: true,
-        title: true,
-        imageUrl: true,
-        createdAt: true,
-        creator: { select: { name: true } },
-      },
-    }),
-  ]);
+  const [users, pins, comments, boards, pendingReports, recentUsers, recentPins] =
+    await Promise.all([
+      prisma.user.count(),
+      prisma.pin.count(),
+      prisma.comment.count(),
+      prisma.board.count(),
+      prisma.report.count({ where: { status: "PENDING" } }),
+      prisma.user.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 6,
+        select: { id: true, name: true, email: true, role: true, createdAt: true },
+      }),
+      prisma.pin.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 6,
+        select: {
+          id: true,
+          title: true,
+          imageUrl: true,
+          createdAt: true,
+          creator: { select: { name: true } },
+        },
+      }),
+    ]);
 
   return {
-    counts: { users, pins, comments, boards },
+    counts: { users, pins, comments, boards, pendingReports },
     recentUsers,
     recentPins: recentPins.map((pin) => ({
       id: pin.id,

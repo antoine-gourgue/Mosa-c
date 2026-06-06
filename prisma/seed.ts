@@ -382,6 +382,17 @@ async function main(): Promise<void> {
       authorId: "user_demo",
     },
   });
+
+  await prisma.report.upsert({
+    where: { pinId_reporterId: { pinId: "pin_2", reporterId: "user_demo" } },
+    update: { status: "PENDING", reason: "Looks like spam." },
+    create: {
+      pinId: "pin_2",
+      reporterId: "user_demo",
+      reason: "Looks like spam.",
+      status: "PENDING",
+    },
+  });
 }
 
 main()

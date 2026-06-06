@@ -53,7 +53,7 @@ function moderationHref(tab: "pins" | "comments", query: string, page: number): 
  * @returns The formatted day string.
  */
 function day(date: Date): string {
-  return date.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  return date.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
 }
 
 const PIN_COLUMNS: Column<AdminPinRow>[] = [
