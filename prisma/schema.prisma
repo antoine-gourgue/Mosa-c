@@ -31,6 +31,12 @@ enum Role {
   ADMIN
 }
 
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  DISMISSED
+}
+
 model User {
   id             String    @id @default(cuid())
   email          String    @unique
@@ -63,6 +69,7 @@ model User {
   actedNotifications Notification[] @relation("NotificationActor")
 
   boardMemberships BoardMember[]
+  reports          Report[]       @relation("ReportReporter")
 }
 
 model Account {
@@ -134,6 +141,7 @@ model Pin {
   boardPins BoardPin[]
   likes     Like[]
   comments  Comment[]
+  reports   Report[]
 
   notifications Notification[]
 
@@ -167,6 +175,22 @@ model Comment {
 
   @@index([pinId])
   @@index([authorId])
+}
+
+model Report {
+  id        String       @id @default(cuid())
+  reason    String?
+  status    ReportStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+
+  pinId String
+  pin   Pin    @relation(fields: [pinId], references: [id], onDelete: Cascade)
+
+  reporterId String
+  reporter   User   @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([pinId, reporterId])
+  @@index([status])
 }
 
 model Board {

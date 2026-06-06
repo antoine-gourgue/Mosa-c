@@ -12,6 +12,7 @@ import { downloadPin } from "@/lib/download";
 import { pinUrl, sharePin } from "@/lib/share";
 import { recordDownload } from "@/server/actions/downloads";
 import { deletePin } from "@/server/actions/pins";
+import { reportPin } from "@/server/actions/reports";
 import type { Pin } from "@/types/domain";
 
 /**
@@ -76,8 +77,13 @@ export function PinCard({
     }
   };
 
-  const onReport = (): void => {
-    show({ title: "Report received", description: "Thanks, we will review this Pin." });
+  const onReport = async (): Promise<void> => {
+    try {
+      await reportPin(pin.id);
+      show({ title: "Report received", description: "Thanks, we will review this Pin." });
+    } catch {
+      show({ title: "Could not report", description: "Please try again." });
+    }
   };
 
   const onConfirmDelete = (): void => {
@@ -103,7 +109,7 @@ export function PinCard({
     },
     canDelete
       ? { label: "Delete Pin", onSelect: () => setConfirmDelete(true), destructive: true }
-      : { label: "Report Pin", onSelect: onReport, destructive: true },
+      : { label: "Report Pin", onSelect: () => void onReport(), destructive: true },
   ];
 
   return (
