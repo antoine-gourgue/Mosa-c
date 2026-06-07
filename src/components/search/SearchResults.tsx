@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { getCurrentUser } from "@/lib/auth";
-import { getSavedPinIds, searchPins } from "@/server/services";
+import { getLikedPinIds, getSavedPinIds, searchPins } from "@/server/services";
 import type { FeedSort } from "@/server/services";
 import { FeedFilter } from "@/components/feed";
 import { PinFeed } from "@/components/pin";
@@ -22,9 +22,10 @@ export type SearchResultsProps = {
  */
 export async function SearchResults({ query, sort }: SearchResultsProps): Promise<ReactElement> {
   const user = await getCurrentUser();
-  const [results, savedIds] = await Promise.all([
+  const [results, savedIds, likedIds] = await Promise.all([
     searchPins(query, sort),
     user === null ? Promise.resolve<string[]>([]) : getSavedPinIds(user.id),
+    user === null ? Promise.resolve<string[]>([]) : getLikedPinIds(user.id),
   ]);
 
   return (
@@ -37,7 +38,13 @@ export async function SearchResults({ query, sort }: SearchResultsProps): Promis
           No ideas matched &ldquo;{query}&rdquo;.
         </div>
       ) : (
-        <PinFeed key={sort} pins={results} savedIds={savedIds} viewerId={user?.id ?? null} />
+        <PinFeed
+          key={sort}
+          pins={results}
+          savedIds={savedIds}
+          likedIds={likedIds}
+          viewerId={user?.id ?? null}
+        />
       )}
     </>
   );

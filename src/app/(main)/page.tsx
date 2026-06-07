@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import type { ReactElement } from "react";
 import { getCurrentUser } from "@/lib/auth";
-import { getHomeFeed, getSavedPinIds } from "@/server/services";
+import { getHomeFeed, getLikedPinIds, getSavedPinIds } from "@/server/services";
 import type { FeedSort, FeedSource } from "@/server/services";
 import { FeedFilter, FeedTabs } from "@/components/feed";
 import { Landing } from "@/components/marketing";
@@ -52,9 +52,10 @@ async function FeedContent({
   sort: FeedSort;
 }): Promise<ReactElement> {
   const user = await getCurrentUser();
-  const [page, savedIds] = await Promise.all([
+  const [page, savedIds, likedIds] = await Promise.all([
     getHomeFeed({ feed, sort, viewerId: user?.id ?? null }),
     user === null ? Promise.resolve<string[]>([]) : getSavedPinIds(user.id),
+    user === null ? Promise.resolve<string[]>([]) : getLikedPinIds(user.id),
   ]);
 
   if (page.pins.length === 0) {
@@ -73,6 +74,7 @@ async function FeedContent({
       initialPins={page.pins}
       initialHasMore={page.hasMore}
       savedIds={savedIds}
+      likedIds={likedIds}
       viewerId={user?.id ?? null}
       feed={feed}
       sort={sort}

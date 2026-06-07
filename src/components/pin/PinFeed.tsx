@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui";
 import { useAuthPrompt } from "@/hooks/use-auth-prompt";
 import { DURATION, gsap, useGSAP } from "@/lib/gsap";
 import { toggleSave } from "@/server/actions/saves";
+import { toggleLike } from "@/server/actions/likes";
 import type { Pin } from "@/types/domain";
 import { Masonry } from "./Masonry";
 import { PinCard } from "./PinCard";
@@ -17,6 +18,7 @@ import { PinCard } from "./PinCard";
 export type PinFeedProps = {
   pins: Pin[];
   savedIds: string[];
+  likedIds?: string[];
   min?: number;
   viewerId?: string | null;
 };
@@ -34,12 +36,15 @@ export type PinFeedProps = {
 export function PinFeed({
   pins,
   savedIds,
+  likedIds = [],
   min = 220,
   viewerId = null,
 }: PinFeedProps): ReactElement {
   const [removedIds, setRemovedIds] = useState<Set<string>>(() => new Set());
   const items = pins.filter((pin) => !removedIds.has(pin.id));
   const [saved, setSaved] = useState<Set<string>>(() => new Set(savedIds));
+  const [liked, setLiked] = useState<Set<string>>(() => new Set(likedIds));
+  const [likeCounts, setLikeCounts] = useState<Map<string, number>>(() => new Map());
   const [, startTransition] = useTransition();
   const { show } = useToast();
   const router = useRouter();
@@ -99,6 +104,47 @@ export function PinFeed({
     });
   };
 
+  const setLikedFlag = (id: string, value: boolean): void => {
+    setLiked((prev) => {
+      const next = new Set(prev);
+      if (value) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+      return next;
+    });
+  };
+
+  const setLikeCount = (id: string, value: number): void => {
+    setLikeCounts((prev) => {
+      const next = new Map(prev);
+      next.set(id, value);
+      return next;
+    });
+  };
+
+  const handleToggleLike = (pin: Pin): void => {
+    if (viewerId === null) {
+      withAuth(() => undefined);
+      return;
+    }
+    const wasLiked = liked.has(pin.id);
+    const base = likeCounts.get(pin.id) ?? pin.likeCount;
+    setLikedFlag(pin.id, !wasLiked);
+    setLikeCount(pin.id, Math.max(0, base + (wasLiked ? -1 : 1)));
+    startTransition(async () => {
+      try {
+        const result = await toggleLike(pin.id);
+        setLikedFlag(pin.id, result.liked);
+        setLikeCount(pin.id, result.count);
+      } catch {
+        setLikedFlag(pin.id, wasLiked);
+        setLikeCount(pin.id, base);
+      }
+    });
+  };
+
   const removePin = (id: string): void => {
     setRemovedIds((current) => {
       const next = new Set(current);
@@ -116,6 +162,9 @@ export function PinFeed({
             pin={pin}
             saved={saved.has(pin.id)}
             onToggleSave={() => handleToggle(pin)}
+            liked={liked.has(pin.id)}
+            likeCount={likeCounts.get(pin.id) ?? pin.likeCount}
+            onToggleLike={() => handleToggleLike(pin)}
             canDelete={viewerId !== null && viewerId === pin.creator.id}
             onDeleted={() => removePin(pin.id)}
           />
