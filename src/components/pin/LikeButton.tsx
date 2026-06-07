@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import type { MouseEvent, ReactElement } from "react";
+import { useEngagementActions, usePinOverride } from "@/components/engagement";
 import { useAuthPrompt } from "@/hooks/use-auth-prompt";
 import { HeartFilledIcon, HeartIcon } from "@/icons";
 import { cn } from "@/lib/cn";
@@ -20,8 +21,9 @@ export type LikeButtonProps = {
 };
 
 /**
- * Heart toggle with a like count. Updates optimistically, persists through the
- * like action and rolls back on error.
+ * Heart toggle with a like count. Reads and writes the shared engagement store
+ * so the state stays in sync with the grid card, updates optimistically,
+ * persists through the like action and rolls back on error.
  *
  * @param props - The pin id, initial state, icon size and extra classes.
  * @returns The like button element.
@@ -34,8 +36,10 @@ export function LikeButton({
   className,
   isAuthed = true,
 }: LikeButtonProps): ReactElement {
-  const [liked, setLiked] = useState(initialLiked);
-  const [count, setCount] = useState(initialCount);
+  const override = usePinOverride(pinId);
+  const { setLike } = useEngagementActions();
+  const liked = override.liked ?? initialLiked;
+  const count = override.likeCount ?? initialCount;
   const [, startTransition] = useTransition();
   const withAuth = useAuthPrompt(isAuthed);
 
@@ -44,16 +48,14 @@ export function LikeButton({
     event.stopPropagation();
     withAuth(() => {
       const wasLiked = liked;
-      setLiked(!wasLiked);
-      setCount((value) => value + (wasLiked ? -1 : 1));
+      const base = count;
+      setLike(pinId, !wasLiked, Math.max(0, base + (wasLiked ? -1 : 1)));
       startTransition(async () => {
         try {
           const result = await toggleLike(pinId);
-          setLiked(result.liked);
-          setCount(result.count);
+          setLike(pinId, result.liked, result.count);
         } catch {
-          setLiked(wasLiked);
-          setCount((value) => value + (wasLiked ? 1 : -1));
+          setLike(pinId, wasLiked, base);
         }
       });
     });

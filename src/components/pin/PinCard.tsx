@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import type { MouseEvent, ReactElement } from "react";
 import { Avatar, ConfirmDialog, IconButton, Menu, useToast } from "@/components/ui";
 import type { MenuItem } from "@/components/ui";
+import { useEngagementActions, usePinOverride } from "@/components/engagement";
 import {
   CommentIcon,
   DownloadIcon,
@@ -31,7 +32,6 @@ export type PinCardProps = {
   saved: boolean;
   onToggleSave: () => void;
   liked?: boolean;
-  likeCount?: number;
   onToggleLike?: () => void;
   count?: number;
   canDelete?: boolean;
@@ -40,9 +40,10 @@ export type PinCardProps = {
 
 /**
  * Pin card with a rounded image, hover overlay (More menu, a quick Like and
- * Save), an optional count badge and the title plus author meta. The whole card
- * links to the pin detail; the overlay actions stop propagation so they do not
- * navigate.
+ * Save), an optional count badge and the title plus author meta. Like, comment
+ * and download counts read from the shared engagement store so they stay in
+ * sync with the pin detail overlay. The whole card links to the pin detail; the
+ * overlay actions stop propagation so they do not navigate.
  *
  * @param props - The pin, its saved/liked state and the toggle handlers.
  * @returns The pin card element.
@@ -52,15 +53,17 @@ export function PinCard({
   saved,
   onToggleSave,
   liked = false,
-  likeCount,
   onToggleLike,
   count,
   canDelete = false,
   onDeleted,
 }: PinCardProps): ReactElement {
-  const likes = likeCount ?? pin.likeCount;
+  const override = usePinOverride(pin.id);
+  const { setDownloadCount } = useEngagementActions();
+  const likes = override.likeCount ?? pin.likeCount;
+  const comments = override.commentCount ?? pin.commentCount;
+  const downloads = override.downloadCount ?? pin.downloadCount;
   const { show } = useToast();
-  const [downloads, setDownloads] = useState(pin.downloadCount);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, startDelete] = useTransition();
 
@@ -77,9 +80,9 @@ export function PinCard({
   const onDownload = async (): Promise<void> => {
     try {
       await downloadPin({ url: pin.imageUrl, title: pin.title });
-      setDownloads((value) => value + 1);
+      setDownloadCount(pin.id, downloads + 1);
       const result = await recordDownload(pin.id);
-      setDownloads(result.count);
+      setDownloadCount(pin.id, result.count);
     } catch {
       show({ title: "Download failed", description: "Please try again." });
     }
@@ -202,7 +205,7 @@ export function PinCard({
             <span className="text-[13px] text-ink-soft">{pin.creator.name}</span>
           </div>
         )}
-        {likes > 0 || pin.commentCount > 0 || downloads > 0 ? (
+        {likes > 0 || comments > 0 || downloads > 0 ? (
           <div className="mt-1 flex items-center gap-3 text-[13px] text-ink-soft">
             {likes > 0 ? (
               <span className="inline-flex items-center gap-1">
@@ -210,10 +213,10 @@ export function PinCard({
                 {likes}
               </span>
             ) : null}
-            {pin.commentCount > 0 ? (
+            {comments > 0 ? (
               <span className="inline-flex items-center gap-1">
                 <CommentIcon size={14} />
-                {pin.commentCount}
+                {comments}
               </span>
             ) : null}
             {downloads > 0 ? (
