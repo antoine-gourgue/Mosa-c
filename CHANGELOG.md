@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.2.1...v1.3.0) (2026-06-07)
+
+
+### Features
+
+* **comments:** emoji reactions on comments ([9a96466](https://github.com/antoine-gourgue/Mosa-c/commit/9a964669cbb83ca37c25314ee5eac2d02c16ffe1))
+* **comments:** mention users with @ autocomplete ([28bf634](https://github.com/antoine-gourgue/Mosa-c/commit/28bf63420c9c48fddef7acfc89c8dab1de6d79f9))
+* **comments:** reply to comments in flat threads ([78eb1be](https://github.com/antoine-gourgue/Mosa-c/commit/78eb1be74352ef18907d5b65331119e5ee5b8bfa))
+
 ## [1.2.1](https://github.com/antoine-gourgue/Mosa-c/compare/v1.2.0...v1.2.1) (2026-06-07)
 
 
