@@ -10,6 +10,7 @@ import { getRealtimeSocket } from "@/lib/realtime";
 import { formatRelativeTime } from "@/lib/time";
 import { fetchMessages, markConversationRead, sendMessage } from "@/server/actions/messages";
 import type { ChatMessage, ConversationSummary } from "@/types/domain";
+import { useMessagesUnread } from "./MessagesProvider";
 
 /**
  * Props for the {@link Messenger} component.
@@ -17,6 +18,8 @@ import type { ChatMessage, ConversationSummary } from "@/types/domain";
 export type MessengerProps = {
   conversations: ConversationSummary[];
   viewerId: string;
+  initialConversationId?: string;
+  initialMessages?: ChatMessage[];
 };
 
 type SendResult = { ok: true; message: ChatMessage } | { ok: false };
@@ -34,10 +37,22 @@ const TYPING_CLEAR_MS = 3000;
  * @param props - The viewer's conversations and their user id.
  * @returns The messenger element.
  */
-export function Messenger({ conversations, viewerId }: MessengerProps): ReactElement {
-  const [list, setList] = useState(conversations);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+export function Messenger({
+  conversations,
+  viewerId,
+  initialConversationId,
+  initialMessages = [],
+}: MessengerProps): ReactElement {
+  const { markRead: clearUnreadBadge } = useMessagesUnread();
+  const [list, setList] = useState(() =>
+    conversations.map((conversation) =>
+      conversation.id === initialConversationId
+        ? { ...conversation, unreadCount: 0 }
+        : conversation,
+    ),
+  );
+  const [activeId, setActiveId] = useState<string | null>(initialConversationId ?? null);
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [loading, setLoading] = useState(false);
   const [draft, setDraft] = useState("");
   const [otherTyping, setOtherTyping] = useState(false);
@@ -45,6 +60,13 @@ export function Messenger({ conversations, viewerId }: MessengerProps): ReactEle
   const endRef = useRef<HTMLDivElement>(null);
   const typingClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingSentRef = useRef(0);
+
+  useEffect(() => {
+    if (initialConversationId !== undefined) {
+      clearUnreadBadge(initialConversationId);
+      void markConversationRead(initialConversationId);
+    }
+  }, [initialConversationId, clearUnreadBadge]);
 
   const active = list.find((conversation) => conversation.id === activeId) ?? null;
 
@@ -88,6 +110,7 @@ export function Messenger({ conversations, viewerId }: MessengerProps): ReactEle
       setMessages((current) =>
         current.some((existing) => existing.id === message.id) ? current : [...current, message],
       );
+      clearUnreadBadge(message.conversationId);
       void markConversationRead(message.conversationId);
     };
 
@@ -114,13 +137,14 @@ export function Messenger({ conversations, viewerId }: MessengerProps): ReactEle
       socket.off("message:new", onMessageNew);
       socket.off("typing", onTyping);
     };
-  }, [activeId, viewerId]);
+  }, [activeId, viewerId, clearUnreadBadge]);
 
   const openConversation = (id: string): void => {
     setActiveId(id);
     setMessages([]);
     setOtherTyping(false);
     setLoading(true);
+    clearUnreadBadge(id);
     setList((current) =>
       current.map((conversation) =>
         conversation.id === id ? { ...conversation, unreadCount: 0 } : conversation,

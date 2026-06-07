@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { SearchField } from "@/components/search/SearchField";
+import { useMessagesUnread } from "@/components/messages";
 import { Avatar, IconButton, Menu } from "@/components/ui";
-import { BellIcon, Logo, PlusIcon, StackIcon } from "@/icons";
+import { BellIcon, CommentIcon, Logo, PlusIcon, StackIcon } from "@/icons";
 import { logout } from "@/server/actions/auth";
 
 /**
@@ -28,6 +29,7 @@ export type TopNavProps = {
 export function TopNav({ user, unreadCount, isAuthed }: TopNavProps): ReactElement {
   const pathname = usePathname();
   const router = useRouter();
+  const { unreadCount: unreadMessages } = useMessagesUnread();
 
   return (
     <nav className="sticky top-0 z-50 flex h-20 items-center gap-2 bg-bg/90 px-4 backdrop-blur-md backdrop-saturate-150 sm:gap-3 sm:px-6">
@@ -57,6 +59,17 @@ export function TopNav({ user, unreadCount, isAuthed }: TopNavProps): ReactEleme
               >
                 <BellIcon size={22} />
                 {unreadCount > 0 ? (
+                  <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-accent" />
+                ) : null}
+              </IconButton>
+              <IconButton
+                label={unreadMessages > 0 ? `Messages, ${unreadMessages} unread` : "Messages"}
+                active={pathname.startsWith("/messages")}
+                onClick={() => router.push("/messages")}
+                className="relative"
+              >
+                <CommentIcon size={22} />
+                {unreadMessages > 0 ? (
                   <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-accent" />
                 ) : null}
               </IconButton>

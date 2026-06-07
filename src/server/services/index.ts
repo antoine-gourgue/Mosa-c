@@ -33,6 +33,7 @@ export { getNotifications, getUnreadCount } from "./notifications";
 export {
   getConversations,
   getMessages,
+  getUnreadConversationIds,
   getOrCreateConversation,
   isParticipant,
   areMutualFollowers,

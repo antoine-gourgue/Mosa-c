@@ -183,6 +183,37 @@ export async function getConversations(userId: string): Promise<ConversationSumm
 }
 
 /**
+ * Returns the ids of the user's conversations that have unread messages (any
+ * message from the other participant after the user's last-read marker). Used to
+ * seed the navigation unread badge.
+ *
+ * @param userId - The current user id.
+ * @returns The ids of conversations with unread messages.
+ */
+export async function getUnreadConversationIds(userId: string): Promise<string[]> {
+  const parts = await prisma.conversationParticipant.findMany({
+    where: { userId },
+    select: { conversationId: true, lastReadAt: true },
+  });
+  const ids: string[] = [];
+  await Promise.all(
+    parts.map(async (part) => {
+      const unread = await prisma.message.count({
+        where: {
+          conversationId: part.conversationId,
+          senderId: { not: userId },
+          createdAt: { gt: part.lastReadAt ?? EPOCH },
+        },
+      });
+      if (unread > 0) {
+        ids.push(part.conversationId);
+      }
+    }),
+  );
+  return ids;
+}
+
+/**
  * Fetches a conversation's messages oldest-first, after authorizing membership.
  *
  * @param conversationId - The conversation id.
