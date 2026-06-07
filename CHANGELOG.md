@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.2.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.1.1...v1.2.0) (2026-06-07)
+
+
+### Features
+
+* **public:** public read-only pins, profiles and landing ([be7660c](https://github.com/antoine-gourgue/Mosa-c/commit/be7660cba42849a4cfcde0b0c880058c4446544f))
+* **seo:** add json-ld structured data ([b8f84c6](https://github.com/antoine-gourgue/Mosa-c/commit/b8f84c66e2ec0b79ef3a22e57427eefddfd1f6fc))
+* **seo:** add open graph and twitter link previews ([3519e08](https://github.com/antoine-gourgue/Mosa-c/commit/3519e08007c7ecfbdfa67f8a22cff8fe255c862e))
+* **seo:** add robots, sitemap and pwa manifest ([8c3bec3](https://github.com/antoine-gourgue/Mosa-c/commit/8c3bec3df26f8d3d1e75425a1e4920af76425eb4))
+* **seo:** noindex private routes and add canonical urls ([e9c306f](https://github.com/antoine-gourgue/Mosa-c/commit/e9c306fbb08f3f9bbf346935d3e162551524ecf1))
+* **ui:** add error and loading boundaries ([cf3c84b](https://github.com/antoine-gourgue/Mosa-c/commit/cf3c84b924e2822a90912fcf48ed30ce963b34df))
+
+
+### Bug Fixes
+
+* **seo:** render the sitemap dynamically ([ceaf3fb](https://github.com/antoine-gourgue/Mosa-c/commit/ceaf3fb483dabcfa754b1068812b7b7e7d110579))
+
 ## [1.1.1](https://github.com/antoine-gourgue/Mosa-c/compare/v1.1.0...v1.1.1) (2026-06-07)
 
 
