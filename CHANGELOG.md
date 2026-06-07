@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.3.0...v1.4.0) (2026-06-07)
+
+
+### Features
+
+* **detail:** sync pin engagement between the grid and the detail modal ([f982956](https://github.com/antoine-gourgue/Mosa-c/commit/f9829568a44cae61bbc94e6813dd1495b2447aa6))
+* **feed:** quick like on pin card hover ([e385e0d](https://github.com/antoine-gourgue/Mosa-c/commit/e385e0d91c8a3dbd984d99ddcbc0047afdf22489))
+
+
+### Bug Fixes
+
+* **detail:** remove duplicate share action from pin menus ([c587f24](https://github.com/antoine-gourgue/Mosa-c/commit/c587f24ef7f6b3301e811850bee6a7ac7e55b316))
+
 ## [1.3.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.2.1...v1.3.0) (2026-06-07)
 
 
