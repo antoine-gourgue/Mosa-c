@@ -1,13 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useTransition } from "react";
-import type { KeyboardEvent, ReactElement } from "react";
+import { Fragment, useEffect, useRef, useState, useTransition } from "react";
+import type { KeyboardEvent, PointerEvent, ReactElement } from "react";
 import { Avatar, Button } from "@/components/ui";
 import { BackIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { getRealtimeSocket } from "@/lib/realtime";
-import { formatRelativeTime } from "@/lib/time";
+import {
+  formatClockTime,
+  formatMessageSeparator,
+  formatRelativeTime,
+  shouldSeparateMessages,
+} from "@/lib/time";
 import { fetchMessages, markConversationRead, sendMessage } from "@/server/actions/messages";
 import type { ChatMessage, ConversationSummary } from "@/types/domain";
 import { useMessagesUnread } from "./MessagesProvider";
@@ -56,10 +61,12 @@ export function Messenger({
   const [loading, setLoading] = useState(false);
   const [draft, setDraft] = useState("");
   const [otherTyping, setOtherTyping] = useState(false);
+  const [dragX, setDragX] = useState(0);
   const [, startTransition] = useTransition();
   const endRef = useRef<HTMLDivElement>(null);
   const typingClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingSentRef = useRef(0);
+  const dragRef = useRef<{ x: number; y: number; active: boolean } | null>(null);
 
   useEffect(() => {
     if (initialConversationId !== undefined) {
@@ -260,8 +267,37 @@ export function Messenger({
     }
   };
 
+  const onAreaPointerDown = (event: PointerEvent<HTMLDivElement>): void => {
+    dragRef.current = { x: event.clientX, y: event.clientY, active: false };
+  };
+
+  const onAreaPointerMove = (event: PointerEvent<HTMLDivElement>): void => {
+    const start = dragRef.current;
+    if (start === null) {
+      return;
+    }
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    if (!start.active) {
+      if (dx < -8 && Math.abs(dx) > Math.abs(dy)) {
+        start.active = true;
+      } else if (Math.abs(dy) > 8) {
+        dragRef.current = null;
+        return;
+      } else {
+        return;
+      }
+    }
+    setDragX(Math.max(-56, Math.min(0, dx)));
+  };
+
+  const onAreaPointerUp = (): void => {
+    dragRef.current = null;
+    setDragX(0);
+  };
+
   return (
-    <div className="flex h-[calc(100dvh-9rem)] overflow-hidden rounded-2xl border border-line">
+    <div className="flex h-[calc(100dvh-12rem)] overflow-hidden rounded-2xl border border-line sm:h-[calc(100dvh-11rem)]">
       <aside
         className={cn(
           "w-full shrink-0 overflow-y-auto border-line md:w-80 md:border-r",
@@ -350,33 +386,76 @@ export function Messenger({
               </Link>
             </header>
 
-            <div className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
+            <div
+              className="relative flex-1 overflow-y-auto overflow-x-hidden px-4 py-4"
+              style={{ touchAction: "pan-y" }}
+              onPointerDown={onAreaPointerDown}
+              onPointerMove={onAreaPointerMove}
+              onPointerUp={onAreaPointerUp}
+              onPointerCancel={onAreaPointerUp}
+            >
               {loading ? (
-                <p className="text-center text-sm text-ink-soft">Loading…</p>
+                <div className="space-y-3">
+                  {[0, 1, 2, 3, 4].map((index) => (
+                    <div
+                      key={index}
+                      className={cn("flex", index % 2 === 0 ? "justify-start" : "justify-end")}
+                    >
+                      <span
+                        className="h-9 animate-pulse rounded-2xl bg-surface"
+                        style={{ width: `${45 + ((index * 13) % 35)}%` }}
+                      />
+                    </div>
+                  ))}
+                </div>
               ) : messages.length === 0 ? (
                 <p className="text-center text-sm text-ink-soft">No messages yet. Say hello 👋</p>
               ) : (
-                messages.map((message) => {
-                  const mine = message.senderId === viewerId;
-                  return (
-                    <div
-                      key={message.id}
-                      className={cn("flex", mine ? "justify-end" : "justify-start")}
-                    >
-                      <span
-                        className={cn(
-                          "max-w-[75%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px]",
-                          mine ? "bg-accent text-bg" : "bg-surface text-ink",
-                        )}
-                      >
-                        {message.body}
-                      </span>
-                    </div>
-                  );
-                })
+                <div
+                  className="space-y-2"
+                  style={{
+                    transform: `translateX(${dragX}px)`,
+                    transition: dragX === 0 ? "transform 200ms ease" : "none",
+                  }}
+                >
+                  {messages.map((message, index) => {
+                    const mine = message.senderId === viewerId;
+                    const previous = index === 0 ? null : (messages[index - 1]?.createdAt ?? null);
+                    return (
+                      <Fragment key={message.id}>
+                        {shouldSeparateMessages(previous, message.createdAt) ? (
+                          <div className="py-2 text-center text-xs font-medium text-ink-faint">
+                            {formatMessageSeparator(message.createdAt)}
+                          </div>
+                        ) : null}
+                        <div
+                          className={cn("relative flex", mine ? "justify-end" : "justify-start")}
+                        >
+                          <span
+                            title={formatClockTime(message.createdAt)}
+                            className={cn(
+                              "max-w-[75%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px]",
+                              mine ? "bg-accent text-bg" : "bg-surface text-ink",
+                            )}
+                          >
+                            {message.body}
+                          </span>
+                          <span
+                            className="pointer-events-none absolute right-[-48px] top-1/2 -translate-y-1/2 text-xs tabular-nums text-ink-faint transition-opacity"
+                            style={{ opacity: dragX < 0 ? 1 : 0 }}
+                          >
+                            {formatClockTime(message.createdAt)}
+                          </span>
+                        </div>
+                      </Fragment>
+                    );
+                  })}
+                </div>
               )}
               {otherTyping ? (
-                <p className="text-[13px] italic text-ink-soft">{active.other.name} is typing…</p>
+                <p className="mt-2 text-[13px] italic text-ink-soft">
+                  {active.other.name} is typing…
+                </p>
               ) : null}
               <div ref={endRef} />
             </div>
