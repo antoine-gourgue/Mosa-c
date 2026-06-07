@@ -39,27 +39,13 @@ npm run dev:all
 The browser client (added in M4) connects with `withCredentials: true` so the
 session cookie is sent on the handshake.
 
-## Deployment (compose snippet to add yourself)
+## Deployment
 
-> Not added to `docker-compose.prod.yml` on purpose — wire it when ready.
-
-```yaml
-services:
-  realtime:
-    build:
-      context: .
-      dockerfile: realtime/Dockerfile
-    environment:
-      AUTH_SECRET: ${AUTH_SECRET}
-      DATABASE_URL: ${DATABASE_URL}
-      REALTIME_CORS_ORIGIN: ${APP_ORIGIN}
-      # REALTIME_REDIS_URL: redis://redis:6379
-    depends_on:
-      - db
-    restart: unless-stopped
-    expose:
-      - "4001"
-```
+The `realtime` service is part of `docker-compose.prod.yml` (it builds from this
+`Dockerfile`, shares `AUTH_SECRET` + `DATABASE_URL` via `.env.production`, and is
+bound to `127.0.0.1:4001`). The only host-side step left is the reverse proxy
+route below. Leave `NEXT_PUBLIC_REALTIME_URL` **unset** in production so the
+browser connects to the same origin (`/socket.io`).
 
 ### Reverse proxy (Nginx)
 
