@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.6.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.5.0...v1.6.0) (2026-06-07)
+
+
+### Features
+
+* **messages:** conversation schema and data layer ([63cdf96](https://github.com/antoine-gourgue/Mosa-c/commit/63cdf96a80ed6eff4792287188ec0af0353ad30f))
+* **messages:** inbox polish — no page scroll, skeletons, date separators, swipe to reveal time ([64cd490](https://github.com/antoine-gourgue/Mosa-c/commit/64cd490a434270ffeb858682f7714ccca887c080))
+* **messages:** inbox ui (conversation list, chat, composer) ([9f9ce63](https://github.com/antoine-gourgue/Mosa-c/commit/9f9ce63eae7fcad917b2a99f89919f5e93cb760e))
+* **messages:** live delivery and typing over the socket ([f1e080d](https://github.com/antoine-gourgue/Mosa-c/commit/f1e080d183167fdb7ba2c4a6775eb773aa1b2ac6))
+* **messages:** message requests (accept/decline) for non-followers ([bf1f524](https://github.com/antoine-gourgue/Mosa-c/commit/bf1f5249bbda81f2b603531646abeabf2778dff5))
+* **messages:** messages entry in the mobile top bar ([2ba8f97](https://github.com/antoine-gourgue/Mosa-c/commit/2ba8f9789764b42c4092e7fc4194d2cec0b5eaa8))
+* **messages:** online presence and last-active ([ddfed24](https://github.com/antoine-gourgue/Mosa-c/commit/ddfed24620d5cc81a268db988352749151c482a2))
+* **messages:** socket.io realtime service ([bfc64d1](https://github.com/antoine-gourgue/Mosa-c/commit/bfc64d15db0fbead7b4eff16f85330355e8e0df2))
+* **messages:** unread badge, profile entry and gating ([2299741](https://github.com/antoine-gourgue/Mosa-c/commit/2299741a25280d29615c1564d2eca2cc5f77e70c))
+
 ## [1.5.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.4.0...v1.5.0) (2026-06-07)
 
 
