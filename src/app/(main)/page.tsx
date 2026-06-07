@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import type { ReactElement } from "react";
 import { getCurrentUser } from "@/lib/auth";
@@ -6,6 +7,13 @@ import type { FeedSort, FeedSource } from "@/server/services";
 import { FeedFilter, FeedTabs } from "@/components/feed";
 import { Landing } from "@/components/marketing";
 import { InfiniteFeed, PinCardSkeleton } from "@/components/pin";
+
+/**
+ * Canonical metadata for the home route.
+ */
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 /**
  * Resolves the feed source from the URL query.

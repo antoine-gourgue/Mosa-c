@@ -10,6 +10,7 @@ import { getCreatorById } from "@/server/services";
  */
 export const metadata: Metadata = {
   title: "Edit profile",
+  robots: { index: false },
 };
 
 /**

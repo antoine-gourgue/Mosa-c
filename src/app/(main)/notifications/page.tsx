@@ -10,6 +10,7 @@ import { getFollowedCreatorIds, getNotifications, getSuggestedCreators } from "@
  */
 export const metadata: Metadata = {
   title: "Notifications",
+  robots: { index: false },
 };
 
 /**

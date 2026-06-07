@@ -10,6 +10,7 @@ import { getBoardsForUser } from "@/server/services";
  */
 export const metadata: Metadata = {
   title: "Create Pin",
+  robots: { index: false },
 };
 
 /**
