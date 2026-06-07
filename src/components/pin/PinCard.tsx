@@ -6,10 +6,10 @@ import { useState, useTransition } from "react";
 import type { MouseEvent, ReactElement } from "react";
 import { Avatar, ConfirmDialog, IconButton, Menu, useToast } from "@/components/ui";
 import type { MenuItem } from "@/components/ui";
-import { CommentIcon, DownloadIcon, HeartIcon, MoreIcon, ShareIcon, StackIcon } from "@/icons";
+import { CommentIcon, DownloadIcon, HeartIcon, LinkIcon, MoreIcon, StackIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { downloadPin } from "@/lib/download";
-import { pinUrl, sharePin } from "@/lib/share";
+import { pinUrl } from "@/lib/share";
 import { recordDownload } from "@/server/actions/downloads";
 import { deletePin } from "@/server/actions/pins";
 import { reportPin } from "@/server/actions/reports";
@@ -53,14 +53,6 @@ export function PinCard({
     event.stopPropagation();
   };
 
-  const onShare = async (event: MouseEvent<HTMLButtonElement>): Promise<void> => {
-    stop(event);
-    const outcome = await sharePin({ url: pinUrl(pin.id), title: pin.title });
-    if (outcome === "copied") {
-      show({ title: "Link copied", description: pin.title, img: pin.imageUrl });
-    }
-  };
-
   const onCopyLink = async (): Promise<void> => {
     await navigator.clipboard.writeText(pinUrl(pin.id));
     show({ title: "Link copied", description: pin.title, img: pin.imageUrl });
@@ -101,7 +93,7 @@ export function PinCard({
   };
 
   const menuItems: MenuItem[] = [
-    { label: "Copy link", icon: <ShareIcon size={18} />, onSelect: () => void onCopyLink() },
+    { label: "Copy link", icon: <LinkIcon size={18} />, onSelect: () => void onCopyLink() },
     {
       label: "Download image",
       icon: <DownloadIcon size={18} />,
@@ -132,7 +124,7 @@ export function PinCard({
             {count}
           </div>
         ) : null}
-        <div className="absolute inset-0 flex flex-col justify-between p-2 opacity-0 transition duration-150 group-hover:bg-ink/[0.28] group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:hidden">
+        <div className="absolute inset-0 flex flex-col justify-between p-2 opacity-0 transition duration-150 group-hover:bg-ink/[0.28] group-hover:opacity-100 group-focus-within:opacity-100 max-md:hidden pointer-coarse:hidden">
           <div className="flex justify-end">
             <Menu
               label="More options"
@@ -160,8 +152,15 @@ export function PinCard({
                 {saved ? "Saved" : "Save"}
               </button>
             )}
-            <IconButton label="Share" tone="solid" onClick={(event) => void onShare(event)}>
-              <ShareIcon size={16} />
+            <IconButton
+              label="Download"
+              tone="solid"
+              onClick={(event) => {
+                stop(event);
+                void onDownload();
+              }}
+            >
+              <DownloadIcon size={16} />
             </IconButton>
           </div>
         </div>
