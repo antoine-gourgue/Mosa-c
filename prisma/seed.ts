@@ -371,6 +371,44 @@ async function main(): Promise<void> {
     update: {},
     create: { followerId: "user_demo", creatorId: "user_mira" },
   });
+  await prisma.follow.upsert({
+    where: { followerId_creatorId: { followerId: "user_mira", creatorId: "user_demo" } },
+    update: {},
+    create: { followerId: "user_mira", creatorId: "user_demo" },
+  });
+
+  await prisma.conversation.upsert({
+    where: { id: "conversation_demo" },
+    update: {},
+    create: {
+      id: "conversation_demo",
+      pairKey: ["user_demo", "user_mira"].sort().join(":"),
+      participants: {
+        create: [{ userId: "user_demo" }, { userId: "user_mira" }],
+      },
+    },
+  });
+  const demoMessages: { id: string; senderId: string; body: string }[] = [
+    { id: "message_demo_1", senderId: "user_mira", body: "Hey! Loved your latest board ✨" },
+    { id: "message_demo_2", senderId: "user_demo", body: "Thanks Mira! Yours is goals 😍" },
+    {
+      id: "message_demo_3",
+      senderId: "user_mira",
+      body: "We should collaborate on a travel board.",
+    },
+  ];
+  for (const message of demoMessages) {
+    await prisma.message.upsert({
+      where: { id: message.id },
+      update: {},
+      create: {
+        id: message.id,
+        conversationId: "conversation_demo",
+        senderId: message.senderId,
+        body: message.body,
+      },
+    });
+  }
 
   await prisma.comment.upsert({
     where: { id: "comment_demo" },

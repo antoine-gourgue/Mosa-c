@@ -3,7 +3,12 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { getOrCreateConversation, isParticipant, toMessage } from "@/server/services/messages";
+import {
+  getMessages,
+  getOrCreateConversation,
+  isParticipant,
+  toMessage,
+} from "@/server/services/messages";
 import type { ChatMessage } from "@/types/domain";
 
 const messageSchema = z.object({
@@ -44,6 +49,27 @@ export async function sendMessage(
     }),
   ]);
   return { ok: true, message: toMessage(row) };
+}
+
+/**
+ * Loads a conversation's messages for the current user, after authorizing
+ * membership. Used by the inbox to open a conversation on the client.
+ *
+ * @param conversationId - The conversation id.
+ * @returns The messages oldest-first, or an authorization error.
+ */
+export async function fetchMessages(
+  conversationId: string,
+): Promise<{ ok: true; messages: ChatMessage[] } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: "You must be signed in." };
+  }
+  const messages = await getMessages(conversationId, user.id);
+  if (messages === null) {
+    return { ok: false, error: "Conversation not found." };
+  }
+  return { ok: true, messages };
 }
 
 /**
