@@ -1,7 +1,13 @@
 import type { NextAuthConfig } from "next-auth";
 
 const AUTH_ROUTES = new Set(["/login", "/sign-up"]);
-const PUBLIC_EXACT = new Set(["/"]);
+const PUBLIC_EXACT = new Set([
+  "/",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/manifest.webmanifest",
+  "/icon.svg",
+]);
 const PUBLIC_PREFIXES = ["/styleguide", "/pin/", "/u/"];
 
 /**

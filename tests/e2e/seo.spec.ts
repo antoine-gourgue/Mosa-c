@@ -21,3 +21,17 @@ test("the brand Open Graph image renders as a PNG", async ({ page }) => {
   expect(response.status()).toBe(200);
   expect(response.headers()["content-type"]).toContain("image/png");
 });
+
+test("robots, sitemap and manifest are public", async ({ page }) => {
+  const robots = await page.request.get("/robots.txt");
+  expect(robots.status()).toBe(200);
+  expect(await robots.text()).toContain("Sitemap:");
+
+  const sitemap = await page.request.get("/sitemap.xml");
+  expect(sitemap.status()).toBe(200);
+  expect(await sitemap.text()).toContain("/pin/");
+
+  const manifest = await page.request.get("/manifest.webmanifest");
+  expect(manifest.status()).toBe(200);
+  expect(((await manifest.json()) as { name: string }).name).toBe("Mosaic");
+});
