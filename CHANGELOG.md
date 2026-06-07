@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1](https://github.com/antoine-gourgue/Mosa-c/compare/v1.1.0...v1.1.1) (2026-06-07)
+
+
+### Bug Fixes
+
+* **create:** compress images reliably on iOS Safari ([0723ba6](https://github.com/antoine-gourgue/Mosa-c/commit/0723ba6484e63e9eb1343e2a8518b925ff3221be))
+* **create:** keep uploads small enough for the server limit on iOS ([7652a06](https://github.com/antoine-gourgue/Mosa-c/commit/7652a06eb3036826ab76a1fd7ae7d5e5c9df0122))
+
 ## [1.1.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.0.2...v1.1.0) (2026-06-06)
 
 
