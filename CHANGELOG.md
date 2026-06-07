@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.4.0...v1.5.0) (2026-06-07)
+
+
+### Features
+
+* **profile:** liked pins tab ([30e209c](https://github.com/antoine-gourgue/Mosa-c/commit/30e209c77c48b3416e25be6af883775b52a0298f))
+
 ## [1.4.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.3.0...v1.4.0) (2026-06-07)
 
 
