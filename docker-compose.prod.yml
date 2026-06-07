@@ -38,5 +38,20 @@ services:
       migrate:
         condition: service_completed_successfully
 
+  # Realtime WebSocket service (socket.io) for live messaging and presence.
+  # Bound to localhost only; the host reverse proxy routes /socket.io/ to it
+  # (see realtime/README.md). Shares AUTH_SECRET + DATABASE_URL via .env.production.
+  realtime:
+    build:
+      context: .
+      dockerfile: realtime/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${REALTIME_PORT:-4001}:4001"
+    env_file: .env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   pgdata:
