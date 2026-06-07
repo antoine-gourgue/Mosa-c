@@ -8,14 +8,92 @@ export type CompressedImage = {
 };
 
 /**
- * Replaces a filename's extension with `.webp`.
+ * Replaces a filename's extension with the one matching an image MIME type.
  *
  * @param name - The original filename.
- * @returns The filename with a `.webp` extension.
+ * @param type - The output MIME type.
+ * @returns The filename with the matching extension.
  */
-function toWebpName(name: string): string {
-  const base = name.replace(/\.[^./\\]+$/, "");
-  return `${base || "image"}.webp`;
+function renameForType(name: string, type: string): string {
+  const base = name.replace(/\.[^./\\]+$/, "") || "image";
+  return `${base}.${type === "image/webp" ? "webp" : "jpg"}`;
+}
+
+/**
+ * A decoded image ready to be drawn onto a canvas, with its intrinsic size and
+ * a release callback to free its resources.
+ */
+type DecodedImage = {
+  width: number;
+  height: number;
+  drawTo: (context: CanvasRenderingContext2D, width: number, height: number) => void;
+  release: () => void;
+};
+
+/**
+ * Decodes an image file for canvas drawing. Prefers `createImageBitmap` and
+ * falls back to an `<img>` element, which is necessary on Safari and several
+ * mobile browsers where `createImageBitmap` is missing or cannot decode the
+ * file. Throws only when neither path can decode the image.
+ *
+ * @param file - The image file to decode.
+ * @returns The decoded image.
+ */
+async function decodeImage(file: File): Promise<DecodedImage> {
+  if (typeof createImageBitmap === "function") {
+    try {
+      const bitmap = await createImageBitmap(file);
+      return {
+        width: bitmap.width,
+        height: bitmap.height,
+        drawTo: (context, width, height) => context.drawImage(bitmap, 0, 0, width, height),
+        release: () => bitmap.close(),
+      };
+    } catch (bitmapError) {
+      void bitmapError;
+    }
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const element = new window.Image();
+      element.onload = () => resolve(element);
+      element.onerror = () => reject(new Error("decode-failed"));
+      element.src = url;
+    });
+    return {
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+      drawTo: (context, width, height) => context.drawImage(image, 0, 0, width, height),
+      release: () => URL.revokeObjectURL(url),
+    };
+  } catch (error) {
+    URL.revokeObjectURL(url);
+    throw error;
+  }
+}
+
+/**
+ * Encodes a canvas to a compressed image, trying WebP first and falling back to
+ * JPEG when the browser cannot encode WebP (older Safari).
+ *
+ * @param canvas - The canvas to encode.
+ * @param quality - The output quality between 0 and 1.
+ * @returns The encoded blob and its MIME type, or null when encoding fails.
+ */
+async function encodeCanvas(
+  canvas: HTMLCanvasElement,
+  quality: number,
+): Promise<{ blob: Blob; type: string } | null> {
+  for (const type of ["image/webp", "image/jpeg"]) {
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, type, quality);
+    });
+    if (blob !== null && blob.type === type) {
+      return { blob, type };
+    }
+  }
+  return null;
 }
 
 /**
@@ -65,11 +143,11 @@ export async function compressImage(
   maxEdge = 2000,
   quality = 0.85,
 ): Promise<CompressedImage> {
-  const bitmap = await createImageBitmap(file);
-  const { width: sourceWidth, height: sourceHeight } = bitmap;
+  const decoded = await decodeImage(file);
+  const { width: sourceWidth, height: sourceHeight } = decoded;
 
   if (file.type === "image/gif" || file.type === "image/svg+xml") {
-    bitmap.close();
+    decoded.release();
     return { file, width: sourceWidth, height: sourceHeight };
   }
 
@@ -82,21 +160,18 @@ export async function compressImage(
   canvas.height = height;
   const context = canvas.getContext("2d");
   if (context === null) {
-    bitmap.close();
+    decoded.release();
     return { file, width: sourceWidth, height: sourceHeight };
   }
-  context.drawImage(bitmap, 0, 0, width, height);
-  bitmap.close();
+  decoded.drawTo(context, width, height);
+  decoded.release();
 
-  const blob = await new Promise<Blob | null>((resolve) => {
-    canvas.toBlob(resolve, "image/webp", quality);
-  });
-
-  if (blob === null || blob.size >= file.size) {
+  const encoded = await encodeCanvas(canvas, quality);
+  if (encoded === null || encoded.blob.size >= file.size) {
     return { file, width: sourceWidth, height: sourceHeight };
   }
   return {
-    file: new File([blob], toWebpName(file.name), { type: "image/webp" }),
+    file: new File([encoded.blob], renameForType(file.name, encoded.type), { type: encoded.type }),
     width,
     height,
   };
