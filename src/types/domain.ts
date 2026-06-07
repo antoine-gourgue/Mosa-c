@@ -47,12 +47,13 @@ export type PinComment = {
   body: string;
   createdAt: string;
   author: Creator;
+  replies: PinComment[];
 };
 
 /**
  * The kind of engagement that produced a notification.
  */
-export type NotificationKind = "FOLLOW" | "LIKE" | "COMMENT";
+export type NotificationKind = "FOLLOW" | "LIKE" | "COMMENT" | "REPLY";
 
 /**
  * A notification as surfaced to the UI, with the actor and target context

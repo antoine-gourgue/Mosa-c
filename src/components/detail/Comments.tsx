@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import type { FormEvent, ReactElement } from "react";
-import { Avatar, Button, ConfirmDialog, IconButton, Textarea } from "@/components/ui";
+import type { FormEvent, KeyboardEvent, ReactElement } from "react";
+import { Avatar, Button, ConfirmDialog, IconButton } from "@/components/ui";
 import { TrashIcon } from "@/icons";
 import { formatRelativeTime } from "@/lib/time";
-import { addComment, deleteComment } from "@/server/actions/comments";
+import { addComment, addReply, deleteComment } from "@/server/actions/comments";
 import type { PinComment } from "@/types/domain";
 
 /**
@@ -21,8 +21,10 @@ export type CommentsProps = {
 };
 
 /**
- * Comments section for the pin detail: the list of comments and, for signed-in
- * users, an add form. Comments can be removed by their author or the pin owner.
+ * Comments section for the pin detail: root comments with one level of replies,
+ * a compact inline reply composer, a show/hide replies affordance and, for
+ * signed-in users, an add form. Comments can be removed by their author or the
+ * pin owner. The per-comment action row leaves room for upcoming reactions.
  *
  * @param props - The pin id, initial comments and viewer context.
  * @returns The comments section element.
@@ -37,8 +39,22 @@ export function Comments({
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyBody, setReplyBody] = useState("");
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const [, startTransition] = useTransition();
   const router = useRouter();
+  const isAuthed = viewerId !== null;
+
+  const total = comments.reduce((count, comment) => count + 1 + comment.replies.length, 0);
+
+  const threadRootId = (commentId: string): string | null => {
+    const root = comments.find(
+      (comment) =>
+        comment.id === commentId || comment.replies.some((reply) => reply.id === commentId),
+    );
+    return root?.id ?? null;
+  };
 
   const onSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -59,9 +75,57 @@ export function Comments({
     });
   };
 
+  const toggleReply = (comment: PinComment): void => {
+    if (replyingTo === comment.id) {
+      setReplyingTo(null);
+      return;
+    }
+    setReplyingTo(comment.id);
+    setReplyBody(comment.author.username !== null ? `@${comment.author.username} ` : "");
+    const rootId = threadRootId(comment.id);
+    if (rootId !== null) {
+      setExpanded((prev) => new Set(prev).add(rootId));
+    }
+  };
+
+  const onSubmitReply = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
+    const target = replyingTo;
+    const text = replyBody.trim();
+    if (target === null || text === "") {
+      return;
+    }
+    setError(null);
+    startTransition(async () => {
+      const result = await addReply(pinId, target, text);
+      if (result.ok) {
+        const rootId = threadRootId(target);
+        setComments((current) =>
+          current.map((comment) =>
+            comment.id === rootId
+              ? { ...comment, replies: [...comment.replies, result.comment] }
+              : comment,
+          ),
+        );
+        setReplyingTo(null);
+        setReplyBody("");
+        router.refresh();
+      } else {
+        setError(result.error);
+      }
+    });
+  };
+
   const onDelete = (id: string): void => {
     const previous = comments;
-    setComments((current) => current.filter((comment) => comment.id !== id));
+    setComments((current) =>
+      current
+        .filter((comment) => comment.id !== id)
+        .map((comment) => ({
+          ...comment,
+          replies: comment.replies.filter((reply) => reply.id !== id),
+        })),
+    );
     startTransition(async () => {
       const result = await deleteComment(id);
       if (result.ok) {
@@ -72,61 +136,146 @@ export function Comments({
     });
   };
 
+  const onComposerKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      event.currentTarget.form?.requestSubmit();
+    }
+  };
+
+  const canDelete = (comment: PinComment): boolean => viewerId === comment.author.id || isPinOwner;
+
+  const toggleExpanded = (rootId: string): void => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(rootId)) {
+        next.delete(rootId);
+      } else {
+        next.add(rootId);
+      }
+      return next;
+    });
+  };
+
+  const renderRow = (comment: PinComment, isReply: boolean): ReactElement => (
+    <div className="group/comment flex items-start gap-3">
+      <Link
+        href={comment.author.username !== null ? `/u/${comment.author.username}` : "#"}
+        className="shrink-0"
+      >
+        <Avatar
+          src={comment.author.avatarUrl ?? undefined}
+          name={comment.author.name}
+          size={isReply ? 28 : 36}
+        />
+      </Link>
+      <div className="min-w-0 flex-1">
+        <p className="text-[14px] font-semibold text-ink">{comment.author.name}</p>
+        <p className="break-words text-[15px] leading-snug text-ink">{comment.body}</p>
+        <div className="mt-1 flex items-center gap-3 text-xs text-ink-soft">
+          <span>{formatRelativeTime(comment.createdAt)}</span>
+          {isAuthed ? (
+            <button
+              type="button"
+              onClick={() => toggleReply(comment)}
+              className="cursor-pointer py-0.5 font-semibold transition-colors hover:text-ink"
+            >
+              Reply
+            </button>
+          ) : null}
+        </div>
+      </div>
+      {canDelete(comment) ? (
+        <IconButton
+          label="Delete comment"
+          size="sm"
+          className="shrink-0 text-ink-soft opacity-0 transition-opacity hover:text-accent group-hover/comment:opacity-100"
+          onClick={() => setConfirmId(comment.id)}
+        >
+          <TrashIcon size={16} />
+        </IconButton>
+      ) : null}
+    </div>
+  );
+
+  const replyComposer = (): ReactElement => (
+    <form onSubmit={onSubmitReply} className="ml-11 flex items-start gap-2">
+      <textarea
+        aria-label="Reply"
+        value={replyBody}
+        onChange={(event) => setReplyBody(event.target.value)}
+        onKeyDown={onComposerKeyDown}
+        placeholder="Write a reply…"
+        rows={1}
+        autoFocus
+        className="min-h-[40px] flex-1 resize-none rounded-2xl bg-surface px-4 py-2.5 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
+      />
+      <button
+        type="button"
+        onClick={() => setReplyingTo(null)}
+        className="h-10 shrink-0 cursor-pointer px-2 text-sm font-semibold text-ink-soft transition-colors hover:text-ink"
+      >
+        Cancel
+      </button>
+      <Button type="submit" disabled={replyBody.trim() === ""}>
+        Post
+      </Button>
+    </form>
+  );
+
   return (
     <section className="flex flex-col gap-4">
       <h2 className="font-bold text-ink">
-        {comments.length} {comments.length === 1 ? "comment" : "comments"}
+        {total} {total === 1 ? "comment" : "comments"}
       </h2>
 
       {comments.length === 0 ? (
         <p className="text-ink-soft">No comments yet. Start the conversation.</p>
       ) : (
-        <ul className="flex flex-col gap-4">
-          {comments.map((comment) => (
-            <li key={comment.id} className="flex items-start gap-3">
-              <Link
-                href={comment.author.username !== null ? `/u/${comment.author.username}` : "#"}
-                className="shrink-0"
-              >
-                <Avatar
-                  src={comment.author.avatarUrl ?? undefined}
-                  name={comment.author.name}
-                  size={36}
-                />
-              </Link>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm">
-                  <span className="font-semibold text-ink">{comment.author.name}</span>{" "}
-                  <span className="text-ink-soft">{formatRelativeTime(comment.createdAt)}</span>
-                </p>
-                <p className="break-words text-[15px] text-ink">{comment.body}</p>
-              </div>
-              {viewerId === comment.author.id || isPinOwner ? (
-                <IconButton
-                  label="Delete comment"
-                  size="sm"
-                  className="shrink-0 text-ink-soft hover:text-accent"
-                  onClick={() => setConfirmId(comment.id)}
+        <ul className="flex flex-col gap-5">
+          {comments.map((root) => (
+            <li key={root.id} className="flex flex-col gap-3">
+              {renderRow(root, false)}
+
+              {root.replies.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => toggleExpanded(root.id)}
+                  className="ml-11 flex w-fit cursor-pointer items-center gap-2 py-0.5 text-xs font-semibold text-ink-soft transition-colors hover:text-ink"
                 >
-                  <TrashIcon size={18} />
-                </IconButton>
+                  <span className="h-px w-6 bg-line" />
+                  {expanded.has(root.id)
+                    ? "Hide replies"
+                    : `View ${root.replies.length} ${root.replies.length === 1 ? "reply" : "replies"}`}
+                </button>
               ) : null}
+
+              {expanded.has(root.id) ? (
+                <ul className="ml-11 flex flex-col gap-4">
+                  {root.replies.map((reply) => (
+                    <li key={reply.id}>{renderRow(reply, true)}</li>
+                  ))}
+                </ul>
+              ) : null}
+
+              {replyingTo !== null && threadRootId(replyingTo) === root.id ? replyComposer() : null}
             </li>
           ))}
         </ul>
       )}
 
-      {viewerId !== null ? (
-        <form onSubmit={onSubmit} className="flex flex-col gap-2">
-          <Textarea
-            label="Add a comment"
+      {isAuthed ? (
+        <form onSubmit={onSubmit} className="flex items-start gap-2">
+          <textarea
+            aria-label="Add a comment"
             value={body}
             onChange={(event) => setBody(event.target.value)}
+            onKeyDown={onComposerKeyDown}
             placeholder="Add a comment"
-            rows={2}
-            error={error ?? undefined}
+            rows={1}
+            className="min-h-[44px] flex-1 resize-none rounded-2xl bg-surface px-4 py-3 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
           />
-          <Button type="submit" className="self-end" disabled={body.trim() === ""}>
+          <Button type="submit" className="h-11" disabled={body.trim() === ""}>
             Comment
           </Button>
         </form>
@@ -135,6 +284,11 @@ export function Comments({
           Log in to comment
         </Link>
       )}
+      {error !== null ? (
+        <p role="alert" className="text-sm text-accent">
+          {error}
+        </p>
+      ) : null}
 
       <ConfirmDialog
         open={confirmId !== null}

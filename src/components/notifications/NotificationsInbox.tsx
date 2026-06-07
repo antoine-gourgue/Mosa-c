@@ -50,6 +50,8 @@ function typeBadge(kind: NotificationKind): { icon: ReactElement; className: str
       return { icon: <HeartFilledIcon size={11} />, className: "bg-accent" };
     case "COMMENT":
       return { icon: <CommentIcon size={11} />, className: "bg-ink" };
+    case "REPLY":
+      return { icon: <CommentIcon size={11} />, className: "bg-accent" };
     case "FOLLOW":
       return { icon: <PlusIcon size={11} />, className: "bg-ink-soft" };
   }

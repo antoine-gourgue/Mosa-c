@@ -21,20 +21,25 @@ export function toComment(row: CommentRow): PinComment {
     body: row.body,
     createdAt: row.createdAt.toISOString(),
     author: toCreator(row.author),
+    replies: [],
   };
 }
 
 /**
- * Fetches the comments on a pin with their authors, oldest first.
+ * Fetches a pin's root comments with their authors and one level of replies,
+ * oldest first.
  *
  * @param pinId - The pin id.
- * @returns The pin's comments.
+ * @returns The pin's threaded comments.
  */
 export async function getComments(pinId: string): Promise<PinComment[]> {
   const rows = await prisma.comment.findMany({
-    where: { pinId },
-    include: { author: true },
+    where: { pinId, parentId: null },
+    include: {
+      author: true,
+      replies: { include: { author: true }, orderBy: { createdAt: "asc" } },
+    },
     orderBy: { createdAt: "asc" },
   });
-  return rows.map(toComment);
+  return rows.map((row) => ({ ...toComment(row), replies: row.replies.map(toComment) }));
 }
