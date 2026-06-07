@@ -4,7 +4,7 @@ import nextTs from "eslint-config-next/typescript";
 import jsdoc from "eslint-plugin-jsdoc";
 import prettier from "eslint-config-prettier";
 
-const TOOLING_DIRECTIVE = /^\s*(eslint|global|prettier|@ts-|@jsx|c8|v8|istanbul|webpack)/;
+const TOOLING_DIRECTIVE = /^\s*(eslint|global|prettier|@ts-|@jsx|@vitest|c8|v8|istanbul|webpack)/;
 
 /**
  * Local ESLint plugin enforcing the Mosaic documentation convention.
