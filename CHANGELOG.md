@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/antoine-gourgue/Mosa-c/compare/v1.2.0...v1.2.1) (2026-06-07)
+
+
+### Bug Fixes
+
+* **detail:** hide the save action on your own pins ([d80d6f3](https://github.com/antoine-gourgue/Mosa-c/commit/d80d6f30522cd653bd1128bd0428af8ac843b981))
+
 ## [1.2.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.1.1...v1.2.0) (2026-06-07)
 
 
