@@ -52,27 +52,33 @@ export function CreatePin({ boards }: CreatePinProps): ReactElement {
     }
     setError(null);
     startTransition(async () => {
-      const selected = image;
-      let upload = { file: selected.file, width: selected.width, height: selected.height };
       try {
-        upload = await compressImage(selected.file);
+        const selected = image;
+        let upload = { file: selected.file, width: selected.width, height: selected.height };
+        try {
+          upload = await compressImage(selected.file);
+        } catch {
+          upload = { file: selected.file, width: selected.width, height: selected.height };
+        }
+        if (upload.file.size > MAX_IMAGE_BYTES) {
+          setError("Image must be under 10 MB, even after compression.");
+          return;
+        }
+        const formData = new FormData();
+        formData.set("title", title);
+        formData.set("description", description);
+        formData.set("link", link);
+        formData.set("board", board);
+        formData.set("width", String(upload.width));
+        formData.set("height", String(upload.height));
+        formData.set("image", upload.file);
+        const result = await createPin(formData);
+        if (result.error !== null) {
+          setError(result.error);
+        }
       } catch {
-        upload = { file: selected.file, width: selected.width, height: selected.height };
+        setError("Could not publish this image. Please try another photo.");
       }
-      if (upload.file.size > MAX_IMAGE_BYTES) {
-        setError("Image must be under 10 MB, even after compression.");
-        return;
-      }
-      const formData = new FormData();
-      formData.set("title", title);
-      formData.set("description", description);
-      formData.set("link", link);
-      formData.set("board", board);
-      formData.set("width", String(upload.width));
-      formData.set("height", String(upload.height));
-      formData.set("image", upload.file);
-      const result = await createPin(formData);
-      setError(result.error);
     });
   };
 
