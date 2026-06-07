@@ -18,6 +18,7 @@ enum NotificationType {
   FOLLOW
   LIKE
   COMMENT
+  REPLY
 }
 
 enum BoardRole {
@@ -171,10 +172,15 @@ model Comment {
   authorId String
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
+  parentId String?
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
+
   notifications Notification[]
 
   @@index([pinId])
   @@index([authorId])
+  @@index([parentId])
 }
 
 model Report {

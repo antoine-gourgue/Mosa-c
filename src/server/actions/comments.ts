@@ -48,6 +48,51 @@ export async function addComment(
 }
 
 /**
+ * Replies to a comment. Threads stay flat: a reply to a reply is attached to
+ * the same root comment, and the author of the targeted comment is notified.
+ *
+ * @param pinId - The pin id.
+ * @param targetCommentId - The comment being replied to.
+ * @param body - The reply text.
+ * @returns The created reply, or a validation error.
+ */
+export async function addReply(
+  pinId: string,
+  targetCommentId: string,
+  body: string,
+): Promise<{ ok: true; comment: PinComment } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: "You must be signed in to reply." };
+  }
+  const parsed = commentSchema.safeParse({ body });
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid reply." };
+  }
+  const target = await prisma.comment.findUnique({
+    where: { id: targetCommentId },
+    select: { id: true, authorId: true, parentId: true, pinId: true },
+  });
+  if (target === null || target.pinId !== pinId) {
+    return { ok: false, error: "Comment not found." };
+  }
+  const rootId = target.parentId ?? target.id;
+  const row = await prisma.comment.create({
+    data: { pinId, authorId: user.id, body: parsed.data.body, parentId: rootId },
+    include: { author: true },
+  });
+  await createNotification({
+    type: "REPLY",
+    recipientId: target.authorId,
+    actorId: user.id,
+    pinId,
+    commentId: row.id,
+  });
+  revalidatePath(`/pin/${pinId}`);
+  return { ok: true, comment: toComment(row) };
+}
+
+/**
  * Deletes a comment. Allowed for the comment's author or the pin's owner.
  *
  * @param commentId - The comment id.
