@@ -30,6 +30,15 @@ export { getFollowedCreatorIds, isFollowing } from "./follows";
 export { getLikeState, getLikedPinIds, getLikedPins } from "./likes";
 export { getComments } from "./comments";
 export { getNotifications, getUnreadCount } from "./notifications";
+export {
+  getConversations,
+  getMessages,
+  getOrCreateConversation,
+  isParticipant,
+  areMutualFollowers,
+  pairKeyFor,
+  toMessage,
+} from "./messages";
 export { getSitemapEntries } from "./sitemap";
 export type { SitemapEntries } from "./sitemap";
 export {

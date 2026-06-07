@@ -92,6 +92,29 @@ export type AppNotification = {
 };
 
 /**
+ * A direct message as surfaced to the UI.
+ */
+export type ChatMessage = {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  body: string;
+  createdAt: string;
+};
+
+/**
+ * A conversation summary for the inbox list: the other participant, a preview
+ * of the last message, the unread count and the last-activity timestamp.
+ */
+export type ConversationSummary = {
+  id: string;
+  other: Creator;
+  lastMessage: { body: string; createdAt: string; senderId: string } | null;
+  unreadCount: number;
+  updatedAt: string;
+};
+
+/**
  * A board with its pin count, as surfaced to the UI.
  */
 export type Board = {
