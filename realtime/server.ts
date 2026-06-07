@@ -146,15 +146,17 @@ export function handleTyping(socket: RoomEmitter, userId: string, payload: unkno
 }
 
 /**
- * Wires a freshly connected, authenticated socket: it joins the user's
- * conversation rooms and handles message and typing events.
+ * Joins a socket to every room of the conversations the user belongs to.
  *
- * @param io - The socket.io server.
  * @param socket - The connected socket.
  * @param prisma - The injected Prisma surface.
+ * @param userId - The authenticated user id.
  */
-async function onConnection(io: Server, socket: Socket, prisma: RealtimePrisma): Promise<void> {
-  const userId = socket.data.userId as string;
+async function joinUserRooms(
+  socket: Socket,
+  prisma: RealtimePrisma,
+  userId: string,
+): Promise<void> {
   const parts = await prisma.conversationParticipant.findMany({
     where: { userId },
     select: { conversationId: true },
@@ -162,12 +164,26 @@ async function onConnection(io: Server, socket: Socket, prisma: RealtimePrisma):
   for (const part of parts) {
     await socket.join(part.conversationId);
   }
+}
+
+/**
+ * Wires a freshly connected, authenticated socket. Event handlers are
+ * registered synchronously so no early message is lost, then the user's
+ * conversation rooms are joined.
+ *
+ * @param io - The socket.io server.
+ * @param socket - The connected socket.
+ * @param prisma - The injected Prisma surface.
+ */
+function onConnection(io: Server, socket: Socket, prisma: RealtimePrisma): void {
+  const userId = socket.data.userId as string;
   socket.on("message:send", (payload: unknown, ack: Ack) => {
     void handleSend(io, prisma, userId, payload, ack);
   });
   socket.on("typing", (payload: unknown) => {
     handleTyping(socket, userId, payload);
   });
+  void joinUserRooms(socket, prisma, userId);
 }
 
 /**
@@ -202,7 +218,7 @@ export function createRealtimeServer(deps: RealtimeDeps): { io: Server; httpServ
   });
 
   io.on("connection", (socket) => {
-    void onConnection(io, socket, deps.prisma);
+    onConnection(io, socket, deps.prisma);
   });
 
   return { io, httpServer };

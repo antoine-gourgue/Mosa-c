@@ -376,6 +376,10 @@ async function main(): Promise<void> {
     update: {},
     create: { followerId: "user_mira", creatorId: "user_demo" },
   });
+  await prisma.user.update({
+    where: { email: "mira@mosaic.app" },
+    data: { passwordHash: demoPasswordHash },
+  });
 
   await prisma.conversation.upsert({
     where: { id: "conversation_demo" },
