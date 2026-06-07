@@ -1,6 +1,18 @@
 import { prisma } from "@/lib/prisma";
 
 /**
+ * Fetches the ids of pins liked by a user, for highlighting the like state
+ * across a grid of cards.
+ *
+ * @param userId - The user id.
+ * @returns The liked pin ids.
+ */
+export async function getLikedPinIds(userId: string): Promise<string[]> {
+  const rows = await prisma.like.findMany({ where: { userId }, select: { pinId: true } });
+  return rows.map((row) => row.pinId);
+}
+
+/**
  * Fetches the like count for a pin and whether a viewer has liked it.
  *
  * @param pinId - The pin id.

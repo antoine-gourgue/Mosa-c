@@ -15,6 +15,7 @@ export type InfiniteFeedProps = {
   initialPins: Pin[];
   initialHasMore: boolean;
   savedIds: string[];
+  likedIds: string[];
   viewerId: string | null;
   feed: FeedSource;
   sort: FeedSort;
@@ -32,6 +33,7 @@ export function InfiniteFeed({
   initialPins,
   initialHasMore,
   savedIds,
+  likedIds,
   viewerId,
   feed,
   sort,
@@ -77,7 +79,7 @@ export function InfiniteFeed({
 
   return (
     <>
-      <PinFeed pins={pins} savedIds={savedIds} viewerId={viewerId} />
+      <PinFeed pins={pins} savedIds={savedIds} likedIds={likedIds} viewerId={viewerId} />
       {hasMore ? <div ref={sentinelRef} className="h-10" aria-hidden /> : null}
       {loading ? (
         <div className="flex justify-center py-8">

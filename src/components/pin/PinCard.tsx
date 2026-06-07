@@ -6,7 +6,15 @@ import { useState, useTransition } from "react";
 import type { MouseEvent, ReactElement } from "react";
 import { Avatar, ConfirmDialog, IconButton, Menu, useToast } from "@/components/ui";
 import type { MenuItem } from "@/components/ui";
-import { CommentIcon, DownloadIcon, HeartIcon, LinkIcon, MoreIcon, StackIcon } from "@/icons";
+import {
+  CommentIcon,
+  DownloadIcon,
+  HeartFilledIcon,
+  HeartIcon,
+  LinkIcon,
+  MoreIcon,
+  StackIcon,
+} from "@/icons";
 import { cn } from "@/lib/cn";
 import { downloadPin } from "@/lib/download";
 import { pinUrl } from "@/lib/share";
@@ -22,27 +30,35 @@ export type PinCardProps = {
   pin: Pin;
   saved: boolean;
   onToggleSave: () => void;
+  liked?: boolean;
+  likeCount?: number;
+  onToggleLike?: () => void;
   count?: number;
   canDelete?: boolean;
   onDeleted?: () => void;
 };
 
 /**
- * Pin card with a rounded image, hover overlay (More, Save and Share), an
- * optional count badge and the title plus author meta. The whole card links to
- * the pin detail; the overlay actions stop propagation so they do not navigate.
+ * Pin card with a rounded image, hover overlay (More menu, a quick Like and
+ * Save), an optional count badge and the title plus author meta. The whole card
+ * links to the pin detail; the overlay actions stop propagation so they do not
+ * navigate.
  *
- * @param props - The pin, its saved state and the save toggle handler.
+ * @param props - The pin, its saved/liked state and the toggle handlers.
  * @returns The pin card element.
  */
 export function PinCard({
   pin,
   saved,
   onToggleSave,
+  liked = false,
+  likeCount,
+  onToggleLike,
   count,
   canDelete = false,
   onDeleted,
 }: PinCardProps): ReactElement {
+  const likes = likeCount ?? pin.likeCount;
   const { show } = useToast();
   const [downloads, setDownloads] = useState(pin.downloadCount);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -135,6 +151,20 @@ export function PinCard({
             />
           </div>
           <div className="flex items-center justify-between">
+            <IconButton
+              label={liked ? "Unlike" : "Like"}
+              tone="solid"
+              onClick={(event) => {
+                stop(event);
+                onToggleLike?.();
+              }}
+            >
+              {liked ? (
+                <HeartFilledIcon size={16} className="text-accent" />
+              ) : (
+                <HeartIcon size={16} />
+              )}
+            </IconButton>
             {canDelete ? (
               <span />
             ) : (
@@ -152,16 +182,6 @@ export function PinCard({
                 {saved ? "Saved" : "Save"}
               </button>
             )}
-            <IconButton
-              label="Download"
-              tone="solid"
-              onClick={(event) => {
-                stop(event);
-                void onDownload();
-              }}
-            >
-              <DownloadIcon size={16} />
-            </IconButton>
           </div>
         </div>
       </Link>
@@ -182,12 +202,12 @@ export function PinCard({
             <span className="text-[13px] text-ink-soft">{pin.creator.name}</span>
           </div>
         )}
-        {pin.likeCount > 0 || pin.commentCount > 0 || downloads > 0 ? (
+        {likes > 0 || pin.commentCount > 0 || downloads > 0 ? (
           <div className="mt-1 flex items-center gap-3 text-[13px] text-ink-soft">
-            {pin.likeCount > 0 ? (
+            {likes > 0 ? (
               <span className="inline-flex items-center gap-1">
                 <HeartIcon size={14} />
-                {pin.likeCount}
+                {likes}
               </span>
             ) : null}
             {pin.commentCount > 0 ? (

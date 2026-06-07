@@ -11,6 +11,7 @@ import { env } from "@/lib/env";
 import {
   getCreatedPins,
   getFollowCounts,
+  getLikedPinIds,
   getSavedPinIds,
   getSavedPins,
   getUserBoardsWithCovers,
@@ -72,17 +73,19 @@ export async function generateMetadata({
 async function CreatedView({
   userId,
   savedIds,
+  likedIds,
   viewerId,
 }: {
   userId: string;
   savedIds: string[];
+  likedIds: string[];
   viewerId: string | null;
 }): Promise<ReactElement> {
   const pins = await getCreatedPins(userId);
   if (pins.length === 0) {
     return <p className="py-16 text-center text-ink-soft">No published pins yet.</p>;
   }
-  return <PinFeed pins={pins} savedIds={savedIds} viewerId={viewerId} />;
+  return <PinFeed pins={pins} savedIds={savedIds} likedIds={likedIds} viewerId={viewerId} />;
 }
 
 /**
@@ -96,17 +99,19 @@ async function CreatedView({
 async function SavedView({
   userId,
   savedIds,
+  likedIds,
   viewerId,
 }: {
   userId: string;
   savedIds: string[];
+  likedIds: string[];
   viewerId: string | null;
 }): Promise<ReactElement> {
   const pins = await getSavedPins(userId);
   if (pins.length === 0) {
     return <p className="py-16 text-center text-ink-soft">No saved ideas yet.</p>;
   }
-  return <PinFeed pins={pins} savedIds={savedIds} viewerId={viewerId} />;
+  return <PinFeed pins={pins} savedIds={savedIds} likedIds={likedIds} viewerId={viewerId} />;
 }
 
 /**
@@ -146,10 +151,11 @@ export default async function ProfilePage({
 
   const viewer = await getCurrentUser();
   const isOwnProfile = viewer?.id === user.id;
-  const [counts, following, savedIds] = await Promise.all([
+  const [counts, following, savedIds, likedIds] = await Promise.all([
     getFollowCounts(user.id),
     viewer !== null && !isOwnProfile ? isFollowing(viewer.id, user.id) : Promise.resolve(false),
     viewer !== null ? getSavedPinIds(viewer.id) : Promise.resolve<string[]>([]),
+    viewer !== null ? getLikedPinIds(viewer.id) : Promise.resolve<string[]>([]),
   ]);
   const active = resolveTab(tab);
 
@@ -176,10 +182,20 @@ export default async function ProfilePage({
       <ProfileTabs username={username} active={active} />
       <div className="mt-6">
         {active === "created" ? (
-          <CreatedView userId={user.id} savedIds={savedIds} viewerId={viewer?.id ?? null} />
+          <CreatedView
+            userId={user.id}
+            savedIds={savedIds}
+            likedIds={likedIds}
+            viewerId={viewer?.id ?? null}
+          />
         ) : null}
         {active === "saved" ? (
-          <SavedView userId={user.id} savedIds={savedIds} viewerId={viewer?.id ?? null} />
+          <SavedView
+            userId={user.id}
+            savedIds={savedIds}
+            likedIds={likedIds}
+            viewerId={viewer?.id ?? null}
+          />
         ) : null}
         {active === "boards" ? <BoardsView userId={user.id} /> : null}
       </div>
