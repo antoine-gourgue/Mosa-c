@@ -24,6 +24,8 @@ export { getFollowedCreatorIds, isFollowing } from "./follows";
 export { getLikeState } from "./likes";
 export { getComments } from "./comments";
 export { getNotifications, getUnreadCount } from "./notifications";
+export { getSitemapEntries } from "./sitemap";
+export type { SitemapEntries } from "./sitemap";
 export {
   getAdminOverview,
   getAdminUsers,
