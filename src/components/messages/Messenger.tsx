@@ -14,7 +14,13 @@ import {
   formatRelativeTime,
   shouldSeparateMessages,
 } from "@/lib/time";
-import { fetchMessages, markConversationRead, sendMessage } from "@/server/actions/messages";
+import {
+  acceptRequest,
+  declineRequest,
+  fetchMessages,
+  markConversationRead,
+  sendMessage,
+} from "@/server/actions/messages";
 import type { ChatMessage, ConversationSummary } from "@/types/domain";
 import { useMessagesUnread } from "./MessagesProvider";
 
@@ -23,6 +29,7 @@ import { useMessagesUnread } from "./MessagesProvider";
  */
 export type MessengerProps = {
   conversations: ConversationSummary[];
+  requests?: ConversationSummary[];
   viewerId: string;
   initialConversationId?: string;
   initialMessages?: ChatMessage[];
@@ -45,6 +52,7 @@ const TYPING_CLEAR_MS = 3000;
  */
 export function Messenger({
   conversations,
+  requests = [],
   viewerId,
   initialConversationId,
   initialMessages = [],
@@ -56,6 +64,12 @@ export function Messenger({
         ? { ...conversation, unreadCount: 0 }
         : conversation,
     ),
+  );
+  const [requestList, setRequestList] = useState(requests);
+  const [tab, setTab] = useState<"inbox" | "requests">(
+    initialConversationId !== undefined && requests.some((r) => r.id === initialConversationId)
+      ? "requests"
+      : "inbox",
   );
   const [activeId, setActiveId] = useState<string | null>(initialConversationId ?? null);
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
@@ -81,7 +95,11 @@ export function Messenger({
     }
   }, [initialConversationId, clearUnreadBadge]);
 
-  const active = list.find((conversation) => conversation.id === activeId) ?? null;
+  const active =
+    list.find((conversation) => conversation.id === activeId) ??
+    requestList.find((conversation) => conversation.id === activeId) ??
+    null;
+  const activeIsRequest = activeId !== null && requestList.some((r) => r.id === activeId);
   const otherId = active?.other.id ?? null;
   const presenceForOther = presence !== null && presence.userId === otherId ? presence : null;
   const otherOnline = presenceForOther?.online === true;
@@ -220,6 +238,43 @@ export function Messenger({
     void markConversationRead(id);
   };
 
+  const onAcceptRequest = (): void => {
+    if (activeId === null) {
+      return;
+    }
+    const id = activeId;
+    const summary = requestList.find((request) => request.id === id);
+    startTransition(async () => {
+      const result = await acceptRequest(id);
+      if (result.ok) {
+        setRequestList((current) => current.filter((request) => request.id !== id));
+        if (summary !== undefined) {
+          setList((current) =>
+            current.some((conversation) => conversation.id === id)
+              ? current
+              : [summary, ...current],
+          );
+        }
+        setTab("inbox");
+      }
+    });
+  };
+
+  const onDeclineRequest = (): void => {
+    if (activeId === null) {
+      return;
+    }
+    const id = activeId;
+    startTransition(async () => {
+      const result = await declineRequest(id);
+      if (result.ok) {
+        setRequestList((current) => current.filter((request) => request.id !== id));
+        setActiveId(null);
+        setTab("inbox");
+      }
+    });
+  };
+
   const deliver = (conversationId: string, body: string): Promise<SendResult> => {
     const socket = getRealtimeSocket();
     if (socket.connected) {
@@ -349,6 +404,47 @@ export function Messenger({
     setDragX(0);
   };
 
+  const renderConversationRow = (conversation: ConversationSummary): ReactElement => (
+    <li key={conversation.id}>
+      <button
+        type="button"
+        onClick={() => openConversation(conversation.id)}
+        className={cn(
+          "flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface",
+          conversation.id === activeId ? "bg-surface" : "",
+        )}
+      >
+        <Avatar
+          src={conversation.other.avatarUrl ?? undefined}
+          name={conversation.other.name}
+          size={44}
+        />
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center justify-between gap-2">
+            <span className="truncate text-sm font-semibold text-ink">
+              {conversation.other.name}
+            </span>
+            {conversation.lastMessage !== null ? (
+              <span className="shrink-0 text-xs text-ink-faint">
+                {formatRelativeTime(conversation.lastMessage.createdAt)}
+              </span>
+            ) : null}
+          </span>
+          <span className="flex items-center justify-between gap-2">
+            <span className="truncate text-[13px] text-ink-soft">
+              {conversation.lastMessage?.body ?? "No messages yet"}
+            </span>
+            {conversation.unreadCount > 0 ? (
+              <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold text-bg">
+                {conversation.unreadCount}
+              </span>
+            ) : null}
+          </span>
+        </span>
+      </button>
+    </li>
+  );
+
   return (
     <div className="flex h-[calc(100dvh-12rem)] overflow-hidden rounded-2xl border border-line sm:h-[calc(100dvh-11rem)]">
       <aside
@@ -357,54 +453,48 @@ export function Messenger({
           active !== null ? "hidden md:block" : "block",
         )}
       >
-        <h1 className="px-4 py-4 text-lg font-bold text-ink">Messages</h1>
-        {list.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-ink-soft">
-            No conversations yet. Message someone you both follow from their profile.
-          </p>
+        {tab === "requests" ? (
+          <div className="flex items-center gap-2 px-3 py-4">
+            <button
+              type="button"
+              aria-label="Back to messages"
+              onClick={() => setTab("inbox")}
+              className="cursor-pointer rounded-full p-1 text-ink-soft hover:text-ink"
+            >
+              <BackIcon size={20} />
+            </button>
+            <h1 className="text-lg font-bold text-ink">Requests</h1>
+          </div>
         ) : (
-          <ul>
-            {list.map((conversation) => (
-              <li key={conversation.id}>
-                <button
-                  type="button"
-                  onClick={() => openConversation(conversation.id)}
-                  className={cn(
-                    "flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface",
-                    conversation.id === activeId ? "bg-surface" : "",
-                  )}
-                >
-                  <Avatar
-                    src={conversation.other.avatarUrl ?? undefined}
-                    name={conversation.other.name}
-                    size={44}
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="truncate text-sm font-semibold text-ink">
-                        {conversation.other.name}
-                      </span>
-                      {conversation.lastMessage !== null ? (
-                        <span className="shrink-0 text-xs text-ink-faint">
-                          {formatRelativeTime(conversation.lastMessage.createdAt)}
-                        </span>
-                      ) : null}
-                    </span>
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="truncate text-[13px] text-ink-soft">
-                        {conversation.lastMessage?.body ?? "No messages yet"}
-                      </span>
-                      {conversation.unreadCount > 0 ? (
-                        <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold text-bg">
-                          {conversation.unreadCount}
-                        </span>
-                      ) : null}
-                    </span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <h1 className="px-4 py-4 text-lg font-bold text-ink">Messages</h1>
+        )}
+
+        {tab === "inbox" ? (
+          <>
+            {requestList.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => setTab("requests")}
+                className="flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left transition-colors hover:bg-surface"
+              >
+                <span className="text-sm font-semibold text-ink">Requests</span>
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold text-bg">
+                  {requestList.length}
+                </span>
+              </button>
+            ) : null}
+            {list.length === 0 ? (
+              <p className="px-4 py-8 text-center text-sm text-ink-soft">
+                No conversations yet. Message someone from their profile.
+              </p>
+            ) : (
+              <ul>{list.map(renderConversationRow)}</ul>
+            )}
+          </>
+        ) : requestList.length === 0 ? (
+          <p className="px-4 py-8 text-center text-sm text-ink-soft">No requests.</p>
+        ) : (
+          <ul>{requestList.map(renderConversationRow)}</ul>
         )}
       </aside>
 
@@ -527,28 +617,49 @@ export function Messenger({
               <div ref={endRef} />
             </div>
 
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                onSend();
-              }}
-              className="flex items-center gap-2 border-t border-line px-4 py-3"
-            >
-              <input
-                aria-label="Message"
-                value={draft}
-                onChange={(event) => {
-                  setDraft(event.target.value);
-                  emitTyping(event.target.value !== "");
+            {activeIsRequest ? (
+              <div className="border-t border-line px-4 py-3">
+                <p className="mb-2 text-center text-sm text-ink-soft">
+                  <span className="font-semibold text-ink">{active.other.name}</span> wants to send
+                  you a message.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={onDeclineRequest}
+                    className="h-11 flex-1 cursor-pointer rounded-full bg-surface text-[15px] font-semibold text-ink transition-colors hover:bg-surface-2"
+                  >
+                    Decline
+                  </button>
+                  <Button type="button" className="h-11 flex-1" onClick={onAcceptRequest}>
+                    Accept
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  onSend();
                 }}
-                onKeyDown={onComposerKeyDown}
-                placeholder="Write a message…"
-                className="h-11 flex-1 rounded-full bg-surface px-4 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
-              />
-              <Button type="submit" className="h-11" disabled={draft.trim() === ""}>
-                Send
-              </Button>
-            </form>
+                className="flex items-center gap-2 border-t border-line px-4 py-3"
+              >
+                <input
+                  aria-label="Message"
+                  value={draft}
+                  onChange={(event) => {
+                    setDraft(event.target.value);
+                    emitTyping(event.target.value !== "");
+                  }}
+                  onKeyDown={onComposerKeyDown}
+                  placeholder="Write a message…"
+                  className="h-11 flex-1 rounded-full bg-surface px-4 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
+                />
+                <Button type="submit" className="h-11" disabled={draft.trim() === ""}>
+                  Send
+                </Button>
+              </form>
+            )}
           </>
         )}
       </section>

@@ -1,3 +1,4 @@
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { ChatMessage, ConversationSummary } from "@/types/domain";
 import { type CreatorRow, toCreator } from "./mappers";
@@ -100,17 +101,118 @@ export async function getOrCreateConversation(
   if (existing !== null) {
     return existing.id;
   }
-  if (!(await areMutualFollowers(viewerId, otherUserId))) {
-    return null;
-  }
+  const recipientFollowsSender = await prisma.follow.findUnique({
+    where: { followerId_creatorId: { followerId: otherUserId, creatorId: viewerId } },
+    select: { followerId: true },
+  });
+  const accepted = recipientFollowsSender !== null;
   const created = await prisma.conversation.create({
     data: {
       pairKey,
+      status: accepted ? "ACCEPTED" : "PENDING",
+      requestedById: accepted ? null : viewerId,
       participants: { create: [{ userId: viewerId }, { userId: otherUserId }] },
     },
     select: { id: true },
   });
   return created.id;
+}
+
+/**
+ * The Prisma select used to build a conversation summary for the inbox and the
+ * requests list: the other participant, the last message and the read marker.
+ *
+ * @param userId - The current user id (excluded from the other participant).
+ * @returns The participant select.
+ */
+function summarySelect(userId: string) {
+  return {
+    lastReadAt: true,
+    conversation: {
+      select: {
+        id: true,
+        updatedAt: true,
+        participants: { where: { userId: { not: userId } }, select: { user: true }, take: 1 },
+        messages: {
+          orderBy: { createdAt: "desc" as const },
+          take: 1,
+          select: { body: true, createdAt: true, senderId: true },
+        },
+      },
+    },
+  };
+}
+
+type SummaryRow = {
+  lastReadAt: Date | null;
+  conversation: {
+    id: string;
+    updatedAt: Date;
+    participants: { user: CreatorRow }[];
+    messages: { body: string; createdAt: Date; senderId: string }[];
+  };
+};
+
+/**
+ * Maps a participant row to a conversation summary, computing the unread count.
+ *
+ * @param row - The participant row with its conversation, other party and last
+ *   message.
+ * @param userId - The current user id.
+ * @returns The conversation summary.
+ */
+async function toSummary(row: SummaryRow, userId: string): Promise<ConversationSummary> {
+  const conversation = row.conversation;
+  const otherRow = conversation.participants[0]?.user;
+  const last = conversation.messages[0] ?? null;
+  const unreadCount = await prisma.message.count({
+    where: {
+      conversationId: conversation.id,
+      senderId: { not: userId },
+      createdAt: { gt: row.lastReadAt ?? EPOCH },
+    },
+  });
+  return {
+    id: conversation.id,
+    other:
+      otherRow !== undefined
+        ? toCreator(otherRow)
+        : {
+            id: "",
+            name: "Unknown",
+            username: null,
+            bio: null,
+            avatarUrl: null,
+            followersLabel: null,
+            verified: false,
+          },
+    lastMessage:
+      last === null
+        ? null
+        : { body: last.body, createdAt: last.createdAt.toISOString(), senderId: last.senderId },
+    unreadCount,
+    updatedAt: conversation.updatedAt.toISOString(),
+  };
+}
+
+/**
+ * Fetches conversation summaries for the current user matching a conversation
+ * filter, most recent activity first.
+ *
+ * @param userId - The current user id.
+ * @param where - The conversation filter (status / requester).
+ * @returns The matching conversation summaries.
+ */
+async function fetchSummaries(
+  userId: string,
+  where: Prisma.ConversationWhereInput,
+): Promise<ConversationSummary[]> {
+  const rows = await prisma.conversationParticipant.findMany({
+    where: { userId, conversation: where },
+    orderBy: { conversation: { updatedAt: "desc" } },
+    select: summarySelect(userId),
+  });
+  return Promise.all(rows.map((row) => toSummary(row, userId)));
 }
 
 /**
@@ -121,65 +223,20 @@ export async function getOrCreateConversation(
  * @returns The user's conversation summaries.
  */
 export async function getConversations(userId: string): Promise<ConversationSummary[]> {
-  const rows = await prisma.conversationParticipant.findMany({
-    where: { userId },
-    orderBy: { conversation: { updatedAt: "desc" } },
-    select: {
-      lastReadAt: true,
-      conversation: {
-        select: {
-          id: true,
-          updatedAt: true,
-          participants: {
-            where: { userId: { not: userId } },
-            select: { user: true },
-            take: 1,
-          },
-          messages: {
-            orderBy: { createdAt: "desc" },
-            take: 1,
-            select: { body: true, createdAt: true, senderId: true },
-          },
-        },
-      },
-    },
+  return fetchSummaries(userId, {
+    OR: [{ status: "ACCEPTED" }, { status: "PENDING", requestedById: userId }],
   });
+}
 
-  return Promise.all(
-    rows.map(async (row) => {
-      const conversation = row.conversation;
-      const otherRow = conversation.participants[0]?.user as CreatorRow | undefined;
-      const last = conversation.messages[0] ?? null;
-      const unreadCount = await prisma.message.count({
-        where: {
-          conversationId: conversation.id,
-          senderId: { not: userId },
-          createdAt: { gt: row.lastReadAt ?? EPOCH },
-        },
-      });
-      return {
-        id: conversation.id,
-        other:
-          otherRow !== undefined
-            ? toCreator(otherRow)
-            : {
-                id: "",
-                name: "Unknown",
-                username: null,
-                bio: null,
-                avatarUrl: null,
-                followersLabel: null,
-                verified: false,
-              },
-        lastMessage:
-          last === null
-            ? null
-            : { body: last.body, createdAt: last.createdAt.toISOString(), senderId: last.senderId },
-        unreadCount,
-        updatedAt: conversation.updatedAt.toISOString(),
-      };
-    }),
-  );
+/**
+ * Fetches the user's incoming message requests: pending conversations started by
+ * someone else (the recipient hasn't accepted them yet).
+ *
+ * @param userId - The current user id.
+ * @returns The pending request summaries.
+ */
+export async function getMessageRequests(userId: string): Promise<ConversationSummary[]> {
+  return fetchSummaries(userId, { status: "PENDING", requestedById: { not: userId } });
 }
 
 /**
@@ -192,7 +249,7 @@ export async function getConversations(userId: string): Promise<ConversationSumm
  */
 export async function getUnreadConversationIds(userId: string): Promise<string[]> {
   const parts = await prisma.conversationParticipant.findMany({
-    where: { userId },
+    where: { userId, conversation: { status: "ACCEPTED" } },
     select: { conversationId: true, lastReadAt: true },
   });
   const ids: string[] = [];

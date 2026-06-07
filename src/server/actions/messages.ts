@@ -3,12 +3,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import {
-  getMessages,
-  getOrCreateConversation,
-  isParticipant,
-  toMessage,
-} from "@/server/services/messages";
+import { getMessages, getOrCreateConversation, toMessage } from "@/server/services/messages";
 import type { ChatMessage } from "@/types/domain";
 
 const messageSchema = z.object({
@@ -36,8 +31,15 @@ export async function sendMessage(
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid message." };
   }
-  if (!(await isParticipant(conversationId, user.id))) {
+  const conversation = await prisma.conversation.findFirst({
+    where: { id: conversationId, participants: { some: { userId: user.id } } },
+    select: { status: true, requestedById: true },
+  });
+  if (conversation === null) {
     return { ok: false, error: "Conversation not found." };
+  }
+  if (conversation.status === "PENDING" && conversation.requestedById !== user.id) {
+    return { ok: false, error: "Accept the request to reply." };
   }
   const [row] = await prisma.$transaction([
     prisma.message.create({
@@ -97,8 +99,9 @@ export async function markConversationRead(
 }
 
 /**
- * Starts (or reopens) a 1:1 conversation with another user. Creating a new
- * conversation requires the two users to follow each other.
+ * Starts (or reopens) a 1:1 conversation with another user. Anyone may message
+ * anyone: if the recipient does not already follow the sender, the conversation
+ * starts as a pending request in the recipient's requests.
  *
  * @param otherUserId - The other participant's user id.
  * @returns The conversation id, or an authorization error.
@@ -112,7 +115,65 @@ export async function startConversation(
   }
   const conversationId = await getOrCreateConversation(user.id, otherUserId);
   if (conversationId === null) {
-    return { ok: false, error: "You can only message people you both follow." };
+    return { ok: false, error: "You can't message this user." };
   }
   return { ok: true, conversationId };
+}
+
+/**
+ * Accepts an incoming message request, moving the conversation into the main
+ * inbox for both participants. Allowed only for the recipient of a pending
+ * request (not the user who started it).
+ *
+ * @param conversationId - The conversation id.
+ * @returns Whether the request was accepted.
+ */
+export async function acceptRequest(
+  conversationId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: "You must be signed in." };
+  }
+  const result = await prisma.conversation.updateMany({
+    where: {
+      id: conversationId,
+      status: "PENDING",
+      requestedById: { not: user.id },
+      participants: { some: { userId: user.id } },
+    },
+    data: { status: "ACCEPTED", requestedById: null },
+  });
+  if (result.count === 0) {
+    return { ok: false, error: "Request not found." };
+  }
+  return { ok: true };
+}
+
+/**
+ * Declines an incoming message request, deleting the conversation. Allowed only
+ * for the recipient of a pending request.
+ *
+ * @param conversationId - The conversation id.
+ * @returns Whether the request was declined.
+ */
+export async function declineRequest(
+  conversationId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: "You must be signed in." };
+  }
+  const result = await prisma.conversation.deleteMany({
+    where: {
+      id: conversationId,
+      status: "PENDING",
+      requestedById: { not: user.id },
+      participants: { some: { userId: user.id } },
+    },
+  });
+  if (result.count === 0) {
+    return { ok: false, error: "Request not found." };
+  }
+  return { ok: true };
 }

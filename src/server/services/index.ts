@@ -32,6 +32,7 @@ export { getComments } from "./comments";
 export { getNotifications, getUnreadCount } from "./notifications";
 export {
   getConversations,
+  getMessageRequests,
   getMessages,
   getUnreadConversationIds,
   getOrCreateConversation,

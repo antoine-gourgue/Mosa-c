@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { login } from "./helpers";
 
-test("a user can message a mutual follow from their profile", async ({ page }) => {
+test("a user can message someone from their profile", async ({ page }) => {
   await login(page);
   await page.goto("/u/mira");
 
@@ -11,9 +11,16 @@ test("a user can message a mutual follow from their profile", async ({ page }) =
   await expect(page.getByText("Loved your latest board")).toBeVisible();
 });
 
-test("the message button is hidden for non-mutual follows", async ({ page }) => {
+test("a user can accept an incoming message request", async ({ page }) => {
   await login(page);
-  await page.goto("/u/atlas");
+  await page.goto("/messages");
 
-  await expect(page.getByRole("button", { name: "Message", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: /Requests/ }).click();
+  await page.getByRole("button", { name: /Studio Atlas/ }).click();
+  await expect(page.getByText("can we chat")).toBeVisible();
+
+  await page.getByRole("button", { name: "Accept", exact: true }).click();
+
+  // once accepted, the composer replaces the accept/decline banner
+  await expect(page.getByLabel("Message", { exact: true })).toBeVisible();
 });

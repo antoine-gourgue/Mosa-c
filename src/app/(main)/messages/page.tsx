@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import type { ReactElement } from "react";
 import { Messenger } from "@/components/messages";
 import { getCurrentUser } from "@/lib/auth";
-import { getConversations, getMessages } from "@/server/services";
+import { getConversations, getMessageRequests, getMessages } from "@/server/services";
 
 /**
  * Metadata for the messages route.
@@ -32,8 +32,12 @@ export default async function MessagesPage({
     redirect("/login");
   }
   const { c } = await searchParams;
-  const conversations = await getConversations(user.id);
-  const initialId = c !== undefined && conversations.some((item) => item.id === c) ? c : undefined;
+  const [conversations, requests] = await Promise.all([
+    getConversations(user.id),
+    getMessageRequests(user.id),
+  ]);
+  const known = [...conversations, ...requests].some((item) => item.id === c);
+  const initialId = c !== undefined && known ? c : undefined;
   const initialMessages =
     initialId === undefined ? [] : ((await getMessages(initialId, user.id)) ?? []);
 
@@ -41,6 +45,7 @@ export default async function MessagesPage({
     <div className="mx-auto max-w-5xl">
       <Messenger
         conversations={conversations}
+        requests={requests}
         viewerId={user.id}
         initialConversationId={initialId}
         initialMessages={initialMessages}
