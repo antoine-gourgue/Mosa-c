@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.6.0...v1.7.0) (2026-06-07)
+
+
+### Features
+
+* **auth:** google logo on sign-up, google on login, remove apple ([396da84](https://github.com/antoine-gourgue/Mosa-c/commit/396da841b0ca48cb4f1f3b77f9fe82a5c8dd5443))
+* **messages:** full-height workspace layout for the inbox ([b1a0db1](https://github.com/antoine-gourgue/Mosa-c/commit/b1a0db1b62918077a1d177f89c39815438d3bd76))
+
 ## [1.6.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.5.0...v1.6.0) (2026-06-07)
 
 
