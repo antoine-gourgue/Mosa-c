@@ -5,11 +5,12 @@ import { cn } from "@/lib/cn";
 /**
  * The available profile tabs.
  */
-export type ProfileTab = "created" | "saved" | "boards";
+export type ProfileTab = "created" | "saved" | "liked" | "boards";
 
-const TABS: { key: ProfileTab; label: string }[] = [
+const TABS: { key: ProfileTab; label: string; ownerOnly?: boolean }[] = [
   { key: "created", label: "Created" },
   { key: "saved", label: "Saved" },
+  { key: "liked", label: "Liked", ownerOnly: true },
   { key: "boards", label: "Boards" },
 ];
 
@@ -19,18 +20,22 @@ const TABS: { key: ProfileTab; label: string }[] = [
 export type ProfileTabsProps = {
   username: string;
   active: ProfileTab;
+  isOwnProfile: boolean;
 };
 
 /**
- * Tab navigation for a profile, linking to the created, saved and boards views.
+ * Tab navigation for a profile, linking to the created, saved, liked and boards
+ * views. The liked tab is shown only on the owner's own profile.
  *
- * @param props - The profile username and the active tab.
+ * @param props - The profile username, the active tab and whether the viewer
+ *   owns the profile.
  * @returns The tab navigation element.
  */
-export function ProfileTabs({ username, active }: ProfileTabsProps): ReactElement {
+export function ProfileTabs({ username, active, isOwnProfile }: ProfileTabsProps): ReactElement {
+  const tabs = TABS.filter((tab) => isOwnProfile || tab.ownerOnly !== true);
   return (
     <nav className="flex justify-center gap-2 border-b border-line">
-      {TABS.map((tab) => (
+      {tabs.map((tab) => (
         <Link
           key={tab.key}
           href={`/u/${username}?tab=${tab.key}`}

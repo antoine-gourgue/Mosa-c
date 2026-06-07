@@ -12,6 +12,7 @@ import {
   getCreatedPins,
   getFollowCounts,
   getLikedPinIds,
+  getLikedPins,
   getSavedPinIds,
   getSavedPins,
   getUserBoardsWithCovers,
@@ -26,7 +27,7 @@ import {
  * @returns The active tab, defaulting to created.
  */
 function resolveTab(value: string | undefined): ProfileTab {
-  return value === "saved" || value === "boards" ? value : "created";
+  return value === "saved" || value === "boards" || value === "liked" ? value : "created";
 }
 
 /**
@@ -115,6 +116,35 @@ async function SavedView({
 }
 
 /**
+ * Renders the pins a profile owner has liked. Only used on the owner's own
+ * profile.
+ *
+ * @param props - The profile user id and the viewer's saved/liked ids.
+ * @param props.userId - The profile user id.
+ * @param props.savedIds - The viewer's saved pin ids.
+ * @param props.likedIds - The viewer's liked pin ids.
+ * @param props.viewerId - The viewer's user id.
+ * @returns The liked pins view.
+ */
+async function LikedView({
+  userId,
+  savedIds,
+  likedIds,
+  viewerId,
+}: {
+  userId: string;
+  savedIds: string[];
+  likedIds: string[];
+  viewerId: string | null;
+}): Promise<ReactElement> {
+  const pins = await getLikedPins(userId);
+  if (pins.length === 0) {
+    return <p className="py-16 text-center text-ink-soft">No liked pins yet.</p>;
+  }
+  return <PinFeed pins={pins} savedIds={savedIds} likedIds={likedIds} viewerId={viewerId} />;
+}
+
+/**
  * Renders a profile user's boards as cover cards.
  *
  * @param props - The profile user id and username.
@@ -157,7 +187,8 @@ export default async function ProfilePage({
     viewer !== null ? getSavedPinIds(viewer.id) : Promise.resolve<string[]>([]),
     viewer !== null ? getLikedPinIds(viewer.id) : Promise.resolve<string[]>([]),
   ]);
-  const active = resolveTab(tab);
+  const requestedTab = resolveTab(tab);
+  const active = requestedTab === "liked" && !isOwnProfile ? "created" : requestedTab;
 
   return (
     <div className="mx-auto max-w-[1180px]">
@@ -179,7 +210,7 @@ export default async function ProfilePage({
         isOwnProfile={isOwnProfile}
         isAuthed={viewer !== null}
       />
-      <ProfileTabs username={username} active={active} />
+      <ProfileTabs username={username} active={active} isOwnProfile={isOwnProfile} />
       <div className="mt-6">
         {active === "created" ? (
           <CreatedView
@@ -191,6 +222,14 @@ export default async function ProfilePage({
         ) : null}
         {active === "saved" ? (
           <SavedView
+            userId={user.id}
+            savedIds={savedIds}
+            likedIds={likedIds}
+            viewerId={viewer?.id ?? null}
+          />
+        ) : null}
+        {active === "liked" ? (
+          <LikedView
             userId={user.id}
             savedIds={savedIds}
             likedIds={likedIds}

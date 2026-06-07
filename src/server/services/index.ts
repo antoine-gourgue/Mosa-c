@@ -27,7 +27,7 @@ export {
 } from "./boards";
 export { getSavedPinIds, getSavedPins, isSaved } from "./saves";
 export { getFollowedCreatorIds, isFollowing } from "./follows";
-export { getLikeState, getLikedPinIds } from "./likes";
+export { getLikeState, getLikedPinIds, getLikedPins } from "./likes";
 export { getComments } from "./comments";
 export { getNotifications, getUnreadCount } from "./notifications";
 export { getSitemapEntries } from "./sitemap";
