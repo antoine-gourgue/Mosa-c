@@ -6,6 +6,7 @@ export {
   BellIcon,
   StackIcon,
   ShareIcon,
+  LinkIcon,
   MoreIcon,
   BackIcon,
   CloseIcon,

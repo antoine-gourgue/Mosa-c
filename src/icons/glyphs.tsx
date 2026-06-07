@@ -220,6 +220,21 @@ export function CommentIcon(props: IconProps): ReactElement {
 }
 
 /**
+ * Chain-link glyph for copying a link.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function LinkIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon {...props}>
+      <path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11.5 4.5" />
+      <path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07l1.32-1.32" />
+    </SvgIcon>
+  );
+}
+
+/**
  * At-sign glyph for mentions.
  *
  * @param props - Icon sizing and presentation props.

@@ -6,9 +6,9 @@ import type { ReactElement } from "react";
 import { ConfirmDialog, Menu, useToast } from "@/components/ui";
 import { LikeButton } from "@/components/pin";
 import { useAuthPrompt } from "@/hooks/use-auth-prompt";
-import { DownloadIcon, MoreIcon, ShareIcon } from "@/icons";
+import { DownloadIcon, LinkIcon, MoreIcon } from "@/icons";
 import { downloadPin } from "@/lib/download";
-import { pinUrl, sharePin } from "@/lib/share";
+import { pinUrl } from "@/lib/share";
 import { recordDownload } from "@/server/actions/downloads";
 import { deletePin } from "@/server/actions/pins";
 import { reportPin } from "@/server/actions/reports";
@@ -59,13 +59,6 @@ export function DetailActions({
   const router = useRouter();
   const withAuth = useAuthPrompt(isAuthed);
 
-  const onShare = async (): Promise<void> => {
-    const outcome = await sharePin({ url: pinUrl(pinId), title });
-    if (outcome === "copied") {
-      show({ title: "Link copied", description: title, img: imageUrl });
-    }
-  };
-
   const onCopyLink = async (): Promise<void> => {
     await navigator.clipboard.writeText(pinUrl(pinId));
     show({ title: "Link copied", description: title, img: imageUrl });
@@ -111,8 +104,7 @@ export function DetailActions({
   };
 
   const menuItems: MenuItem[] = [
-    { label: "Share", icon: <ShareIcon size={18} />, onSelect: () => void onShare() },
-    { label: "Copy link", icon: <ShareIcon size={18} />, onSelect: () => void onCopyLink() },
+    { label: "Copy link", icon: <LinkIcon size={18} />, onSelect: () => void onCopyLink() },
     {
       label: "Download image",
       icon: <DownloadIcon size={18} />,
