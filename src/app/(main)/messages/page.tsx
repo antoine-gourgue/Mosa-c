@@ -42,7 +42,7 @@ export default async function MessagesPage({
     initialId === undefined ? [] : ((await getMessages(initialId, user.id)) ?? []);
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="-mx-6 -mb-24 -mt-4 sm:-mb-20">
       <Messenger
         conversations={conversations}
         requests={requests}

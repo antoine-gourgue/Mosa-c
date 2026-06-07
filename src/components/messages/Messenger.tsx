@@ -446,7 +446,7 @@ export function Messenger({
   );
 
   return (
-    <div className="flex h-[calc(100dvh-12rem)] overflow-hidden rounded-2xl border border-line sm:h-[calc(100dvh-11rem)]">
+    <div className="flex h-[calc(100dvh-10rem)] overflow-hidden border-t border-line sm:h-[calc(100dvh-5rem)]">
       <aside
         className={cn(
           "w-full shrink-0 overflow-y-auto border-line md:w-80 md:border-r",
@@ -591,7 +591,7 @@ export function Messenger({
                           <span
                             title={formatClockTime(message.createdAt)}
                             className={cn(
-                              "max-w-[75%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px]",
+                              "max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px] sm:max-w-[560px]",
                               mine ? "bg-accent text-bg" : "bg-surface text-ink",
                             )}
                           >
