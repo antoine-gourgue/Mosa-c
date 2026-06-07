@@ -6,6 +6,7 @@ import type { KeyboardEvent, ReactElement } from "react";
 import { Avatar, Button } from "@/components/ui";
 import { BackIcon } from "@/icons";
 import { cn } from "@/lib/cn";
+import { getRealtimeSocket } from "@/lib/realtime";
 import { formatRelativeTime } from "@/lib/time";
 import { fetchMessages, markConversationRead, sendMessage } from "@/server/actions/messages";
 import type { ChatMessage, ConversationSummary } from "@/types/domain";
@@ -18,11 +19,17 @@ export type MessengerProps = {
   viewerId: string;
 };
 
+type SendResult = { ok: true; message: ChatMessage } | { ok: false };
+
+const TYPING_THROTTLE_MS = 1500;
+const TYPING_CLEAR_MS = 3000;
+
 /**
- * Direct-messages inbox: a conversation list on the left and the selected
- * conversation with a composer on the right. On mobile, the list and the open
- * conversation are shown one at a time. Sending is optimistic and persists
- * through the message action; live delivery is wired in a later ticket.
+ * Direct-messages inbox with live delivery: a conversation list on the left and
+ * the selected conversation with a composer on the right. New messages and
+ * typing indicators arrive over the realtime socket; sending goes over the
+ * socket when connected (the server broadcasts to both sides) and falls back to
+ * the message action otherwise. On mobile, one pane is shown at a time.
  *
  * @param props - The viewer's conversations and their user id.
  * @returns The messenger element.
@@ -33,18 +40,86 @@ export function Messenger({ conversations, viewerId }: MessengerProps): ReactEle
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [draft, setDraft] = useState("");
+  const [otherTyping, setOtherTyping] = useState(false);
   const [, startTransition] = useTransition();
   const endRef = useRef<HTMLDivElement>(null);
+  const typingClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTypingSentRef = useRef(0);
 
   const active = list.find((conversation) => conversation.id === activeId) ?? null;
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
-  }, [messages]);
+  }, [messages, otherTyping]);
+
+  useEffect(() => {
+    const socket = getRealtimeSocket();
+
+    const onMessageNew = (message: ChatMessage): void => {
+      setList((current) => {
+        if (!current.some((conversation) => conversation.id === message.conversationId)) {
+          return current;
+        }
+        return current
+          .map((conversation) =>
+            conversation.id === message.conversationId
+              ? {
+                  ...conversation,
+                  lastMessage: {
+                    body: message.body,
+                    createdAt: message.createdAt,
+                    senderId: message.senderId,
+                  },
+                  updatedAt: message.createdAt,
+                  unreadCount:
+                    conversation.id === activeId || message.senderId === viewerId
+                      ? conversation.unreadCount
+                      : conversation.unreadCount + 1,
+                }
+              : conversation,
+          )
+          .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+      });
+
+      if (message.senderId === viewerId || message.conversationId !== activeId) {
+        return;
+      }
+      setOtherTyping(false);
+      setMessages((current) =>
+        current.some((existing) => existing.id === message.id) ? current : [...current, message],
+      );
+      void markConversationRead(message.conversationId);
+    };
+
+    const onTyping = (payload: {
+      conversationId: string;
+      userId: string;
+      typing: boolean;
+    }): void => {
+      if (payload.userId === viewerId || payload.conversationId !== activeId) {
+        return;
+      }
+      setOtherTyping(payload.typing);
+      if (typingClearRef.current !== null) {
+        clearTimeout(typingClearRef.current);
+      }
+      if (payload.typing) {
+        typingClearRef.current = setTimeout(() => setOtherTyping(false), TYPING_CLEAR_MS);
+      }
+    };
+
+    socket.on("message:new", onMessageNew);
+    socket.on("typing", onTyping);
+    return () => {
+      socket.off("message:new", onMessageNew);
+      socket.off("typing", onTyping);
+    };
+  }, [activeId, viewerId]);
 
   const openConversation = (id: string): void => {
     setActiveId(id);
     setMessages([]);
+    setOtherTyping(false);
     setLoading(true);
     setList((current) =>
       current.map((conversation) =>
@@ -61,35 +136,97 @@ export function Messenger({ conversations, viewerId }: MessengerProps): ReactEle
     void markConversationRead(id);
   };
 
+  const deliver = (conversationId: string, body: string): Promise<SendResult> => {
+    const socket = getRealtimeSocket();
+    if (socket.connected) {
+      return new Promise<SendResult>((resolve) => {
+        socket
+          .timeout(5000)
+          .emit("message:send", { conversationId, body }, (error: unknown, response: unknown) => {
+            const ok =
+              error === null &&
+              typeof response === "object" &&
+              response !== null &&
+              (response as { ok?: unknown }).ok === true;
+            if (ok) {
+              resolve({ ok: true, message: (response as { message: ChatMessage }).message });
+            } else {
+              resolve({ ok: false });
+            }
+          });
+      });
+    }
+    return sendMessage(conversationId, body).then((result) =>
+      result.ok ? { ok: true, message: result.message } : { ok: false },
+    );
+  };
+
   const onSend = (): void => {
     const text = draft.trim();
     if (text === "" || activeId === null) {
       return;
     }
+    const conversationId = activeId;
     setDraft("");
+    emitTyping(false);
+    // eslint-disable-next-line react-hooks/purity
+    const now = Date.now();
+    const tempId = `temp-${now}`;
+    const optimistic: ChatMessage = {
+      id: tempId,
+      conversationId,
+      senderId: viewerId,
+      body: text,
+      createdAt: new Date(now).toISOString(),
+    };
+    setMessages((current) => [...current, optimistic]);
     startTransition(async () => {
-      const result = await sendMessage(activeId, text);
+      const result = await deliver(conversationId, text);
       if (result.ok) {
-        setMessages((current) => [...current, result.message]);
+        const saved = result.message;
+        setMessages((current) => {
+          const withoutTemp = current.filter((message) => message.id !== tempId);
+          return withoutTemp.some((message) => message.id === saved.id)
+            ? withoutTemp
+            : [...withoutTemp, saved];
+        });
         setList((current) =>
-          [...current]
+          current
             .map((conversation) =>
-              conversation.id === activeId
+              conversation.id === conversationId
                 ? {
                     ...conversation,
                     lastMessage: {
-                      body: result.message.body,
-                      createdAt: result.message.createdAt,
+                      body: saved.body,
+                      createdAt: saved.createdAt,
                       senderId: viewerId,
                     },
-                    updatedAt: result.message.createdAt,
+                    updatedAt: saved.createdAt,
                   }
                 : conversation,
             )
             .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
         );
+      } else {
+        setMessages((current) => current.filter((message) => message.id !== tempId));
       }
     });
+  };
+
+  const emitTyping = (typing: boolean): void => {
+    if (activeId === null) {
+      return;
+    }
+    const socket = getRealtimeSocket();
+    if (!socket.connected) {
+      return;
+    }
+    const now = Date.now();
+    if (typing && now - lastTypingSentRef.current < TYPING_THROTTLE_MS) {
+      return;
+    }
+    lastTypingSentRef.current = typing ? now : 0;
+    socket.emit("typing", { conversationId: activeId, typing });
   };
 
   const onComposerKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
@@ -214,6 +351,9 @@ export function Messenger({ conversations, viewerId }: MessengerProps): ReactEle
                   );
                 })
               )}
+              {otherTyping ? (
+                <p className="text-[13px] italic text-ink-soft">{active.other.name} is typing…</p>
+              ) : null}
               <div ref={endRef} />
             </div>
 
@@ -227,7 +367,10 @@ export function Messenger({ conversations, viewerId }: MessengerProps): ReactEle
               <input
                 aria-label="Message"
                 value={draft}
-                onChange={(event) => setDraft(event.target.value)}
+                onChange={(event) => {
+                  setDraft(event.target.value);
+                  emitTyping(event.target.value !== "");
+                }}
                 onKeyDown={onComposerKeyDown}
                 placeholder="Write a message…"
                 className="h-11 flex-1 rounded-full bg-surface px-4 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
