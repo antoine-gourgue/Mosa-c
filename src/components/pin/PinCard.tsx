@@ -143,19 +143,23 @@ export function PinCard({
             />
           </div>
           <div className="flex items-center justify-between">
-            <button
-              type="button"
-              onClick={(event) => {
-                stop(event);
-                onToggleSave();
-              }}
-              className={cn(
-                "h-10 cursor-pointer rounded-full px-4 text-sm font-semibold text-bg transition-colors duration-150",
-                saved ? "bg-ink hover:bg-ink/90" : "bg-accent hover:bg-accent-press",
-              )}
-            >
-              {saved ? "Saved" : "Save"}
-            </button>
+            {canDelete ? (
+              <span />
+            ) : (
+              <button
+                type="button"
+                onClick={(event) => {
+                  stop(event);
+                  onToggleSave();
+                }}
+                className={cn(
+                  "h-10 cursor-pointer rounded-full px-4 text-sm font-semibold text-bg transition-colors duration-150",
+                  saved ? "bg-ink hover:bg-ink/90" : "bg-accent hover:bg-accent-press",
+                )}
+              >
+                {saved ? "Saved" : "Save"}
+              </button>
+            )}
             <IconButton label="Share" tone="solid" onClick={(event) => void onShare(event)}>
               <ShareIcon size={16} />
             </IconButton>
