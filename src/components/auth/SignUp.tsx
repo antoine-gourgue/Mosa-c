@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { FormEvent, ReactElement } from "react";
 import { Button, Input } from "@/components/ui";
-import { Logo } from "@/icons";
+import { GoogleIcon, Logo } from "@/icons";
 import { registerUser, signInWithProvider } from "@/server/actions/auth";
 import { GenderStep, type GenderValue } from "./GenderStep";
 
@@ -48,9 +48,9 @@ export function SignUp(): ReactElement {
     });
   };
 
-  const handleOAuth = (provider: "google" | "apple"): void => {
+  const handleGoogle = (): void => {
     startTransition(async () => {
-      await signInWithProvider(provider);
+      await signInWithProvider("google");
     });
   };
 
@@ -115,14 +115,12 @@ export function SignUp(): ReactElement {
         <span className="h-px flex-1 bg-line" />
       </div>
 
-      <div className="flex flex-col gap-3">
-        <Button variant="social" fullWidth onClick={() => handleOAuth("google")}>
+      <Button variant="social" fullWidth onClick={handleGoogle}>
+        <span className="inline-flex items-center gap-2.5">
+          <GoogleIcon size={18} />
           Continue with Google
-        </Button>
-        <Button variant="social" fullWidth onClick={() => handleOAuth("apple")}>
-          Continue with Apple
-        </Button>
-      </div>
+        </span>
+      </Button>
 
       <p className="mt-6 text-xs text-ink-soft">
         By continuing, you agree to Mosaic&rsquo;s Terms of Service and acknowledge our Privacy

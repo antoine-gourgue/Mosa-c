@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { FormEvent, ReactElement } from "react";
 import { Button, Input } from "@/components/ui";
-import { Logo } from "@/icons";
-import { loginUser } from "@/server/actions/auth";
+import { GoogleIcon, Logo } from "@/icons";
+import { loginUser, signInWithProvider } from "@/server/actions/auth";
 
 /**
  * Login screen for returning users: an email/password form wired to the login
@@ -31,6 +31,12 @@ export function Login(): ReactElement {
         setErrors(result.fieldErrors ?? {});
         setFormError(result.formError ?? null);
       }
+    });
+  };
+
+  const handleGoogle = (): void => {
+    startTransition(async () => {
+      await signInWithProvider("google");
     });
   };
 
@@ -74,6 +80,19 @@ export function Login(): ReactElement {
           Log in
         </Button>
       </form>
+
+      <div className="my-5 flex items-center gap-3 text-sm text-ink-soft">
+        <span className="h-px flex-1 bg-line" />
+        OR
+        <span className="h-px flex-1 bg-line" />
+      </div>
+
+      <Button variant="social" fullWidth onClick={handleGoogle}>
+        <span className="inline-flex items-center gap-2.5">
+          <GoogleIcon size={18} />
+          Continue with Google
+        </span>
+      </Button>
 
       <p className="mt-6 text-sm text-ink-soft">
         New to Mosaic?{" "}
