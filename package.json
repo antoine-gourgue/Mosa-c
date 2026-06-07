@@ -43,6 +43,7 @@
     "@supabase/storage-js": "^2.107.0",
     "@tailwindcss/postcss": "^4.3.0",
     "bcryptjs": "^3.0.3",
+    "emoji-picker-react": "^4.19.1",
     "gsap": "^3.15.0",
     "heic-to": "^1.5.2",
     "next": "16.2.7",

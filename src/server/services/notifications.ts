@@ -29,6 +29,8 @@ function buildMessage(kind: NotificationKind, actorName: string): string {
       return `${actorName} commented on your pin`;
     case "REPLY":
       return `${actorName} replied to your comment`;
+    case "REACTION":
+      return `${actorName} reacted to your comment`;
   }
 }
 

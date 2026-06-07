@@ -40,7 +40,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
   const [following, like, comments, boards, followCounts] = await Promise.all([
     user === null ? Promise.resolve(false) : isFollowing(user.id, pin.creator.id),
     getLikeState(pin.id, user?.id ?? null),
-    getComments(pin.id),
+    getComments(pin.id, user?.id ?? null),
     user === null ? Promise.resolve([]) : getBoardsForUser(user.id),
     getFollowCounts(pin.creator.id),
   ]);

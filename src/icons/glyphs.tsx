@@ -220,6 +220,22 @@ export function CommentIcon(props: IconProps): ReactElement {
 }
 
 /**
+ * Smiley face glyph for emoji reactions.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function SmileIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8.5 14.5a4.5 4.5 0 0 0 7 0" />
+      <path d="M9 9.5h.01M15 9.5h.01" />
+    </SvgIcon>
+  );
+}
+
+/**
  * Download glyph.
  *
  * @param props - Icon sizing and presentation props.

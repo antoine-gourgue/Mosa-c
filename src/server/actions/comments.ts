@@ -5,11 +5,15 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/server/notifications";
-import { toComment } from "@/server/services/comments";
-import type { PinComment } from "@/types/domain";
+import { aggregateReactions, toComment } from "@/server/services/comments";
+import type { CommentReaction, PinComment } from "@/types/domain";
 
 const commentSchema = z.object({
   body: z.string().trim().min(1, "Write something first.").max(1000),
+});
+
+const reactionSchema = z.object({
+  emoji: z.string().trim().min(1).max(16),
 });
 
 /**
@@ -119,4 +123,58 @@ export async function deleteComment(
   revalidatePath(`/pin/${comment.pinId}`);
   revalidatePath("/");
   return { ok: true };
+}
+
+/**
+ * Toggles the current user's emoji reaction on a comment: adds it if absent,
+ * removes it otherwise. The comment's author is notified when a reaction is
+ * added (never on removal, and never for self-reactions).
+ *
+ * @param commentId - The comment id.
+ * @param emoji - The reaction emoji.
+ * @returns The comment's updated reactions for the current viewer, or an error.
+ */
+export async function toggleReaction(
+  commentId: string,
+  emoji: string,
+): Promise<{ ok: true; reactions: CommentReaction[] } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: "You must be signed in to react." };
+  }
+  const parsed = reactionSchema.safeParse({ emoji });
+  if (!parsed.success) {
+    return { ok: false, error: "Invalid reaction." };
+  }
+  const comment = await prisma.comment.findUnique({
+    where: { id: commentId },
+    select: { authorId: true, pinId: true },
+  });
+  if (comment === null) {
+    return { ok: false, error: "Comment not found." };
+  }
+  const where = {
+    commentId_userId_emoji: { commentId, userId: user.id, emoji: parsed.data.emoji },
+  };
+  const existing = await prisma.commentReaction.findUnique({ where });
+  if (existing === null) {
+    await prisma.commentReaction.create({
+      data: { commentId, userId: user.id, emoji: parsed.data.emoji },
+    });
+    await createNotification({
+      type: "REACTION",
+      recipientId: comment.authorId,
+      actorId: user.id,
+      pinId: comment.pinId,
+      commentId,
+    });
+  } else {
+    await prisma.commentReaction.delete({ where });
+  }
+  const rows = await prisma.commentReaction.findMany({
+    where: { commentId },
+    select: { emoji: true, userId: true },
+  });
+  revalidatePath(`/pin/${comment.pinId}`);
+  return { ok: true, reactions: aggregateReactions(rows, user.id) };
 }

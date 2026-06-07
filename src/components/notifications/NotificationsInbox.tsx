@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import { Avatar, Button } from "@/components/ui";
-import { BellIcon, CommentIcon, HeartFilledIcon, PlusIcon } from "@/icons";
+import { BellIcon, CommentIcon, HeartFilledIcon, PlusIcon, SmileIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { DURATION, REDUCED_MOTION, gsap, useGSAP } from "@/lib/gsap";
 import { formatRelativeTime } from "@/lib/time";
@@ -52,6 +52,8 @@ function typeBadge(kind: NotificationKind): { icon: ReactElement; className: str
       return { icon: <CommentIcon size={11} />, className: "bg-ink" };
     case "REPLY":
       return { icon: <CommentIcon size={11} />, className: "bg-accent" };
+    case "REACTION":
+      return { icon: <SmileIcon size={11} />, className: "bg-accent" };
     case "FOLLOW":
       return { icon: <PlusIcon size={11} />, className: "bg-ink-soft" };
   }
