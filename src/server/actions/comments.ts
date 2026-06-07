@@ -6,7 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/server/notifications";
 import { aggregateReactions, toComment } from "@/server/services/comments";
-import type { CommentReaction, PinComment } from "@/types/domain";
+import { searchMentionUsers } from "@/server/services/users";
+import type { CommentReaction, MentionSuggestion, PinComment } from "@/types/domain";
 
 const commentSchema = z.object({
   body: z.string().trim().min(1, "Write something first.").max(1000),
@@ -15,6 +16,67 @@ const commentSchema = z.object({
 const reactionSchema = z.object({
   emoji: z.string().trim().min(1).max(16),
 });
+
+const MENTION_PATTERN = /@([a-zA-Z0-9_]+)/g;
+
+/**
+ * Extracts the unique usernames mentioned with an "@" in a comment body.
+ *
+ * @param body - The comment text.
+ * @returns The distinct mentioned usernames, without the leading "@".
+ */
+function parseMentions(body: string): string[] {
+  const matches = body.match(MENTION_PATTERN) ?? [];
+  return [...new Set(matches.map((match) => match.slice(1)))];
+}
+
+/**
+ * Notifies the users mentioned in a comment body, skipping the actor and any
+ * recipients who were already notified for the same comment (e.g. the pin
+ * owner or the replied-to author).
+ *
+ * @param body - The comment text to scan for mentions.
+ * @param context - The actor, target pin and comment, and ids to skip.
+ */
+async function notifyMentions(
+  body: string,
+  context: { actorId: string; pinId: string; commentId: string; skip: Set<string> },
+): Promise<void> {
+  const usernames = parseMentions(body);
+  if (usernames.length === 0) {
+    return;
+  }
+  const users = await prisma.user.findMany({
+    where: { username: { in: usernames } },
+    select: { id: true },
+  });
+  for (const user of users) {
+    if (user.id === context.actorId || context.skip.has(user.id)) {
+      continue;
+    }
+    await createNotification({
+      type: "MENTION",
+      recipientId: user.id,
+      actorId: context.actorId,
+      pinId: context.pinId,
+      commentId: context.commentId,
+    });
+  }
+}
+
+/**
+ * Searches users to suggest while typing an @mention in a comment composer.
+ *
+ * @param query - The partial handle or name typed after the "@".
+ * @returns The matching mention suggestions, or an empty list when signed out.
+ */
+export async function searchMentions(query: string): Promise<MentionSuggestion[]> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return [];
+  }
+  return searchMentionUsers(query, user.id);
+}
 
 /**
  * Adds a comment to a pin on behalf of the current user.
@@ -45,6 +107,12 @@ export async function addComment(
     actorId: user.id,
     pinId,
     commentId: row.id,
+  });
+  await notifyMentions(parsed.data.body, {
+    actorId: user.id,
+    pinId,
+    commentId: row.id,
+    skip: new Set([row.pin.creatorId]),
   });
   revalidatePath(`/pin/${pinId}`);
   revalidatePath("/");
@@ -91,6 +159,12 @@ export async function addReply(
     actorId: user.id,
     pinId,
     commentId: row.id,
+  });
+  await notifyMentions(parsed.data.body, {
+    actorId: user.id,
+    pinId,
+    commentId: row.id,
+    skip: new Set([target.authorId]),
   });
   revalidatePath(`/pin/${pinId}`);
   return { ok: true, comment: toComment(row) };

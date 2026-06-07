@@ -31,6 +31,8 @@ function buildMessage(kind: NotificationKind, actorName: string): string {
       return `${actorName} replied to your comment`;
     case "REACTION":
       return `${actorName} reacted to your comment`;
+    case "MENTION":
+      return `${actorName} mentioned you in a comment`;
   }
 }
 

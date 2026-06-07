@@ -1,6 +1,49 @@
 import { prisma } from "@/lib/prisma";
-import type { Creator } from "@/types/domain";
+import type { Creator, MentionSuggestion } from "@/types/domain";
 import { toCreator } from "./mappers";
+
+/**
+ * Searches users with a public username for an @mention autocomplete, matching
+ * the query against the username or display name. Users without a username are
+ * excluded since they cannot be mentioned.
+ *
+ * @param query - The partial handle or name typed after the "@".
+ * @param excludeId - A user id to exclude (typically the current user).
+ * @param limit - The maximum number of suggestions to return.
+ * @returns The matching mention suggestions, verified users first.
+ */
+export async function searchMentionUsers(
+  query: string,
+  excludeId: string | null,
+  limit = 6,
+): Promise<MentionSuggestion[]> {
+  const trimmed = query.trim();
+  const rows = await prisma.user.findMany({
+    where: {
+      username: { not: null },
+      ...(excludeId === null ? {} : { id: { not: excludeId } }),
+      ...(trimmed === ""
+        ? {}
+        : {
+            OR: [
+              { username: { contains: trimmed, mode: "insensitive" as const } },
+              { name: { contains: trimmed, mode: "insensitive" as const } },
+            ],
+          }),
+    },
+    select: { id: true, name: true, username: true, avatarUrl: true },
+    orderBy: [{ verified: "desc" }, { username: "asc" }],
+    take: limit,
+  });
+  return rows
+    .filter((row): row is typeof row & { username: string } => row.username !== null)
+    .map((row) => ({
+      id: row.id,
+      name: row.name,
+      username: row.username,
+      avatarUrl: row.avatarUrl,
+    }));
+}
 
 /**
  * Fetches a creator by id.
