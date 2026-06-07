@@ -23,6 +23,9 @@ export const authConfig = {
       if (AUTH_ROUTES.has(pathname)) {
         return isLoggedIn ? Response.redirect(new URL("/", request.nextUrl)) : true;
       }
+      if (pathname.includes("opengraph-image") || pathname.includes("twitter-image")) {
+        return true;
+      }
       if (PUBLIC_EXACT.has(pathname)) {
         return true;
       }

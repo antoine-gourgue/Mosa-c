@@ -9,11 +9,23 @@ import "./globals.css";
  * Static metadata applied to every route in the application.
  */
 export const metadata: Metadata = {
+  metadataBase: new URL(env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
   title: {
     default: SITE.name,
     template: `%s · ${SITE.name}`,
   },
   description: SITE.description,
+  openGraph: {
+    type: "website",
+    siteName: SITE.name,
+    title: SITE.name,
+    description: SITE.description,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE.name,
+    description: SITE.description,
+  },
 };
 
 /**

@@ -39,7 +39,23 @@ export async function generateMetadata({
   params: Promise<{ username: string }>;
 }): Promise<Metadata> {
   const { username } = await params;
-  return { title: `@${username}` };
+  const user = await getUserByUsername(username);
+  if (user === null) {
+    return { title: `@${username}` };
+  }
+  const description = user.bio ?? `${user.name} on Mosaic.`;
+  const images = user.avatarUrl !== null ? [{ url: user.avatarUrl, alt: user.name }] : undefined;
+  return {
+    title: user.name,
+    description,
+    openGraph: { type: "profile", title: user.name, description, images },
+    twitter: {
+      card: "summary",
+      title: user.name,
+      description,
+      images: user.avatarUrl !== null ? [user.avatarUrl] : undefined,
+    },
+  };
 }
 
 /**
