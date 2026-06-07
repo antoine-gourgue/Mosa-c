@@ -70,6 +70,32 @@ export function formatMessageSeparator(iso: string): string {
 }
 
 /**
+ * Formats a user's last-active label: "active now" under a minute, "active Xm
+ * ago" for 1–59 minutes, "active Xh ago" by the hour up to 12 hours, and null
+ * beyond 12 hours or when there is no timestamp.
+ *
+ * @param iso - The last-seen ISO timestamp, or null.
+ * @returns The label, or null when it should not be shown.
+ */
+export function formatLastActive(iso: string | null): string | null {
+  if (iso === null) {
+    return null;
+  }
+  const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (minutes < 1) {
+    return "active now";
+  }
+  if (minutes < 60) {
+    return `active ${minutes}m ago`;
+  }
+  const hours = Math.floor(minutes / 60);
+  if (hours <= 12) {
+    return `active ${hours}h ago`;
+  }
+  return null;
+}
+
+/**
  * Formats an ISO timestamp as a short relative time (e.g. "5m", "2h", "3d").
  *
  * @param iso - The ISO timestamp.

@@ -9,6 +9,7 @@ import { cn } from "@/lib/cn";
 import { getRealtimeSocket } from "@/lib/realtime";
 import {
   formatClockTime,
+  formatLastActive,
   formatMessageSeparator,
   formatRelativeTime,
   shouldSeparateMessages,
@@ -61,6 +62,11 @@ export function Messenger({
   const [loading, setLoading] = useState(false);
   const [draft, setDraft] = useState("");
   const [otherTyping, setOtherTyping] = useState(false);
+  const [presence, setPresence] = useState<{
+    userId: string;
+    online: boolean;
+    lastSeenAt: string | null;
+  } | null>(null);
   const [dragX, setDragX] = useState(0);
   const [, startTransition] = useTransition();
   const endRef = useRef<HTMLDivElement>(null);
@@ -76,10 +82,57 @@ export function Messenger({
   }, [initialConversationId, clearUnreadBadge]);
 
   const active = list.find((conversation) => conversation.id === activeId) ?? null;
+  const otherId = active?.other.id ?? null;
+  const presenceForOther = presence !== null && presence.userId === otherId ? presence : null;
+  const otherOnline = presenceForOther?.online === true;
+  const otherLastSeen =
+    presenceForOther !== null && !presenceForOther.online ? presenceForOther.lastSeenAt : null;
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
   }, [messages, otherTyping]);
+
+  useEffect(() => {
+    if (otherId === null) {
+      return;
+    }
+    const socket = getRealtimeSocket();
+
+    const onPresence = (payload: {
+      userId: string;
+      online: boolean;
+      lastSeenAt: string | null;
+    }): void => {
+      if (payload.userId !== otherId) {
+        return;
+      }
+      setPresence({ userId: otherId, online: payload.online, lastSeenAt: payload.lastSeenAt });
+    };
+
+    const fetchPresence = (): void => {
+      socket.emit("presence:get", { userIds: [otherId] }, (response: unknown) => {
+        const entries = (
+          response as {
+            presence?: { userId: string; online: boolean; lastSeenAt: string | null }[];
+          }
+        )?.presence;
+        const entry = entries?.find((candidate) => candidate.userId === otherId);
+        if (entry !== undefined) {
+          setPresence({ userId: otherId, online: entry.online, lastSeenAt: entry.lastSeenAt });
+        }
+      });
+    };
+
+    socket.on("presence:update", onPresence);
+    socket.on("connect", fetchPresence);
+    if (socket.connected) {
+      fetchPresence();
+    }
+    return () => {
+      socket.off("presence:update", onPresence);
+      socket.off("connect", fetchPresence);
+    };
+  }, [otherId]);
 
   useEffect(() => {
     const socket = getRealtimeSocket();
@@ -375,14 +428,28 @@ export function Messenger({
               </button>
               <Link
                 href={active.other.username !== null ? `/u/${active.other.username}` : "#"}
-                className="flex items-center gap-2.5 hover:underline"
+                className="group flex items-center gap-2.5"
               >
-                <Avatar
-                  src={active.other.avatarUrl ?? undefined}
-                  name={active.other.name}
-                  size={36}
-                />
-                <span className="font-semibold text-ink">{active.other.name}</span>
+                <span className="relative shrink-0">
+                  <Avatar
+                    src={active.other.avatarUrl ?? undefined}
+                    name={active.other.name}
+                    size={36}
+                  />
+                  {otherOnline ? (
+                    <span className="absolute bottom-0 right-0 size-3 rounded-full border-2 border-bg bg-[#22c55e]" />
+                  ) : null}
+                </span>
+                <span className="flex flex-col">
+                  <span className="font-semibold leading-tight text-ink group-hover:underline">
+                    {active.other.name}
+                  </span>
+                  {otherOnline ? (
+                    <span className="text-xs font-medium text-ink">Online</span>
+                  ) : formatLastActive(otherLastSeen) !== null ? (
+                    <span className="text-xs text-ink-soft">{formatLastActive(otherLastSeen)}</span>
+                  ) : null}
+                </span>
               </Link>
             </header>
 
