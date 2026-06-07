@@ -414,6 +414,30 @@ async function main(): Promise<void> {
     });
   }
 
+  await prisma.conversation.upsert({
+    where: { id: "conversation_request" },
+    update: { status: "PENDING", requestedById: "user_atlas" },
+    create: {
+      id: "conversation_request",
+      pairKey: ["user_demo", "user_atlas"].sort().join(":"),
+      status: "PENDING",
+      requestedById: "user_atlas",
+      participants: {
+        create: [{ userId: "user_demo" }, { userId: "user_atlas" }],
+      },
+    },
+  });
+  await prisma.message.upsert({
+    where: { id: "message_request_1" },
+    update: {},
+    create: {
+      id: "message_request_1",
+      conversationId: "conversation_request",
+      senderId: "user_atlas",
+      body: "Hi! I love your boards — can we chat?",
+    },
+  });
+
   await prisma.comment.upsert({
     where: { id: "comment_demo" },
     update: { body: "Stunning shot — saving this for my next trip board!" },

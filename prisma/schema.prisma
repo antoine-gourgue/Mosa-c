@@ -282,11 +282,18 @@ model Follow {
   @@index([creatorId])
 }
 
+enum ConversationStatus {
+  PENDING
+  ACCEPTED
+}
+
 model Conversation {
-  id        String   @id @default(cuid())
-  pairKey   String?  @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String             @id @default(cuid())
+  pairKey       String?            @unique
+  status        ConversationStatus @default(ACCEPTED)
+  requestedById String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   participants ConversationParticipant[]
   messages     Message[]

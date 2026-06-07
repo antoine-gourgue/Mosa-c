@@ -15,7 +15,6 @@ export type ProfileHeaderProps = {
   initialFollowing: boolean;
   isOwnProfile: boolean;
   isAuthed: boolean;
-  canMessage: boolean;
 };
 
 /**
@@ -32,7 +31,6 @@ export function ProfileHeader({
   initialFollowing,
   isOwnProfile,
   isAuthed,
-  canMessage,
 }: ProfileHeaderProps): ReactElement {
   return (
     <header className="flex flex-col items-center gap-3 py-10 text-center">
@@ -63,7 +61,7 @@ export function ProfileHeader({
             initialFollowing={initialFollowing}
             isAuthed={isAuthed}
           />
-          {canMessage ? <MessageButton userId={user.id} /> : null}
+          {isAuthed ? <MessageButton userId={user.id} /> : null}
         </div>
       )}
     </header>
