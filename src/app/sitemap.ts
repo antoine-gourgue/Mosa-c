@@ -3,6 +3,12 @@ import { env } from "@/lib/env";
 import { getSitemapEntries } from "@/server/services";
 
 /**
+ * Rendered on demand: the sitemap queries the database, which is not available
+ * during the build, so it must not be prerendered.
+ */
+export const dynamic = "force-dynamic";
+
+/**
  * The public base URL used to build absolute metadata URLs.
  */
 const BASE_URL = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
