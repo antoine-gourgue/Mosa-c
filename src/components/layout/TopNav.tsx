@@ -14,6 +14,7 @@ import { logout } from "@/server/actions/auth";
 export type TopNavProps = {
   user: { name: string; image: string | null; username: string | null };
   unreadCount: number;
+  isAuthed: boolean;
 };
 
 /**
@@ -24,7 +25,7 @@ export type TopNavProps = {
  * @param props - The current user and unread notification count.
  * @returns The top navigation element.
  */
-export function TopNav({ user, unreadCount }: TopNavProps): ReactElement {
+export function TopNav({ user, unreadCount, isAuthed }: TopNavProps): ReactElement {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -42,48 +43,59 @@ export function TopNav({ user, unreadCount }: TopNavProps): ReactElement {
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-1 sm:flex-none">
-        <div className="hidden items-center gap-1 sm:flex">
-          <IconButton label="Create" onClick={() => router.push("/create")}>
-            <PlusIcon />
-          </IconButton>
-          <IconButton
-            label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
-            active={pathname.startsWith("/notifications")}
-            onClick={() => router.push("/notifications")}
-            className="relative"
+        {isAuthed ? (
+          <>
+            <div className="hidden items-center gap-1 sm:flex">
+              <IconButton label="Create" onClick={() => router.push("/create")}>
+                <PlusIcon />
+              </IconButton>
+              <IconButton
+                label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
+                active={pathname.startsWith("/notifications")}
+                onClick={() => router.push("/notifications")}
+                className="relative"
+              >
+                <BellIcon size={22} />
+                {unreadCount > 0 ? (
+                  <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-accent" />
+                ) : null}
+              </IconButton>
+              <IconButton
+                label="Saves"
+                active={pathname.startsWith("/boards")}
+                onClick={() => router.push("/boards")}
+              >
+                <StackIcon size={22} />
+              </IconButton>
+            </div>
+            <div className="ml-1 shrink-0">
+              <Menu
+                label="Account menu"
+                align="end"
+                trigger={<Avatar name={user.name} src={user.image ?? undefined} size={44} />}
+                items={[
+                  ...(user.username !== null
+                    ? [
+                        {
+                          label: "Your profile",
+                          onSelect: () => router.push(`/u/${user.username ?? ""}`),
+                        },
+                      ]
+                    : []),
+                  { label: "Edit profile", onSelect: () => router.push("/settings/profile") },
+                  { label: "Log out", onSelect: () => void logout(), destructive: true },
+                ]}
+              />
+            </div>
+          </>
+        ) : (
+          <Link
+            href="/login"
+            className="rounded-full bg-accent px-5 py-2.5 text-[15px] font-semibold text-bg transition-colors hover:bg-accent-press"
           >
-            <BellIcon size={22} />
-            {unreadCount > 0 ? (
-              <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-accent" />
-            ) : null}
-          </IconButton>
-          <IconButton
-            label="Saves"
-            active={pathname.startsWith("/boards")}
-            onClick={() => router.push("/boards")}
-          >
-            <StackIcon size={22} />
-          </IconButton>
-        </div>
-        <div className="ml-1 shrink-0">
-          <Menu
-            label="Account menu"
-            align="end"
-            trigger={<Avatar name={user.name} src={user.image ?? undefined} size={44} />}
-            items={[
-              ...(user.username !== null
-                ? [
-                    {
-                      label: "Your profile",
-                      onSelect: () => router.push(`/u/${user.username ?? ""}`),
-                    },
-                  ]
-                : []),
-              { label: "Edit profile", onSelect: () => router.push("/settings/profile") },
-              { label: "Log out", onSelect: () => void logout(), destructive: true },
-            ]}
-          />
-        </div>
+            Log in
+          </Link>
+        )}
       </div>
     </nav>
   );

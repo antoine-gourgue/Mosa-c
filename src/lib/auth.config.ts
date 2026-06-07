@@ -1,7 +1,8 @@
 import type { NextAuthConfig } from "next-auth";
 
 const AUTH_ROUTES = new Set(["/login", "/sign-up"]);
-const PUBLIC_PREFIXES = ["/styleguide"];
+const PUBLIC_EXACT = new Set(["/"]);
+const PUBLIC_PREFIXES = ["/styleguide", "/pin/", "/u/"];
 
 /**
  * Edge-safe Auth.js configuration shared between the Node runtime config and the
@@ -21,6 +22,9 @@ export const authConfig = {
       const { pathname } = request.nextUrl;
       if (AUTH_ROUTES.has(pathname)) {
         return isLoggedIn ? Response.redirect(new URL("/", request.nextUrl)) : true;
+      }
+      if (PUBLIC_EXACT.has(pathname)) {
+        return true;
       }
       if (PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
         return true;

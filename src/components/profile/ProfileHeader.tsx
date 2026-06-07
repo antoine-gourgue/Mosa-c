@@ -13,6 +13,7 @@ export type ProfileHeaderProps = {
   following: number;
   initialFollowing: boolean;
   isOwnProfile: boolean;
+  isAuthed: boolean;
 };
 
 /**
@@ -28,6 +29,7 @@ export function ProfileHeader({
   following,
   initialFollowing,
   isOwnProfile,
+  isAuthed,
 }: ProfileHeaderProps): ReactElement {
   return (
     <header className="flex flex-col items-center gap-3 py-10 text-center">
@@ -52,7 +54,7 @@ export function ProfileHeader({
           Edit profile
         </Link>
       ) : (
-        <FollowButton creatorId={user.id} initialFollowing={initialFollowing} />
+        <FollowButton creatorId={user.id} initialFollowing={initialFollowing} isAuthed={isAuthed} />
       )}
     </header>
   );

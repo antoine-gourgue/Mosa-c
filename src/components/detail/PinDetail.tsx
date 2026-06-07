@@ -71,6 +71,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
             name: board.name,
             isDefault: board.isDefault,
           }))}
+          isAuthed={user !== null}
         />
         {pin.category !== null ? (
           <span className="text-sm text-ink-soft">
@@ -89,6 +90,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
           initialFollowing={following}
           isSelf={user?.id === pin.creator.id}
           followers={followCounts.followers}
+          isAuthed={user !== null}
         />
         <Divider className="my-2" />
         <Comments

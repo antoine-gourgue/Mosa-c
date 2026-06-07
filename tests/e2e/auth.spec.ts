@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { login } from "./helpers";
 
-test("unauthenticated users are redirected to login", async ({ page }) => {
-  await page.goto("/");
+test("unauthenticated users are redirected to login from protected routes", async ({ page }) => {
+  await page.goto("/create");
   await expect(page).toHaveURL(/\/login/);
 });
 

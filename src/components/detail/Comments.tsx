@@ -130,7 +130,11 @@ export function Comments({
             Comment
           </Button>
         </form>
-      ) : null}
+      ) : (
+        <Link href="/login" className="text-sm font-semibold text-accent hover:underline">
+          Log in to comment
+        </Link>
+      )}
 
       <ConfirmDialog
         open={confirmId !== null}

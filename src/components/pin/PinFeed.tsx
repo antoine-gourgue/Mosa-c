@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import type { ReactElement } from "react";
 import { useToast } from "@/components/ui";
+import { useAuthPrompt } from "@/hooks/use-auth-prompt";
 import { DURATION, gsap, useGSAP } from "@/lib/gsap";
 import { toggleSave } from "@/server/actions/saves";
 import type { Pin } from "@/types/domain";
@@ -42,6 +43,7 @@ export function PinFeed({
   const [, startTransition] = useTransition();
   const { show } = useToast();
   const router = useRouter();
+  const withAuth = useAuthPrompt(viewerId !== null);
   const scope = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -73,6 +75,10 @@ export function PinFeed({
   };
 
   const handleToggle = (pin: Pin): void => {
+    if (viewerId === null) {
+      withAuth(() => undefined);
+      return;
+    }
     const wasSaved = saved.has(pin.id);
     setSavedFlag(pin.id, !wasSaved);
     if (!wasSaved) {
