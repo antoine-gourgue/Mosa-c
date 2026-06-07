@@ -3,6 +3,7 @@ import type { ReactElement } from "react";
 import { Avatar } from "@/components/ui";
 import type { Creator } from "@/types/domain";
 import { FollowButton } from "./FollowButton";
+import { MessageButton } from "./MessageButton";
 
 /**
  * Props for the {@link ProfileHeader} component.
@@ -14,6 +15,7 @@ export type ProfileHeaderProps = {
   initialFollowing: boolean;
   isOwnProfile: boolean;
   isAuthed: boolean;
+  canMessage: boolean;
 };
 
 /**
@@ -30,6 +32,7 @@ export function ProfileHeader({
   initialFollowing,
   isOwnProfile,
   isAuthed,
+  canMessage,
 }: ProfileHeaderProps): ReactElement {
   return (
     <header className="flex flex-col items-center gap-3 py-10 text-center">
@@ -54,7 +57,14 @@ export function ProfileHeader({
           Edit profile
         </Link>
       ) : (
-        <FollowButton creatorId={user.id} initialFollowing={initialFollowing} isAuthed={isAuthed} />
+        <div className="flex items-center gap-2">
+          <FollowButton
+            creatorId={user.id}
+            initialFollowing={initialFollowing}
+            isAuthed={isAuthed}
+          />
+          {canMessage ? <MessageButton userId={user.id} /> : null}
+        </div>
       )}
     </header>
   );

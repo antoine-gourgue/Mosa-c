@@ -9,6 +9,7 @@ import { JsonLd } from "@/components/seo";
 import { getCurrentUser } from "@/lib/auth";
 import { env } from "@/lib/env";
 import {
+  areMutualFollowers,
   getCreatedPins,
   getFollowCounts,
   getLikedPinIds,
@@ -181,11 +182,14 @@ export default async function ProfilePage({
 
   const viewer = await getCurrentUser();
   const isOwnProfile = viewer?.id === user.id;
-  const [counts, following, savedIds, likedIds] = await Promise.all([
+  const [counts, following, savedIds, likedIds, canMessage] = await Promise.all([
     getFollowCounts(user.id),
     viewer !== null && !isOwnProfile ? isFollowing(viewer.id, user.id) : Promise.resolve(false),
     viewer !== null ? getSavedPinIds(viewer.id) : Promise.resolve<string[]>([]),
     viewer !== null ? getLikedPinIds(viewer.id) : Promise.resolve<string[]>([]),
+    viewer !== null && !isOwnProfile
+      ? areMutualFollowers(viewer.id, user.id)
+      : Promise.resolve(false),
   ]);
   const requestedTab = resolveTab(tab);
   const active = requestedTab === "liked" && !isOwnProfile ? "created" : requestedTab;
@@ -209,6 +213,7 @@ export default async function ProfilePage({
         initialFollowing={following}
         isOwnProfile={isOwnProfile}
         isAuthed={viewer !== null}
+        canMessage={canMessage}
       />
       <ProfileTabs username={username} active={active} isOwnProfile={isOwnProfile} />
       <div className="mt-6">
