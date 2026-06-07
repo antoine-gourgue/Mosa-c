@@ -14,6 +14,7 @@ export {
   HeartIcon,
   HeartFilledIcon,
   CommentIcon,
+  SmileIcon,
   DownloadIcon,
   SlidersIcon,
   SparkleIcon,

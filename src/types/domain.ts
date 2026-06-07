@@ -40,6 +40,16 @@ export type Pin = {
 };
 
 /**
+ * An emoji reaction on a comment, aggregated for display: the emoji, how many
+ * users reacted with it, and whether the current viewer is one of them.
+ */
+export type CommentReaction = {
+  emoji: string;
+  count: number;
+  reactedByViewer: boolean;
+};
+
+/**
  * A comment on a pin, as surfaced to the UI.
  */
 export type PinComment = {
@@ -48,12 +58,13 @@ export type PinComment = {
   createdAt: string;
   author: Creator;
   replies: PinComment[];
+  reactions: CommentReaction[];
 };
 
 /**
  * The kind of engagement that produced a notification.
  */
-export type NotificationKind = "FOLLOW" | "LIKE" | "COMMENT" | "REPLY";
+export type NotificationKind = "FOLLOW" | "LIKE" | "COMMENT" | "REPLY" | "REACTION";
 
 /**
  * A notification as surfaced to the UI, with the actor and target context

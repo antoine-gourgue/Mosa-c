@@ -19,6 +19,7 @@ enum NotificationType {
   LIKE
   COMMENT
   REPLY
+  REACTION
 }
 
 enum BoardRole {
@@ -61,6 +62,7 @@ model User {
   saves     Save[]
   likes     Like[]
   comments  Comment[]
+  reactions CommentReaction[]
   following Follow[]  @relation("Follower")
   followers Follow[]  @relation("Creator")
   accounts  Account[]
@@ -177,10 +179,26 @@ model Comment {
   replies  Comment[] @relation("CommentReplies")
 
   notifications Notification[]
+  reactions     CommentReaction[]
 
   @@index([pinId])
   @@index([authorId])
   @@index([parentId])
+}
+
+model CommentReaction {
+  id        String   @id @default(cuid())
+  emoji     String
+  createdAt DateTime @default(now())
+
+  commentId String
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId, emoji])
+  @@index([commentId])
 }
 
 model Report {

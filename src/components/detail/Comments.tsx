@@ -9,6 +9,7 @@ import { TrashIcon } from "@/icons";
 import { formatRelativeTime } from "@/lib/time";
 import { addComment, addReply, deleteComment } from "@/server/actions/comments";
 import type { PinComment } from "@/types/domain";
+import { CommentReactions } from "./CommentReactions";
 
 /**
  * Props for the {@link Comments} component.
@@ -184,6 +185,11 @@ export function Comments({
             </button>
           ) : null}
         </div>
+        <CommentReactions
+          commentId={comment.id}
+          initialReactions={comment.reactions}
+          isAuthed={isAuthed}
+        />
       </div>
       {canDelete(comment) ? (
         <IconButton
