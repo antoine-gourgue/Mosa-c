@@ -4,7 +4,6 @@ import type { Provider } from "next-auth/providers";
 import type { Session } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import Apple from "next-auth/providers/apple";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
@@ -43,14 +42,10 @@ if (env.GOOGLE_CLIENT_ID !== undefined && env.GOOGLE_CLIENT_SECRET !== undefined
   );
 }
 
-if (env.APPLE_CLIENT_ID !== undefined && env.APPLE_CLIENT_SECRET !== undefined) {
-  providers.push(Apple({ clientId: env.APPLE_CLIENT_ID, clientSecret: env.APPLE_CLIENT_SECRET }));
-}
-
 /**
  * Auth.js entry points for the application. Extends the edge-safe config with
- * the Prisma adapter and the real providers. Google and Apple are enabled only
- * when their credentials are present, so the app runs without them.
+ * the Prisma adapter and the real providers. Google is enabled only when its
+ * credentials are present, so the app runs without it.
  */
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,

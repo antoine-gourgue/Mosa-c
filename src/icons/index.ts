@@ -1,5 +1,6 @@
 export type { IconProps, LogoProps } from "./types";
 export {
+  GoogleIcon,
   SearchIcon,
   CameraIcon,
   PlusIcon,

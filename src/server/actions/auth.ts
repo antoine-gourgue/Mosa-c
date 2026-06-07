@@ -76,7 +76,7 @@ export async function registerUser(input: RegisterInput): Promise<ActionResult> 
  * @param provider - The OAuth provider id.
  * @returns A promise that never resolves on success (it redirects).
  */
-export async function signInWithProvider(provider: "google" | "apple"): Promise<void> {
+export async function signInWithProvider(provider: "google"): Promise<void> {
   await signIn(provider, { redirectTo: "/" });
 }
 

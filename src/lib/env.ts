@@ -26,8 +26,6 @@ const envSchema = z.object({
   AUTH_URL: optionalUrl,
   GOOGLE_CLIENT_ID: optionalSecret,
   GOOGLE_CLIENT_SECRET: optionalSecret,
-  APPLE_CLIENT_ID: optionalSecret,
-  APPLE_CLIENT_SECRET: optionalSecret,
   STORAGE_DRIVER: z.enum(["local", "s3", "supabase"]).default("local"),
   SUPABASE_URL: optionalUrl,
   SUPABASE_SERVICE_ROLE_KEY: optionalSecret,
