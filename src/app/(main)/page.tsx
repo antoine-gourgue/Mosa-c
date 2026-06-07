@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getHomeFeed, getSavedPinIds } from "@/server/services";
 import type { FeedSort, FeedSource } from "@/server/services";
 import { FeedFilter, FeedTabs } from "@/components/feed";
+import { Landing } from "@/components/marketing";
 import { InfiniteFeed, PinCardSkeleton } from "@/components/pin";
 
 /**
@@ -100,6 +101,10 @@ export default async function HomePage({
   searchParams: Promise<{ feed?: string; sort?: string }>;
 }): Promise<ReactElement> {
   const { feed, sort } = await searchParams;
+  const viewer = await getCurrentUser();
+  if (viewer === null) {
+    return <Landing />;
+  }
   const source = resolveFeed(feed);
   const order = resolveSort(sort);
 

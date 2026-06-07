@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
 import { ConfirmDialog, Menu, useToast } from "@/components/ui";
 import { LikeButton } from "@/components/pin";
+import { useAuthPrompt } from "@/hooks/use-auth-prompt";
 import { DownloadIcon, MoreIcon, ShareIcon } from "@/icons";
 import { downloadPin } from "@/lib/download";
 import { pinUrl, sharePin } from "@/lib/share";
@@ -28,6 +29,7 @@ export type DetailActionsProps = {
   downloadCount: number;
   isOwner: boolean;
   boards: SaveBoardOption[];
+  isAuthed?: boolean;
 };
 
 /**
@@ -48,12 +50,14 @@ export function DetailActions({
   downloadCount,
   isOwner,
   boards,
+  isAuthed = true,
 }: DetailActionsProps): ReactElement {
   const [downloads, setDownloads] = useState(downloadCount);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, startDelete] = useTransition();
   const { show } = useToast();
   const router = useRouter();
+  const withAuth = useAuthPrompt(isAuthed);
 
   const onShare = async (): Promise<void> => {
     const outcome = await sharePin({ url: pinUrl(pinId), title });
@@ -70,11 +74,16 @@ export function DetailActions({
   const onDownload = async (): Promise<void> => {
     try {
       await downloadPin({ url: imageUrl, title });
-      setDownloads((value) => value + 1);
-      const result = await recordDownload(pinId);
-      setDownloads(result.count);
     } catch {
       show({ title: "Download failed", description: "Please try again." });
+      return;
+    }
+    setDownloads((value) => value + 1);
+    try {
+      const result = await recordDownload(pinId);
+      setDownloads(result.count);
+    } catch (recordError) {
+      void recordError;
     }
   };
 
@@ -119,7 +128,11 @@ export function DetailActions({
       : []),
     isOwner
       ? { label: "Delete Pin", onSelect: () => setConfirmDelete(true), destructive: true }
-      : { label: "Report Pin", onSelect: () => void onReport(), destructive: true },
+      : {
+          label: "Report Pin",
+          onSelect: () => withAuth(() => void onReport()),
+          destructive: true,
+        },
   ];
 
   return (
@@ -141,6 +154,7 @@ export function DetailActions({
             initialLiked={initialLiked}
             initialCount={likeCount}
             className="h-11 px-3"
+            isAuthed={isAuthed}
           />
           {downloads > 0 ? (
             <span
@@ -153,8 +167,16 @@ export function DetailActions({
           ) : null}
           <Menu label="More options" icon={<MoreIcon />} align="start" items={menuItems} />
         </div>
-        {boards.length > 0 ? (
+        {isAuthed && boards.length > 0 ? (
           <SaveToBoard pinId={pinId} title={title} imageUrl={imageUrl} boards={boards} />
+        ) : !isAuthed ? (
+          <button
+            type="button"
+            onClick={() => withAuth(() => undefined)}
+            className="h-11 cursor-pointer rounded-full bg-accent px-5 text-[15px] font-semibold text-bg transition-colors duration-150 hover:bg-accent-press"
+          >
+            Save
+          </button>
         ) : null}
       </div>
     </>

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
+import { useAuthPrompt } from "@/hooks/use-auth-prompt";
 import { cn } from "@/lib/cn";
 import { toggleFollow } from "@/server/actions/follows";
 
@@ -17,6 +18,7 @@ export type FollowButtonProps = {
   creatorId: string;
   initialFollowing: boolean;
   size?: FollowButtonSize;
+  isAuthed?: boolean;
 };
 
 const SIZE_CLASSES: Record<FollowButtonSize, string> = {
@@ -35,20 +37,24 @@ export function FollowButton({
   creatorId,
   initialFollowing,
   size = "md",
+  isAuthed = true,
 }: FollowButtonProps): ReactElement {
   const [following, setFollowing] = useState(initialFollowing);
   const [, startTransition] = useTransition();
+  const withAuth = useAuthPrompt(isAuthed);
 
   const onToggle = (): void => {
-    const wasFollowing = following;
-    setFollowing(!wasFollowing);
-    startTransition(async () => {
-      try {
-        const result = await toggleFollow(creatorId);
-        setFollowing(result.following);
-      } catch {
-        setFollowing(wasFollowing);
-      }
+    withAuth(() => {
+      const wasFollowing = following;
+      setFollowing(!wasFollowing);
+      startTransition(async () => {
+        try {
+          const result = await toggleFollow(creatorId);
+          setFollowing(result.following);
+        } catch {
+          setFollowing(wasFollowing);
+        }
+      });
     });
   };
 

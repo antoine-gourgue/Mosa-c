@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
 import { Avatar } from "@/components/ui";
+import { useAuthPrompt } from "@/hooks/use-auth-prompt";
 import { cn } from "@/lib/cn";
 import { toggleFollow } from "@/server/actions/follows";
 import type { Creator } from "@/types/domain";
@@ -16,6 +17,7 @@ export type CreatorRowProps = {
   initialFollowing: boolean;
   isSelf?: boolean;
   followers: number;
+  isAuthed?: boolean;
 };
 
 /**
@@ -32,20 +34,24 @@ export function CreatorRow({
   initialFollowing,
   isSelf = false,
   followers,
+  isAuthed = true,
 }: CreatorRowProps): ReactElement {
   const [following, setFollowing] = useState(initialFollowing);
   const [, startTransition] = useTransition();
+  const withAuth = useAuthPrompt(isAuthed);
 
   const onToggle = (): void => {
-    const wasFollowing = following;
-    setFollowing(!wasFollowing);
-    startTransition(async () => {
-      try {
-        const result = await toggleFollow(creator.id);
-        setFollowing(result.following);
-      } catch {
-        setFollowing(wasFollowing);
-      }
+    withAuth(() => {
+      const wasFollowing = following;
+      setFollowing(!wasFollowing);
+      startTransition(async () => {
+        try {
+          const result = await toggleFollow(creator.id);
+          setFollowing(result.following);
+        } catch {
+          setFollowing(wasFollowing);
+        }
+      });
     });
   };
 

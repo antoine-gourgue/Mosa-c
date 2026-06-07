@@ -142,6 +142,7 @@ export default async function ProfilePage({
         following={counts.following}
         initialFollowing={following}
         isOwnProfile={isOwnProfile}
+        isAuthed={viewer !== null}
       />
       <ProfileTabs username={username} active={active} />
       <div className="mt-6">

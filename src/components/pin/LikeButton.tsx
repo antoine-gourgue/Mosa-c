@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import type { MouseEvent, ReactElement } from "react";
+import { useAuthPrompt } from "@/hooks/use-auth-prompt";
 import { HeartFilledIcon, HeartIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { toggleLike } from "@/server/actions/likes";
@@ -15,6 +16,7 @@ export type LikeButtonProps = {
   initialCount: number;
   size?: number;
   className?: string;
+  isAuthed?: boolean;
 };
 
 /**
@@ -30,26 +32,30 @@ export function LikeButton({
   initialCount,
   size = 22,
   className,
+  isAuthed = true,
 }: LikeButtonProps): ReactElement {
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
   const [, startTransition] = useTransition();
+  const withAuth = useAuthPrompt(isAuthed);
 
   const onClick = (event: MouseEvent<HTMLButtonElement>): void => {
     event.preventDefault();
     event.stopPropagation();
-    const wasLiked = liked;
-    setLiked(!wasLiked);
-    setCount((value) => value + (wasLiked ? -1 : 1));
-    startTransition(async () => {
-      try {
-        const result = await toggleLike(pinId);
-        setLiked(result.liked);
-        setCount(result.count);
-      } catch {
-        setLiked(wasLiked);
-        setCount((value) => value + (wasLiked ? 1 : -1));
-      }
+    withAuth(() => {
+      const wasLiked = liked;
+      setLiked(!wasLiked);
+      setCount((value) => value + (wasLiked ? -1 : 1));
+      startTransition(async () => {
+        try {
+          const result = await toggleLike(pinId);
+          setLiked(result.liked);
+          setCount(result.count);
+        } catch {
+          setLiked(wasLiked);
+          setCount((value) => value + (wasLiked ? 1 : -1));
+        }
+      });
     });
   };
 

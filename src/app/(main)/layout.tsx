@@ -43,12 +43,13 @@ export default async function MainLayout({
             username: profile?.username ?? null,
           }}
           unreadCount={unreadCount}
+          isAuthed={user !== null}
         />
       </Suspense>
       <main id="main-content" tabIndex={-1} className="px-6 pb-24 pt-4 sm:pb-20">
         {children}
       </main>
-      <Fab />
+      {user !== null ? <Fab /> : null}
       {user !== null ? <BottomNav unreadCount={unreadCount} /> : null}
       {modal}
     </ToastProvider>
