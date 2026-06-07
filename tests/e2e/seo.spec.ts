@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { login } from "./helpers";
 
 test("a pin exposes its image in Open Graph metadata", async ({ page }) => {
   await page.goto("/pin/pin_1");
@@ -34,4 +35,15 @@ test("robots, sitemap and manifest are public", async ({ page }) => {
   const manifest = await page.request.get("/manifest.webmanifest");
   expect(manifest.status()).toBe(200);
   expect(((await manifest.json()) as { name: string }).name).toBe("Mosaic");
+});
+
+test("a public pin declares a canonical url", async ({ page }) => {
+  await page.goto("/pin/pin_1");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/pin\/pin_1$/);
+});
+
+test("private routes are marked noindex", async ({ page }) => {
+  await login(page);
+  await page.goto("/create");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
 });

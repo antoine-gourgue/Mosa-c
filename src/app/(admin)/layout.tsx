@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
 import type { ReactElement, ReactNode } from "react";
 import { AdminSidebar } from "@/components/admin";
 import { ToastProvider } from "@/components/ui";
 import { requireAdmin } from "@/lib/auth";
+
+/**
+ * Keep the entire admin back office out of search engines.
+ */
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 /**
  * Layout for the admin back office. It gates every nested route on the ADMIN
