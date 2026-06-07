@@ -167,7 +167,7 @@ export function DetailActions({
           ) : null}
           <Menu label="More options" icon={<MoreIcon />} align="start" items={menuItems} />
         </div>
-        {isAuthed && boards.length > 0 ? (
+        {!isOwner && isAuthed && boards.length > 0 ? (
           <SaveToBoard pinId={pinId} title={title} imageUrl={imageUrl} boards={boards} />
         ) : !isAuthed ? (
           <button
