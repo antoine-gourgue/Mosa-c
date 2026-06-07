@@ -62,9 +62,19 @@ export type PinComment = {
 };
 
 /**
+ * A user suggested while typing an @mention in a comment composer.
+ */
+export type MentionSuggestion = {
+  id: string;
+  name: string;
+  username: string;
+  avatarUrl: string | null;
+};
+
+/**
  * The kind of engagement that produced a notification.
  */
-export type NotificationKind = "FOLLOW" | "LIKE" | "COMMENT" | "REPLY" | "REACTION";
+export type NotificationKind = "FOLLOW" | "LIKE" | "COMMENT" | "REPLY" | "REACTION" | "MENTION";
 
 /**
  * A notification as surfaced to the UI, with the actor and target context

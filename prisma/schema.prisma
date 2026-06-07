@@ -20,6 +20,7 @@ enum NotificationType {
   COMMENT
   REPLY
   REACTION
+  MENTION
 }
 
 enum BoardRole {

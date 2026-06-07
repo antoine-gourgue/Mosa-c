@@ -3,13 +3,48 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import type { FormEvent, KeyboardEvent, ReactElement } from "react";
+import type { FormEvent, ReactElement, ReactNode } from "react";
 import { Avatar, Button, ConfirmDialog, IconButton } from "@/components/ui";
 import { TrashIcon } from "@/icons";
 import { formatRelativeTime } from "@/lib/time";
 import { addComment, addReply, deleteComment } from "@/server/actions/comments";
 import type { PinComment } from "@/types/domain";
 import { CommentReactions } from "./CommentReactions";
+import { MentionTextarea } from "./MentionTextarea";
+
+const MENTION_PATTERN = /@([a-zA-Z0-9_]+)/g;
+
+/**
+ * Renders a comment body as text with @mentions turned into links to the
+ * mentioned user's profile.
+ *
+ * @param body - The raw comment text.
+ * @returns The body content with linkified mentions.
+ */
+function renderBody(body: string): ReactNode {
+  const parts: ReactNode[] = [];
+  let last = 0;
+  for (const match of body.matchAll(MENTION_PATTERN)) {
+    const start = match.index;
+    if (start > last) {
+      parts.push(body.slice(last, start));
+    }
+    parts.push(
+      <Link
+        key={start}
+        href={`/u/${match[1]}`}
+        className="font-semibold text-accent hover:underline"
+      >
+        {match[0]}
+      </Link>,
+    );
+    last = start + match[0].length;
+  }
+  if (last < body.length) {
+    parts.push(body.slice(last));
+  }
+  return parts;
+}
 
 /**
  * Props for the {@link Comments} component.
@@ -57,8 +92,7 @@ export function Comments({
     return root?.id ?? null;
   };
 
-  const onSubmit = (event: FormEvent<HTMLFormElement>): void => {
-    event.preventDefault();
+  const submitComment = (): void => {
     const text = body.trim();
     if (text === "") {
       return;
@@ -76,6 +110,11 @@ export function Comments({
     });
   };
 
+  const onSubmit = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
+    submitComment();
+  };
+
   const toggleReply = (comment: PinComment): void => {
     if (replyingTo === comment.id) {
       setReplyingTo(null);
@@ -89,8 +128,7 @@ export function Comments({
     }
   };
 
-  const onSubmitReply = (event: FormEvent<HTMLFormElement>): void => {
-    event.preventDefault();
+  const submitReply = (): void => {
     const target = replyingTo;
     const text = replyBody.trim();
     if (target === null || text === "") {
@@ -117,6 +155,11 @@ export function Comments({
     });
   };
 
+  const onSubmitReply = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
+    submitReply();
+  };
+
   const onDelete = (id: string): void => {
     const previous = comments;
     setComments((current) =>
@@ -135,13 +178,6 @@ export function Comments({
         setComments(previous);
       }
     });
-  };
-
-  const onComposerKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      event.currentTarget.form?.requestSubmit();
-    }
   };
 
   const canDelete = (comment: PinComment): boolean => viewerId === comment.author.id || isPinOwner;
@@ -172,7 +208,7 @@ export function Comments({
       </Link>
       <div className="min-w-0 flex-1">
         <p className="text-[14px] font-semibold text-ink">{comment.author.name}</p>
-        <p className="break-words text-[15px] leading-snug text-ink">{comment.body}</p>
+        <p className="break-words text-[15px] leading-snug text-ink">{renderBody(comment.body)}</p>
         <div className="mt-1 flex items-center gap-3 text-xs text-ink-soft">
           <span>{formatRelativeTime(comment.createdAt)}</span>
           {isAuthed ? (
@@ -206,15 +242,15 @@ export function Comments({
 
   const replyComposer = (): ReactElement => (
     <form onSubmit={onSubmitReply} className="ml-11 flex items-start gap-2">
-      <textarea
-        aria-label="Reply"
+      <MentionTextarea
+        ariaLabel="Reply"
         value={replyBody}
-        onChange={(event) => setReplyBody(event.target.value)}
-        onKeyDown={onComposerKeyDown}
+        onChange={setReplyBody}
+        onSubmit={submitReply}
         placeholder="Write a reply…"
         rows={1}
         autoFocus
-        className="min-h-[40px] flex-1 resize-none rounded-2xl bg-surface px-4 py-2.5 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
+        className="min-h-[40px] w-full resize-none rounded-2xl bg-surface px-4 py-2.5 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
       />
       <button
         type="button"
@@ -272,14 +308,14 @@ export function Comments({
 
       {isAuthed ? (
         <form onSubmit={onSubmit} className="flex items-start gap-2">
-          <textarea
-            aria-label="Add a comment"
+          <MentionTextarea
+            ariaLabel="Add a comment"
             value={body}
-            onChange={(event) => setBody(event.target.value)}
-            onKeyDown={onComposerKeyDown}
+            onChange={setBody}
+            onSubmit={submitComment}
             placeholder="Add a comment"
             rows={1}
-            className="min-h-[44px] flex-1 resize-none rounded-2xl bg-surface px-4 py-3 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
+            className="min-h-[44px] w-full resize-none rounded-2xl bg-surface px-4 py-3 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
           />
           <Button type="submit" className="h-11" disabled={body.trim() === ""}>
             Comment

@@ -5,9 +5,12 @@ test("a user can reply to a comment and post with Enter", async ({ page }) => {
   await login(page);
   await page.goto("/pin/pin_1");
   await expect(page.getByText(/Stunning shot/)).toBeVisible();
+
   await page.getByRole("button", { name: "Reply", exact: true }).first().click();
   const reply = page.getByLabel("Reply");
-  await reply.fill("Totally agree!");
+  const text = `totally agree ${Date.now()}`;
+  await reply.fill(text);
   await reply.press("Enter");
-  await expect(page.getByText("Totally agree!")).toBeVisible();
+
+  await expect(page.getByText(text).first()).toBeVisible();
 });
