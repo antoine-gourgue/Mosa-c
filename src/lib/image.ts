@@ -74,26 +74,60 @@ async function decodeImage(file: File): Promise<DecodedImage> {
 }
 
 /**
- * Encodes a canvas to a compressed image, trying WebP first and falling back to
- * JPEG when the browser cannot encode WebP (older Safari).
+ * Largest acceptable encoded size before extra JPEG quality is traded away.
+ * Keeps uploads comfortably under the server action body limit even when the
+ * browser cannot encode the much smaller WebP (e.g. Safari on iOS).
+ */
+const TARGET_BYTES = 800 * 1024;
+
+/**
+ * Encodes a canvas to a blob of the given MIME type, resolving null when the
+ * browser substitutes a different format (its way of saying it is unsupported).
  *
  * @param canvas - The canvas to encode.
+ * @param type - The desired MIME type.
  * @param quality - The output quality between 0 and 1.
+ * @returns The encoded blob, or null when the type is unsupported.
+ */
+async function toBlobOfType(
+  canvas: HTMLCanvasElement,
+  type: string,
+  quality: number,
+): Promise<Blob | null> {
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, type, quality);
+  });
+  return blob !== null && blob.type === type ? blob : null;
+}
+
+/**
+ * Encodes a canvas to a compressed image. Prefers WebP; when the browser cannot
+ * encode WebP (older Safari, iOS) it falls back to JPEG and lowers the quality
+ * until the result fits the target size, since JPEG is far less efficient.
+ *
+ * @param canvas - The canvas to encode.
+ * @param quality - The starting quality between 0 and 1.
  * @returns The encoded blob and its MIME type, or null when encoding fails.
  */
 async function encodeCanvas(
   canvas: HTMLCanvasElement,
   quality: number,
 ): Promise<{ blob: Blob; type: string } | null> {
-  for (const type of ["image/webp", "image/jpeg"]) {
-    const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, type, quality);
-    });
-    if (blob !== null && blob.type === type) {
-      return { blob, type };
-    }
+  const webp = await toBlobOfType(canvas, "image/webp", quality);
+  if (webp !== null) {
+    return { blob: webp, type: "image/webp" };
   }
-  return null;
+  let current = quality;
+  let best = await toBlobOfType(canvas, "image/jpeg", current);
+  while (best !== null && best.size > TARGET_BYTES && current > 0.45) {
+    current -= 0.12;
+    const next = await toBlobOfType(canvas, "image/jpeg", current);
+    if (next === null) {
+      break;
+    }
+    best = next;
+  }
+  return best === null ? null : { blob: best, type: "image/jpeg" };
 }
 
 /**
@@ -140,8 +174,8 @@ export async function ensureDisplayableImage(file: File): Promise<File> {
  */
 export async function compressImage(
   file: File,
-  maxEdge = 2000,
-  quality = 0.85,
+  maxEdge = 1600,
+  quality = 0.82,
 ): Promise<CompressedImage> {
   const decoded = await decodeImage(file);
   const { width: sourceWidth, height: sourceHeight } = decoded;
