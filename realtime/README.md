@@ -77,8 +77,15 @@ location /socket.io/ {
 }
 ```
 
+## Presence
+
+Online status is reference-counted in memory (a user is online while any of
+their sockets is connected); on the last disconnect the user's `lastSeenAt` is
+persisted. Clients query `presence:get` and subscribe to `presence:update`.
+
 ## Scaling to multiple instances
 
 Set `REALTIME_REDIS_URL`, install `@socket.io/redis-adapter` + `redis`, and
-attach the adapter at the marked spot in `index.ts`. No other code changes are
-needed — rooms and broadcasts then work across instances.
+attach the adapter at the marked spot in `index.ts` — rooms and broadcasts then
+work across instances. Note: the in-memory presence map is per-instance, so
+multi-instance presence needs a shared store (e.g. Redis) too.

@@ -34,6 +34,13 @@ export type RealtimePrisma = {
   conversation: {
     update(args: { where: { id: string }; data: { updatedAt: Date } }): Promise<unknown>;
   };
+  user: {
+    update(args: { where: { id: string }; data: { lastSeenAt: Date } }): Promise<unknown>;
+    findMany(args: {
+      where: { id: { in: string[] } };
+      select: { id: true; lastSeenAt: true };
+    }): Promise<{ id: string; lastSeenAt: Date | null }[]>;
+  };
 };
 
 /**
@@ -146,6 +153,78 @@ export function handleTyping(socket: RoomEmitter, userId: string, payload: unkno
 }
 
 /**
+ * Records that a user has one more connected socket. Presence is reference
+ * counted so a user is online while any of their tabs is connected.
+ *
+ * @param online - The presence registry (user id → open socket count).
+ * @param userId - The user that connected.
+ * @returns True when the user just came online (first socket).
+ */
+export function markOnline(online: Map<string, number>, userId: string): boolean {
+  const count = (online.get(userId) ?? 0) + 1;
+  online.set(userId, count);
+  return count === 1;
+}
+
+/**
+ * Records that one of a user's sockets disconnected.
+ *
+ * @param online - The presence registry.
+ * @param userId - The user whose socket closed.
+ * @returns True when the user just went offline (last socket).
+ */
+export function markOffline(online: Map<string, number>, userId: string): boolean {
+  const count = (online.get(userId) ?? 1) - 1;
+  if (count <= 0) {
+    online.delete(userId);
+    return true;
+  }
+  online.set(userId, count);
+  return false;
+}
+
+/**
+ * Answers a client's presence query for a set of users with their current
+ * online state and last-seen timestamp.
+ *
+ * @param prisma - The injected Prisma surface.
+ * @param online - The presence registry.
+ * @param payload - The raw `presence:get` payload (`{ userIds }`).
+ * @param ack - The acknowledgement callback.
+ */
+export async function handlePresenceGet(
+  prisma: RealtimePrisma,
+  online: Map<string, number>,
+  payload: unknown,
+  ack: Ack,
+): Promise<void> {
+  const raw =
+    typeof payload === "object" && payload !== null
+      ? (payload as Record<string, unknown>).userIds
+      : null;
+  const userIds = Array.isArray(raw)
+    ? raw.filter((id): id is string => typeof id === "string")
+    : [];
+  if (userIds.length === 0) {
+    ack?.({ ok: true, presence: [] });
+    return;
+  }
+  const rows = await prisma.user.findMany({
+    where: { id: { in: userIds } },
+    select: { id: true, lastSeenAt: true },
+  });
+  const presence = userIds.map((id) => {
+    const row = rows.find((candidate) => candidate.id === id);
+    return {
+      userId: id,
+      online: online.has(id),
+      lastSeenAt: row?.lastSeenAt?.toISOString() ?? null,
+    };
+  });
+  ack?.({ ok: true, presence });
+}
+
+/**
  * Joins a socket to every room of the conversations the user belongs to.
  *
  * @param socket - The connected socket.
@@ -175,7 +254,12 @@ async function joinUserRooms(
  * @param socket - The connected socket.
  * @param prisma - The injected Prisma surface.
  */
-function onConnection(io: Server, socket: Socket, prisma: RealtimePrisma): void {
+function onConnection(
+  io: Server,
+  socket: Socket,
+  prisma: RealtimePrisma,
+  online: Map<string, number>,
+): void {
   const userId = socket.data.userId as string;
   socket.on("message:send", (payload: unknown, ack: Ack) => {
     void handleSend(io, prisma, userId, payload, ack);
@@ -183,6 +267,19 @@ function onConnection(io: Server, socket: Socket, prisma: RealtimePrisma): void 
   socket.on("typing", (payload: unknown) => {
     handleTyping(socket, userId, payload);
   });
+  socket.on("presence:get", (payload: unknown, ack: Ack) => {
+    void handlePresenceGet(prisma, online, payload, ack);
+  });
+  socket.on("disconnect", () => {
+    if (markOffline(online, userId)) {
+      const lastSeenAt = new Date();
+      void prisma.user.update({ where: { id: userId }, data: { lastSeenAt } });
+      io.emit("presence:update", { userId, online: false, lastSeenAt: lastSeenAt.toISOString() });
+    }
+  });
+  if (markOnline(online, userId)) {
+    io.emit("presence:update", { userId, online: true, lastSeenAt: null });
+  }
   void joinUserRooms(socket, prisma, userId);
 }
 
@@ -203,6 +300,8 @@ export function createRealtimeServer(deps: RealtimeDeps): { io: Server; httpServ
     cors: deps.cors ?? { origin: true, credentials: true },
   });
 
+  const online = new Map<string, number>();
+
   io.use((socket, next) => {
     deps
       .verifyUser(socket.handshake)
@@ -218,7 +317,7 @@ export function createRealtimeServer(deps: RealtimeDeps): { io: Server; httpServ
   });
 
   io.on("connection", (socket) => {
-    onConnection(io, socket, deps.prisma);
+    onConnection(io, socket, deps.prisma, online);
   });
 
   return { io, httpServer };

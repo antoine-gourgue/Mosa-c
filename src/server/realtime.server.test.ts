@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  handlePresenceGet,
   handleSend,
   handleTyping,
+  markOffline,
+  markOnline,
   type RealtimePrisma,
   type RoomEmitter,
 } from "../../realtime/server";
@@ -20,6 +23,7 @@ const prisma = {
   conversationParticipant: { findUnique: vi.fn(), findMany: vi.fn() },
   message: { create: vi.fn() },
   conversation: { update: vi.fn() },
+  user: { update: vi.fn(), findMany: vi.fn() },
 };
 const db = prisma as unknown as RealtimePrisma;
 
@@ -70,6 +74,33 @@ describe("handleSend", () => {
 
     expect(prisma.conversationParticipant.findUnique).not.toHaveBeenCalled();
     expect(ack).toHaveBeenCalledWith(expect.objectContaining({ ok: false }));
+  });
+});
+
+describe("presence", () => {
+  it("reference-counts online sockets", () => {
+    const online = new Map<string, number>();
+    expect(markOnline(online, "uA")).toBe(true);
+    expect(markOnline(online, "uA")).toBe(false);
+    expect(markOffline(online, "uA")).toBe(false);
+    expect(markOffline(online, "uA")).toBe(true);
+    expect(online.has("uA")).toBe(false);
+  });
+
+  it("answers a presence query with online state and last-seen", async () => {
+    const online = new Map<string, number>([["uA", 1]]);
+    prisma.user.findMany.mockResolvedValue([
+      { id: "uB", lastSeenAt: new Date("2026-01-01T00:00:00Z") },
+    ]);
+    const ack = vi.fn();
+    await handlePresenceGet(db, online, { userIds: ["uA", "uB"] }, ack);
+    expect(ack).toHaveBeenCalledWith({
+      ok: true,
+      presence: [
+        { userId: "uA", online: true, lastSeenAt: null },
+        { userId: "uB", online: false, lastSeenAt: "2026-01-01T00:00:00.000Z" },
+      ],
+    });
   });
 });
 
