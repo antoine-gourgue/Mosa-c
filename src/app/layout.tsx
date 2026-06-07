@@ -1,9 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import type { ReactElement, ReactNode } from "react";
+import { JsonLd } from "@/components/seo";
 import { env } from "@/lib/env";
 import { SITE } from "@/lib/site";
 import "./globals.css";
+
+/**
+ * Base URL used for structured data.
+ */
+const BASE_URL = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 /**
  * Static metadata applied to every route in the application.
@@ -48,7 +54,18 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   const umamiEnabled = env.UMAMI_SRC !== undefined && env.UMAMI_WEBSITE_ID !== undefined;
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: SITE.name,
+            url: BASE_URL,
+            description: SITE.description,
+          }}
+        />
+        {children}
+      </body>
       {umamiEnabled ? (
         <Script
           src={env.UMAMI_SRC}
