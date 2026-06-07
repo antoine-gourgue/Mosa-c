@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
+import { JsonLd } from "@/components/seo";
 import { Divider } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
 import {
@@ -46,6 +47,18 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "ImageObject",
+          name: pin.title,
+          description: pin.description ?? `A pin by ${pin.creator.name} on Mosaic.`,
+          contentUrl: pin.imageUrl,
+          width: pin.width,
+          height: pin.height,
+          author: { "@type": "Person", name: pin.creator.name },
+        }}
+      />
       <div className="flex min-w-0 items-center justify-center bg-surface">
         <Image
           src={pin.imageUrl}

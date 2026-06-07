@@ -5,7 +5,9 @@ import { BoardsGrid } from "@/components/board";
 import { PinFeed } from "@/components/pin";
 import { ProfileHeader, ProfileTabs } from "@/components/profile";
 import type { ProfileTab } from "@/components/profile";
+import { JsonLd } from "@/components/seo";
 import { getCurrentUser } from "@/lib/auth";
+import { env } from "@/lib/env";
 import {
   getCreatedPins,
   getFollowCounts,
@@ -153,6 +155,16 @@ export default async function ProfilePage({
 
   return (
     <div className="mx-auto max-w-[1180px]">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: user.name,
+          description: user.bio ?? `${user.name} on Mosaic.`,
+          image: user.avatarUrl ?? undefined,
+          url: `${env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/u/${username}`,
+        }}
+      />
       <ProfileHeader
         user={user}
         followers={counts.followers}

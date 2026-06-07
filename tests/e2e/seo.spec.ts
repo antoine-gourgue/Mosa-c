@@ -47,3 +47,17 @@ test("private routes are marked noindex", async ({ page }) => {
   await page.goto("/create");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
 });
+
+test("pins and profiles emit JSON-LD structured data", async ({ page }) => {
+  await page.goto("/pin/pin_1");
+  const pinTypes = (await page.locator('script[type="application/ld+json"]').allTextContents()).map(
+    (raw) => (JSON.parse(raw) as { "@type": string })["@type"],
+  );
+  expect(pinTypes).toContain("ImageObject");
+
+  await page.goto("/u/north");
+  const profileTypes = (
+    await page.locator('script[type="application/ld+json"]').allTextContents()
+  ).map((raw) => (JSON.parse(raw) as { "@type": string })["@type"]);
+  expect(profileTypes).toContain("Person");
+});
