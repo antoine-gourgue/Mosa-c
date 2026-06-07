@@ -7,6 +7,7 @@ import type { FormEvent, ReactElement, ReactNode } from "react";
 import { Avatar, Button, ConfirmDialog, IconButton } from "@/components/ui";
 import { TrashIcon } from "@/icons";
 import { formatRelativeTime } from "@/lib/time";
+import { useEngagementActions } from "@/components/engagement";
 import { addComment, addReply, deleteComment } from "@/server/actions/comments";
 import type { PinComment } from "@/types/domain";
 import { CommentReactions } from "./CommentReactions";
@@ -79,6 +80,7 @@ export function Comments({
   const [replyBody, setReplyBody] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const [, startTransition] = useTransition();
+  const { setCommentCount } = useEngagementActions();
   const router = useRouter();
   const isAuthed = viewerId !== null;
 
@@ -102,6 +104,7 @@ export function Comments({
       const result = await addComment(pinId, text);
       if (result.ok) {
         setComments((current) => [...current, result.comment]);
+        setCommentCount(pinId, total + 1);
         setBody("");
         router.refresh();
       } else {
@@ -146,6 +149,7 @@ export function Comments({
               : comment,
           ),
         );
+        setCommentCount(pinId, total + 1);
         setReplyingTo(null);
         setReplyBody("");
         router.refresh();
@@ -162,6 +166,8 @@ export function Comments({
 
   const onDelete = (id: string): void => {
     const previous = comments;
+    const root = comments.find((comment) => comment.id === id);
+    const removed = root === undefined ? 1 : 1 + root.replies.length;
     setComments((current) =>
       current
         .filter((comment) => comment.id !== id)
@@ -170,12 +176,14 @@ export function Comments({
           replies: comment.replies.filter((reply) => reply.id !== id),
         })),
     );
+    setCommentCount(pinId, Math.max(0, total - removed));
     startTransition(async () => {
       const result = await deleteComment(id);
       if (result.ok) {
         router.refresh();
       } else {
         setComments(previous);
+        setCommentCount(pinId, total);
       }
     });
   };

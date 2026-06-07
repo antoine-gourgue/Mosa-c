@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import type { ReactElement } from "react";
 import { useToast } from "@/components/ui";
+import { useEngagement } from "@/components/engagement";
 import { useAuthPrompt } from "@/hooks/use-auth-prompt";
 import { DURATION, gsap, useGSAP } from "@/lib/gsap";
 import { toggleSave } from "@/server/actions/saves";
@@ -24,13 +25,14 @@ export type PinFeedProps = {
 };
 
 /**
- * Client masonry feed of pins. Toggling a save updates the UI optimistically,
- * persists through the save action (rolling back on error) and shows the
- * "Saved to Quick Saves" toast. When `viewerId` matches a pin's creator, that
- * card exposes a delete action and is removed from the feed once deleted.
+ * Client masonry feed of pins. Save and like toggles are optimistic, persist
+ * through their actions (rolling back on error) and are published to the shared
+ * engagement store so they stay in sync with the pin detail overlay. When
+ * `viewerId` matches a pin's creator, that card exposes a delete action and is
+ * removed from the feed once deleted.
  *
- * @param props - The pins, the initially saved ids, the minimum column width and
- *   the viewing user's id.
+ * @param props - The pins, the viewer's initially saved/liked ids, the minimum
+ *   column width and the viewing user's id.
  * @returns The feed element.
  */
 export function PinFeed({
@@ -42,9 +44,9 @@ export function PinFeed({
 }: PinFeedProps): ReactElement {
   const [removedIds, setRemovedIds] = useState<Set<string>>(() => new Set());
   const items = pins.filter((pin) => !removedIds.has(pin.id));
-  const [saved, setSaved] = useState<Set<string>>(() => new Set(savedIds));
-  const [liked, setLiked] = useState<Set<string>>(() => new Set(likedIds));
-  const [likeCounts, setLikeCounts] = useState<Map<string, number>>(() => new Map());
+  const [initialSaved] = useState(() => new Set(savedIds));
+  const [initialLiked] = useState(() => new Set(likedIds));
+  const { overrides, setSaved, setLike } = useEngagement();
   const [, startTransition] = useTransition();
   const { show } = useToast();
   const router = useRouter();
@@ -67,25 +69,17 @@ export function PinFeed({
     { scope },
   );
 
-  const setSavedFlag = (id: string, value: boolean): void => {
-    setSaved((prev) => {
-      const next = new Set(prev);
-      if (value) {
-        next.add(id);
-      } else {
-        next.delete(id);
-      }
-      return next;
-    });
-  };
+  const isSaved = (pin: Pin): boolean => overrides.get(pin.id)?.saved ?? initialSaved.has(pin.id);
 
-  const handleToggle = (pin: Pin): void => {
+  const isLiked = (pin: Pin): boolean => overrides.get(pin.id)?.liked ?? initialLiked.has(pin.id);
+
+  const handleToggleSave = (pin: Pin): void => {
     if (viewerId === null) {
       withAuth(() => undefined);
       return;
     }
-    const wasSaved = saved.has(pin.id);
-    setSavedFlag(pin.id, !wasSaved);
+    const wasSaved = isSaved(pin);
+    setSaved(pin.id, !wasSaved);
     if (!wasSaved) {
       show({
         title: "Saved to Quick Saves",
@@ -97,30 +91,10 @@ export function PinFeed({
     startTransition(async () => {
       try {
         const result = await toggleSave(pin.id);
-        setSavedFlag(pin.id, result.saved);
+        setSaved(pin.id, result.saved);
       } catch {
-        setSavedFlag(pin.id, wasSaved);
+        setSaved(pin.id, wasSaved);
       }
-    });
-  };
-
-  const setLikedFlag = (id: string, value: boolean): void => {
-    setLiked((prev) => {
-      const next = new Set(prev);
-      if (value) {
-        next.add(id);
-      } else {
-        next.delete(id);
-      }
-      return next;
-    });
-  };
-
-  const setLikeCount = (id: string, value: number): void => {
-    setLikeCounts((prev) => {
-      const next = new Map(prev);
-      next.set(id, value);
-      return next;
     });
   };
 
@@ -129,18 +103,15 @@ export function PinFeed({
       withAuth(() => undefined);
       return;
     }
-    const wasLiked = liked.has(pin.id);
-    const base = likeCounts.get(pin.id) ?? pin.likeCount;
-    setLikedFlag(pin.id, !wasLiked);
-    setLikeCount(pin.id, Math.max(0, base + (wasLiked ? -1 : 1)));
+    const wasLiked = isLiked(pin);
+    const base = overrides.get(pin.id)?.likeCount ?? pin.likeCount;
+    setLike(pin.id, !wasLiked, Math.max(0, base + (wasLiked ? -1 : 1)));
     startTransition(async () => {
       try {
         const result = await toggleLike(pin.id);
-        setLikedFlag(pin.id, result.liked);
-        setLikeCount(pin.id, result.count);
+        setLike(pin.id, result.liked, result.count);
       } catch {
-        setLikedFlag(pin.id, wasLiked);
-        setLikeCount(pin.id, base);
+        setLike(pin.id, wasLiked, base);
       }
     });
   };
@@ -160,10 +131,9 @@ export function PinFeed({
           <PinCard
             key={pin.id}
             pin={pin}
-            saved={saved.has(pin.id)}
-            onToggleSave={() => handleToggle(pin)}
-            liked={liked.has(pin.id)}
-            likeCount={likeCounts.get(pin.id) ?? pin.likeCount}
+            saved={isSaved(pin)}
+            onToggleSave={() => handleToggleSave(pin)}
+            liked={isLiked(pin)}
             onToggleLike={() => handleToggleLike(pin)}
             canDelete={viewerId !== null && viewerId === pin.creator.id}
             onDeleted={() => removePin(pin.id)}

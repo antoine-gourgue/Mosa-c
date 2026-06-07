@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
 import { ConfirmDialog, Menu, useToast } from "@/components/ui";
 import { LikeButton } from "@/components/pin";
+import { useEngagementActions, usePinOverride } from "@/components/engagement";
 import { useAuthPrompt } from "@/hooks/use-auth-prompt";
 import { DownloadIcon, LinkIcon, MoreIcon } from "@/icons";
 import { downloadPin } from "@/lib/download";
@@ -52,7 +53,9 @@ export function DetailActions({
   boards,
   isAuthed = true,
 }: DetailActionsProps): ReactElement {
-  const [downloads, setDownloads] = useState(downloadCount);
+  const override = usePinOverride(pinId);
+  const { setDownloadCount } = useEngagementActions();
+  const downloads = override.downloadCount ?? downloadCount;
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, startDelete] = useTransition();
   const { show } = useToast();
@@ -71,10 +74,10 @@ export function DetailActions({
       show({ title: "Download failed", description: "Please try again." });
       return;
     }
-    setDownloads((value) => value + 1);
+    setDownloadCount(pinId, downloads + 1);
     try {
       const result = await recordDownload(pinId);
-      setDownloads(result.count);
+      setDownloadCount(pinId, result.count);
     } catch (recordError) {
       void recordError;
     }
