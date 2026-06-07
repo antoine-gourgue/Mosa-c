@@ -81,6 +81,17 @@ export function TopNav({ user, unreadCount, isAuthed }: TopNavProps): ReactEleme
                 <StackIcon size={22} />
               </IconButton>
             </div>
+            <IconButton
+              label={unreadMessages > 0 ? `Messages, ${unreadMessages} unread` : "Messages"}
+              active={pathname.startsWith("/messages")}
+              onClick={() => router.push("/messages")}
+              className="relative sm:hidden"
+            >
+              <CommentIcon size={22} />
+              {unreadMessages > 0 ? (
+                <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-accent" />
+              ) : null}
+            </IconButton>
             <div className="ml-1 shrink-0">
               <Menu
                 label="Account menu"
