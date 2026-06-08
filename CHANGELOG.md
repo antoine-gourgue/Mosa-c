@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.8.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.7.0...v1.8.0) (2026-06-08)
+
+
+### Features
+
+* **boards:** cohesive pinterest-style boards page ([4a2b16c](https://github.com/antoine-gourgue/Mosa-c/commit/4a2b16ce5408ca41e09a63e00108b3f7a0f3ea31))
+* **create:** pinterest-style create pin page ([b553841](https://github.com/antoine-gourgue/Mosa-c/commit/b553841d1656319dca797453fdfcaecd139d5704))
+* pinterest-style redesign ([d7e4f9f](https://github.com/antoine-gourgue/Mosa-c/commit/d7e4f9f5ff2f70b869a15f885801abd0bcc2ea57))
+
+
+### Bug Fixes
+
+* **nav:** polish sidebar logo and settings icon ([f0de741](https://github.com/antoine-gourgue/Mosa-c/commit/f0de741b2c2778ab443f8bbd8102a8a37c4cb171))
+* **ui:** resolve e2e accessibility and create-page regressions ([4c20199](https://github.com/antoine-gourgue/Mosa-c/commit/4c20199ae41542df214d71b07a6092a50adccb61))
+
+
+### Refactors
+
+* **ui:** harmonize buttons and inputs on a less-rounded scale ([8af8cb5](https://github.com/antoine-gourgue/Mosa-c/commit/8af8cb557b1cbb246010b119c41b1102b7183473))
+
 ## [1.7.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.6.0...v1.7.0) (2026-06-07)
 
 
