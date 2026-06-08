@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactElement } from "react";
-import { BoardsGrid, CreateBoardButton } from "@/components/board";
+import { BoardsView } from "@/components/board";
 import { getCurrentUser } from "@/lib/auth";
 import { getUserBoardsWithCovers } from "@/server/services";
 
@@ -25,13 +25,5 @@ export default async function BoardsPage(): Promise<ReactElement> {
   }
   const boards = await getUserBoardsWithCovers(user.id);
 
-  return (
-    <div className="mx-auto max-w-[1180px]">
-      <header className="flex items-center justify-between py-8">
-        <h1 className="text-3xl font-extrabold text-ink sm:text-4xl">Your boards</h1>
-        <CreateBoardButton />
-      </header>
-      <BoardsGrid boards={boards} emptyMessage="No boards yet — save a pin to start one." />
-    </div>
-  );
+  return <BoardsView boards={boards} />;
 }

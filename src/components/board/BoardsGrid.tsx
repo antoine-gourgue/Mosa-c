@@ -16,59 +16,65 @@ export type BoardsGridProps = {
   emptyMessage?: string;
 };
 
+const COVER_SIZES =
+  "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw";
+
 /**
- * Renders a board's cover as a collage: one large pin on the left and up to two
- * stacked on the right, filling the square tile. Missing slots stay empty and a
- * placeholder icon is shown when the board has no pins.
+ * Renders a board's cover, adapting to how many pins it has: a placeholder when
+ * empty, a single image for one pin, two halves for two, and a one-large /
+ * two-stacked collage for three or more — so a cover never shows an empty slot.
  *
- * @param props - The board's cover image URLs.
- * @param props.covers - Up to three cover image URLs.
- * @returns The collage element.
+ * @param props - The board's cover image URLs (newest first).
+ * @returns The cover element.
  */
 function BoardCover({ covers }: { covers: string[] }): ReactElement {
   if (covers.length === 0) {
     return (
-      <div className="grid aspect-square place-items-center rounded-2xl bg-surface text-ink-soft">
-        <StackIcon size={28} />
+      <div className="grid aspect-square place-items-center bg-surface text-ink-soft">
+        <StackIcon size={30} />
       </div>
     );
   }
+
+  if (covers.length === 1) {
+    return (
+      <div className="relative aspect-square bg-surface">
+        <Image src={covers[0] ?? ""} alt="" fill sizes={COVER_SIZES} className="object-cover" />
+      </div>
+    );
+  }
+
+  if (covers.length === 2) {
+    return (
+      <div className="grid aspect-square grid-cols-2 gap-0.5 bg-surface">
+        {covers.slice(0, 2).map((url, index) => (
+          <div key={index} className="relative">
+            <Image src={url} alt="" fill sizes={COVER_SIZES} className="object-cover" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   const [main, ...rest] = covers;
   return (
-    <div className="grid aspect-square grid-cols-3 grid-rows-2 gap-0.5 overflow-hidden rounded-2xl bg-surface">
+    <div className="grid aspect-square grid-cols-3 grid-rows-2 gap-0.5 bg-surface">
       <div className="relative col-span-2 row-span-2">
-        <Image
-          src={main ?? ""}
-          alt=""
-          fill
-          sizes="(max-width: 768px) 34vw, 17vw"
-          className="object-cover"
-        />
+        <Image src={main ?? ""} alt="" fill sizes={COVER_SIZES} className="object-cover" />
       </div>
-      {[0, 1].map((index) => {
-        const url = rest[index];
-        return (
-          <div key={index} className="relative bg-surface-2">
-            {url !== undefined ? (
-              <Image
-                src={url}
-                alt=""
-                fill
-                sizes="(max-width: 768px) 17vw, 8vw"
-                className="object-cover"
-              />
-            ) : null}
-          </div>
-        );
-      })}
+      {rest.slice(0, 2).map((url, index) => (
+        <div key={index} className="relative bg-surface-2">
+          <Image src={url} alt="" fill sizes={COVER_SIZES} className="object-cover" />
+        </div>
+      ))}
     </div>
   );
 }
 
 /**
- * Responsive grid of board cover cards with a staggered entrance animation.
- * Each card links to the board detail and shows a collage cover, the board name
- * and its pin count.
+ * Responsive grid of board cover cards with a staggered entrance animation. Each
+ * card links to the board detail and shows an adaptive collage cover with a
+ * subtle hover overlay, the board name and its pin count.
  *
  * @param props - The boards to display and an optional empty-state message.
  * @returns The boards grid, or an empty state when there are none.
@@ -95,17 +101,28 @@ export function BoardsGrid({
   );
 
   if (boards.length === 0) {
-    return <p className="py-16 text-center text-ink-soft">{emptyMessage}</p>;
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-3xl bg-surface px-6 py-20 text-center">
+        <span className="grid size-14 place-items-center rounded-full bg-surface-2 text-ink-soft">
+          <StackIcon size={26} />
+        </span>
+        <p className="text-lg font-semibold text-ink">{emptyMessage}</p>
+      </div>
+    );
   }
 
   return (
-    <div ref={scope} className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+    <div
+      ref={scope}
+      className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+    >
       {boards.map((board) => (
         <Link key={board.id} href={`/boards/${board.id}`} data-board-card className="group block">
-          <div className="overflow-hidden rounded-2xl transition group-hover:opacity-95">
+          <div className="relative overflow-hidden rounded-pin">
             <BoardCover covers={board.coverUrls} />
+            <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-150 group-hover:bg-ink/[0.06]" />
           </div>
-          <p className="mt-2 font-semibold text-ink">{board.name}</p>
+          <p className="mt-2 truncate font-semibold text-ink group-hover:underline">{board.name}</p>
           <p className="text-sm text-ink-soft">
             {board.pinCount} {board.pinCount === 1 ? "Pin" : "Pins"}
           </p>

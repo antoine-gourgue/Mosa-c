@@ -2,6 +2,8 @@ export { BoardCollaborators } from "./BoardCollaborators";
 export type { BoardCollaboratorsProps } from "./BoardCollaborators";
 export { BoardsGrid } from "./BoardsGrid";
 export type { BoardsGridProps } from "./BoardsGrid";
+export { BoardsView } from "./BoardsView";
+export type { BoardsViewProps } from "./BoardsView";
 export { BoardFormDialog } from "./BoardFormDialog";
 export type { BoardFormDialogProps } from "./BoardFormDialog";
 export { CreateBoardButton } from "./CreateBoardButton";
