@@ -8,12 +8,16 @@ type MessagesContextValue = {
   unreadCount: number;
   markRead: (conversationId: string) => void;
   addUnread: (conversationId: string) => void;
+  inboxRevision: number;
+  refreshInbox: () => void;
 };
 
 const MessagesContext = createContext<MessagesContextValue>({
   unreadCount: 0,
   markRead: () => {},
   addUnread: () => {},
+  inboxRevision: 0,
+  refreshInbox: () => {},
 });
 
 /**
@@ -36,6 +40,11 @@ export function MessagesProvider({
   children: ReactNode;
 }): ReactElement {
   const [unread, setUnread] = useState<Set<string>>(() => new Set(initialUnreadIds));
+  const [inboxRevision, setInboxRevision] = useState(0);
+
+  const refreshInbox = useCallback((): void => {
+    setInboxRevision((revision) => revision + 1);
+  }, []);
 
   const addUnread = useCallback((conversationId: string): void => {
     setUnread((prev) => (prev.has(conversationId) ? prev : new Set(prev).add(conversationId)));
@@ -66,8 +75,8 @@ export function MessagesProvider({
   }, [viewerId, addUnread]);
 
   const value = useMemo<MessagesContextValue>(
-    () => ({ unreadCount: unread.size, markRead, addUnread }),
-    [unread, markRead, addUnread],
+    () => ({ unreadCount: unread.size, markRead, addUnread, inboxRevision, refreshInbox }),
+    [unread, markRead, addUnread, inboxRevision, refreshInbox],
   );
 
   return <MessagesContext.Provider value={value}>{children}</MessagesContext.Provider>;

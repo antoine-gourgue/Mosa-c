@@ -59,7 +59,13 @@ type MessageRow = {
   senderId: string;
   body: string;
   createdAt: Date;
+  pin: { id: string; imageUrl: string; title: string } | null;
 };
+
+/**
+ * Prisma select for a shared pin attached to a message.
+ */
+export const MESSAGE_PIN_SELECT = { select: { id: true, imageUrl: true, title: true } } as const;
 
 /**
  * Maps a message row to the UI message type.
@@ -74,6 +80,7 @@ export function toMessage(row: MessageRow): ChatMessage {
     senderId: row.senderId,
     body: row.body,
     createdAt: row.createdAt.toISOString(),
+    pin: row.pin,
   };
 }
 
@@ -136,7 +143,7 @@ function summarySelect(userId: string) {
         messages: {
           orderBy: { createdAt: "desc" as const },
           take: 1,
-          select: { body: true, createdAt: true, senderId: true },
+          select: { body: true, createdAt: true, senderId: true, pinId: true },
         },
       },
     },
@@ -149,7 +156,7 @@ type SummaryRow = {
     id: string;
     updatedAt: Date;
     participants: { user: CreatorRow }[];
-    messages: { body: string; createdAt: Date; senderId: string }[];
+    messages: { body: string; createdAt: Date; senderId: string; pinId: string | null }[];
   };
 };
 
@@ -189,7 +196,11 @@ async function toSummary(row: SummaryRow, userId: string): Promise<ConversationS
     lastMessage:
       last === null
         ? null
-        : { body: last.body, createdAt: last.createdAt.toISOString(), senderId: last.senderId },
+        : {
+            body: last.body === "" && last.pinId !== null ? "Sent a pin" : last.body,
+            createdAt: last.createdAt.toISOString(),
+            senderId: last.senderId,
+          },
     unreadCount,
     updatedAt: conversation.updatedAt.toISOString(),
   };
@@ -290,6 +301,7 @@ export async function getMessages(
     where: { conversationId },
     orderBy: { createdAt: "desc" },
     take: limit,
+    include: { pin: MESSAGE_PIN_SELECT },
   });
   return rows.reverse().map(toMessage);
 }
