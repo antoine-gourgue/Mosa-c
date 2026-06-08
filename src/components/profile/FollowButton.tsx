@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
+import { Button } from "@/components/ui";
 import { useAuthPrompt } from "@/hooks/use-auth-prompt";
-import { cn } from "@/lib/cn";
 import { toggleFollow } from "@/server/actions/follows";
 
 /**
@@ -19,11 +19,6 @@ export type FollowButtonProps = {
   initialFollowing: boolean;
   size?: FollowButtonSize;
   isAuthed?: boolean;
-};
-
-const SIZE_CLASSES: Record<FollowButtonSize, string> = {
-  sm: "h-9 px-4 text-sm",
-  md: "h-11 px-5 text-[15px]",
 };
 
 /**
@@ -59,16 +54,8 @@ export function FollowButton({
   };
 
   return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className={cn(
-        "cursor-pointer rounded-full font-semibold transition-colors duration-150",
-        SIZE_CLASSES[size],
-        following ? "bg-ink text-bg hover:bg-ink/90" : "bg-accent text-bg hover:bg-accent-press",
-      )}
-    >
+    <Button variant={following ? "dark" : "accent"} size={size} onClick={onToggle}>
       {following ? "Following" : "Follow"}
-    </button>
+    </Button>
   );
 }

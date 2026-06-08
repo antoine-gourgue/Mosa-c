@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { MouseEvent, ReactElement } from "react";
-import { Avatar, ConfirmDialog, IconButton, Menu, useToast } from "@/components/ui";
+import { Avatar, Button, ConfirmDialog, IconButton, Menu, useToast } from "@/components/ui";
 import type { MenuItem } from "@/components/ui";
 import { useEngagementActions, usePinOverride } from "@/components/engagement";
 import {
@@ -16,7 +16,6 @@ import {
   MoreIcon,
   StackIcon,
 } from "@/icons";
-import { cn } from "@/lib/cn";
 import { downloadPin } from "@/lib/download";
 import { pinUrl } from "@/lib/share";
 import { recordDownload } from "@/server/actions/downloads";
@@ -171,19 +170,18 @@ export function PinCard({
             {canDelete ? (
               <span />
             ) : (
-              <button
+              <Button
                 type="button"
+                variant={saved ? "dark" : "accent"}
+                size="sm"
+                className="h-10"
                 onClick={(event) => {
                   stop(event);
                   onToggleSave();
                 }}
-                className={cn(
-                  "h-10 cursor-pointer rounded-full px-4 text-sm font-semibold text-bg transition-colors duration-150",
-                  saved ? "bg-ink hover:bg-ink/90" : "bg-accent hover:bg-accent-press",
-                )}
               >
                 {saved ? "Saved" : "Save"}
-              </button>
+              </Button>
             )}
           </div>
         </div>

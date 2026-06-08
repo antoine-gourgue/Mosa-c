@@ -129,7 +129,7 @@ export function NotificationsPanel(): ReactElement {
           type="button"
           aria-label="Close notifications"
           onClick={close}
-          className="-mr-1 grid size-9 cursor-pointer place-items-center rounded-full text-ink-soft hover:bg-surface hover:text-ink"
+          className="-mr-1 grid size-9 cursor-pointer place-items-center rounded-xl text-ink-soft hover:bg-surface hover:text-ink"
         >
           <CloseIcon size={20} />
         </button>

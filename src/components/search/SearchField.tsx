@@ -3,8 +3,8 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { ChangeEvent, ReactElement } from "react";
+import { Input } from "@/components/ui";
 import { SearchIcon } from "@/icons";
-import { cn } from "@/lib/cn";
 
 /**
  * Props for the {@link SearchField} component.
@@ -34,18 +34,14 @@ export function SearchField({ autoFocus = false, className }: SearchFieldProps):
   };
 
   return (
-    <div className={cn("relative w-full", className)}>
-      <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-soft">
-        <SearchIcon size={20} />
-      </span>
-      <input
-        value={query}
-        onChange={onChange}
-        autoFocus={autoFocus}
-        placeholder="Search for ideas"
-        aria-label="Search"
-        className="h-12 w-full rounded-3xl bg-surface pl-11 pr-4 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
-      />
-    </div>
+    <Input
+      value={query}
+      onChange={onChange}
+      autoFocus={autoFocus}
+      placeholder="Search for ideas"
+      aria-label="Search"
+      leadingIcon={<SearchIcon size={20} />}
+      className={className}
+    />
   );
 }

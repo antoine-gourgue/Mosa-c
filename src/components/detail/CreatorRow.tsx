@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
-import { Avatar } from "@/components/ui";
+import { Avatar, Button } from "@/components/ui";
 import { useAuthPrompt } from "@/hooks/use-auth-prompt";
-import { cn } from "@/lib/cn";
 import { toggleFollow } from "@/server/actions/follows";
 import type { Creator } from "@/types/domain";
 
@@ -75,16 +74,9 @@ export function CreatorRow({
         </div>
       </Link>
       {isSelf ? null : (
-        <button
-          type="button"
-          onClick={onToggle}
-          className={cn(
-            "ml-auto h-11 cursor-pointer rounded-full px-5 text-[15px] font-semibold transition-colors duration-150",
-            following ? "bg-ink text-bg hover:bg-ink/90" : "bg-surface text-ink hover:bg-surface-2",
-          )}
-        >
+        <Button variant={following ? "dark" : "ghost"} className="ml-auto" onClick={onToggle}>
           {following ? "Following" : "Follow"}
-        </button>
+        </Button>
       )}
     </div>
   );

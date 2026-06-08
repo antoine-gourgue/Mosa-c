@@ -3,8 +3,13 @@ import { cn } from "@/lib/cn";
 
 /**
  * Visual style of the button.
+ *
+ * - `accent` / `dark` / `ghost` / `social`: filled presets.
+ * - `plain`: no background or text colour preset, for compact text-only actions
+ *   that supply their own colour and hover through `className` (e.g. table row
+ *   actions). Still inherits the shared shape, sizing and press behaviour.
  */
-export type ButtonVariant = "accent" | "ghost" | "dark" | "social";
+export type ButtonVariant = "accent" | "ghost" | "dark" | "social" | "plain";
 
 /**
  * Height and padding preset of the button.
@@ -28,6 +33,7 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   dark: "bg-ink text-bg hover:bg-ink/90",
   ghost: "bg-surface text-ink hover:bg-surface-2",
   social: "border border-surface-3 bg-bg text-ink hover:bg-surface",
+  plain: "",
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
@@ -85,7 +91,7 @@ export function Button({
       disabled={isDisabled}
       aria-busy={loading}
       className={cn(
-        "inline-flex select-none items-center justify-center rounded-full font-semibold",
+        "inline-flex select-none items-center justify-center rounded-xl font-semibold",
         "cursor-pointer transition-[background-color,color,box-shadow,transform] duration-150 ease-out",
         "active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
         VARIANT_CLASSES[variant],

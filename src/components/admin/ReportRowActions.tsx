@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
-import { ConfirmDialog, useToast } from "@/components/ui";
+import { Button, ConfirmDialog, useToast } from "@/components/ui";
 import { dismissReport, resolveReport } from "@/server/actions/admin";
 
 /**
@@ -46,20 +46,22 @@ export function ReportRowActions({ reportId, pinTitle }: ReportRowActionsProps):
 
   return (
     <div className="flex justify-end gap-1">
-      <button
-        type="button"
+      <Button
+        variant="plain"
+        size="sm"
+        className="text-ink-soft hover:bg-surface hover:text-ink"
         onClick={() => run(() => dismissReport(reportId), "Report dismissed")}
-        className="cursor-pointer rounded-full px-3 py-1.5 text-sm font-semibold text-ink-soft transition-colors hover:bg-surface hover:text-ink"
       >
         Dismiss
-      </button>
-      <button
-        type="button"
+      </Button>
+      <Button
+        variant="plain"
+        size="sm"
+        className="text-accent hover:bg-accent/10"
         onClick={() => setConfirm(true)}
-        className="cursor-pointer rounded-full px-3 py-1.5 text-sm font-semibold text-accent transition-colors hover:bg-accent/10"
       >
         Remove pin
-      </button>
+      </Button>
       <ConfirmDialog
         open={confirm}
         title="Remove this pin?"

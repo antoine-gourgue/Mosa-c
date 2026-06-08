@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import type { ReactElement } from "react";
-import { useToast } from "@/components/ui";
+import { Button, useToast } from "@/components/ui";
 import { startConversation } from "@/server/actions/messages";
 
 /**
@@ -38,13 +38,8 @@ export function MessageButton({ userId }: MessageButtonProps): ReactElement {
   };
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={pending}
-      className="h-11 cursor-pointer rounded-full bg-surface px-5 text-[15px] font-semibold text-ink transition-colors hover:bg-surface-2 disabled:opacity-50"
-    >
+    <Button variant="ghost" onClick={onClick} disabled={pending}>
       Message
-    </button>
+    </Button>
   );
 }

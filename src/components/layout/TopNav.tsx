@@ -80,7 +80,7 @@ export function TopNav({ user, isAuthed }: TopNavProps): ReactElement {
         ) : (
           <Link
             href="/login"
-            className="rounded-full bg-accent px-5 py-2.5 text-[15px] font-semibold text-bg transition-colors hover:bg-accent-press"
+            className="rounded-xl bg-accent px-5 py-2.5 text-[15px] font-semibold text-bg transition-colors hover:bg-accent-press"
           >
             Log in
           </Link>

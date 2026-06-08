@@ -258,15 +258,17 @@ export function Comments({
         placeholder="Write a reply…"
         rows={1}
         autoFocus
-        className="min-h-[40px] w-full resize-none rounded-2xl bg-surface px-4 py-2.5 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
+        className="min-h-[40px] w-full resize-none rounded-xl bg-surface px-4 py-2.5 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
       />
-      <button
+      <Button
         type="button"
+        variant="plain"
+        size="sm"
+        className="shrink-0 text-ink-soft hover:text-ink"
         onClick={() => setReplyingTo(null)}
-        className="h-10 shrink-0 cursor-pointer px-2 text-sm font-semibold text-ink-soft transition-colors hover:text-ink"
       >
         Cancel
-      </button>
+      </Button>
       <Button type="submit" disabled={replyBody.trim() === ""}>
         Post
       </Button>
@@ -323,7 +325,7 @@ export function Comments({
             onSubmit={submitComment}
             placeholder="Add a comment"
             rows={1}
-            className="min-h-[44px] w-full resize-none rounded-2xl bg-surface px-4 py-3 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
+            className="min-h-[44px] w-full resize-none rounded-xl bg-surface px-4 py-3 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
           />
           <Button type="submit" className="h-11" disabled={body.trim() === ""}>
             Comment

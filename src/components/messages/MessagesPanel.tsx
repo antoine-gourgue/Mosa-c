@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Fragment, useEffect, useRef, useState, useTransition } from "react";
 import type { KeyboardEvent, PointerEvent, ReactElement } from "react";
 import { useNavPanel } from "@/components/layout/NavPanelProvider";
-import { Avatar, Button } from "@/components/ui";
+import { Avatar, Button, Input } from "@/components/ui";
 import { BackIcon, CloseIcon, ComposeIcon, SearchIcon, SendIcon, TrashIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { getRealtimeSocket } from "@/lib/realtime";
@@ -648,7 +648,7 @@ export function MessagesPanel({
               type="button"
               aria-label="Back to messages"
               onClick={() => setView("list")}
-              className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-full text-ink-soft hover:bg-surface hover:text-ink"
+              className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl text-ink-soft hover:bg-surface hover:text-ink"
             >
               <BackIcon size={20} />
             </button>
@@ -756,13 +756,14 @@ export function MessagesPanel({
                 you a message.
               </p>
               <div className="flex gap-2">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  className="h-11 flex-1"
                   onClick={onDeclineRequest}
-                  className="h-11 flex-1 cursor-pointer rounded-full bg-surface text-[15px] font-semibold text-ink transition-colors hover:bg-surface-2"
                 >
                   Decline
-                </button>
+                </Button>
                 <Button type="button" className="h-11 flex-1" onClick={onAcceptRequest}>
                   Accept
                 </Button>
@@ -774,29 +775,28 @@ export function MessagesPanel({
                 event.preventDefault();
                 onSend();
               }}
-              className="flex items-center gap-2 px-3 py-3"
+              className="px-3 py-3"
             >
-              <div className="flex flex-1 items-center rounded-full bg-surface pr-1.5">
-                <input
-                  aria-label="Message"
-                  value={draft}
-                  onChange={(event) => {
-                    setDraft(event.target.value);
-                    emitTyping(event.target.value !== "");
-                  }}
-                  onKeyDown={onComposerKeyDown}
-                  placeholder="Type a message…"
-                  className="h-11 flex-1 bg-transparent px-4 text-[15px] text-ink outline-none placeholder:text-ink-faint"
-                />
-                <button
-                  type="submit"
-                  aria-label="Send message"
-                  disabled={draft.trim() === ""}
-                  className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full bg-accent text-bg transition-opacity hover:bg-accent-press disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <SendIcon size={18} />
-                </button>
-              </div>
+              <Input
+                aria-label="Message"
+                value={draft}
+                onChange={(event) => {
+                  setDraft(event.target.value);
+                  emitTyping(event.target.value !== "");
+                }}
+                onKeyDown={onComposerKeyDown}
+                placeholder="Type a message…"
+                endAdornment={
+                  <button
+                    type="submit"
+                    aria-label="Send message"
+                    disabled={draft.trim() === ""}
+                    className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-xl bg-accent text-bg transition-opacity hover:bg-accent-press disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <SendIcon size={18} />
+                  </button>
+                }
+              />
             </form>
           )}
         </>
@@ -807,7 +807,7 @@ export function MessagesPanel({
               type="button"
               aria-label="Back to messages"
               onClick={() => setView("list")}
-              className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-full text-ink-soft hover:bg-surface hover:text-ink"
+              className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl text-ink-soft hover:bg-surface hover:text-ink"
             >
               <BackIcon size={20} />
             </button>
@@ -816,23 +816,20 @@ export function MessagesPanel({
               type="button"
               aria-label="Close messages"
               onClick={closePanel}
-              className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-full text-ink-soft hover:bg-surface hover:text-ink"
+              className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl text-ink-soft hover:bg-surface hover:text-ink"
             >
               <CloseIcon size={20} />
             </button>
           </header>
           <div className="px-4 pb-2">
-            <div className="flex items-center gap-2 rounded-full bg-surface px-4">
-              <SearchIcon size={18} />
-              <input
-                aria-label="Search people"
-                autoFocus
-                value={recipientQuery}
-                onChange={(event) => setRecipientQuery(event.target.value)}
-                placeholder="Search by name or username"
-                className="h-11 flex-1 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-faint"
-              />
-            </div>
+            <Input
+              aria-label="Search people"
+              autoFocus
+              value={recipientQuery}
+              onChange={(event) => setRecipientQuery(event.target.value)}
+              placeholder="Search by name or username"
+              leadingIcon={<SearchIcon size={18} />}
+            />
           </div>
           <div className="flex-1 overflow-y-auto pb-2">
             {recipients.length === 0 ? (
@@ -873,7 +870,7 @@ export function MessagesPanel({
               type="button"
               aria-label="Back to messages"
               onClick={() => setView("list")}
-              className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-full text-ink-soft hover:bg-surface hover:text-ink"
+              className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl text-ink-soft hover:bg-surface hover:text-ink"
             >
               <BackIcon size={20} />
             </button>
@@ -882,7 +879,7 @@ export function MessagesPanel({
               type="button"
               aria-label="Close messages"
               onClick={closePanel}
-              className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-full text-ink-soft hover:bg-surface hover:text-ink"
+              className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl text-ink-soft hover:bg-surface hover:text-ink"
             >
               <CloseIcon size={20} />
             </button>
@@ -911,7 +908,7 @@ export function MessagesPanel({
               type="button"
               aria-label="Close messages"
               onClick={closePanel}
-              className="-mr-1 grid size-9 cursor-pointer place-items-center rounded-full text-ink-soft hover:bg-surface hover:text-ink"
+              className="-mr-1 grid size-9 cursor-pointer place-items-center rounded-xl text-ink-soft hover:bg-surface hover:text-ink"
             >
               <CloseIcon size={20} />
             </button>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import type { ReactElement } from "react";
+import { Button } from "@/components/ui";
 
 /**
  * Error boundary for the consumer app: a branded recovery screen with a retry
@@ -31,16 +32,10 @@ export default function AppError({
         An unexpected error occurred. Try again, or head back to the feed.
       </p>
       <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={reset}
-          className="h-11 cursor-pointer rounded-full bg-accent px-6 text-[15px] font-semibold text-bg transition-colors hover:bg-accent-press"
-        >
-          Try again
-        </button>
+        <Button onClick={reset}>Try again</Button>
         <Link
           href="/"
-          className="h-11 rounded-full bg-surface px-6 text-[15px] font-semibold leading-[44px] text-ink transition-colors hover:bg-surface-2"
+          className="h-11 rounded-xl bg-surface px-5 text-[15px] font-semibold leading-[44px] text-ink transition-colors hover:bg-surface-2"
         >
           Go home
         </Link>

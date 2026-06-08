@@ -88,7 +88,7 @@ export function SideNav({ unreadCount }: SideNavProps): ReactElement {
   const panelIsOpen = activePanel !== null;
   const itemClass = (active: boolean): string =>
     cn(
-      "relative grid size-12 place-items-center rounded-full transition-colors hover:bg-surface",
+      "relative grid size-12 place-items-center rounded-xl transition-colors hover:bg-surface",
       active ? "text-ink" : "text-ink/70 hover:text-ink",
     );
 

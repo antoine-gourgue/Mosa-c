@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
-import { ConfirmDialog, useToast } from "@/components/ui";
+import { Button, ConfirmDialog, useToast } from "@/components/ui";
 import { adminDeleteComment, adminDeletePin } from "@/server/actions/admin";
 
 /**
@@ -61,13 +61,14 @@ export function AdminRemoveAction({
 
   return (
     <>
-      <button
-        type="button"
+      <Button
+        variant="plain"
+        size="sm"
+        className="text-accent hover:bg-accent/10"
         onClick={() => setOpen(true)}
-        className="cursor-pointer rounded-full px-3 py-1.5 text-sm font-semibold text-accent transition-colors hover:bg-accent/10"
       >
         Remove
-      </button>
+      </Button>
       <ConfirmDialog
         open={open}
         title={kind === "pin" ? "Remove this pin?" : "Remove this comment?"}

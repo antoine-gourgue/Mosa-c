@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import type { ComponentPropsWithRef, ReactElement } from "react";
+import type { ComponentPropsWithRef, ReactElement, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 /**
@@ -11,6 +11,8 @@ export type InputProps = ComponentPropsWithRef<"input"> & {
   label?: string;
   error?: string;
   hint?: string;
+  leadingIcon?: ReactNode;
+  endAdornment?: ReactNode;
 };
 
 /**
@@ -29,6 +31,8 @@ export function Input({
   id,
   type,
   className,
+  leadingIcon,
+  endAdornment,
   ...rest
 }: InputProps): ReactElement {
   const generatedId = useId();
@@ -39,22 +43,28 @@ export function Input({
   const resolvedType = isPassword && revealed ? "text" : type;
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex w-full flex-col gap-1.5">
       {label ? (
         <label htmlFor={inputId} className="text-sm font-semibold text-ink">
           {label}
         </label>
       ) : null}
       <div className="relative">
+        {leadingIcon ? (
+          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-soft">
+            {leadingIcon}
+          </span>
+        ) : null}
         <input
           id={inputId}
           type={resolvedType}
           aria-invalid={error ? true : undefined}
           aria-describedby={messageId}
           className={cn(
-            "h-12 w-full rounded-2xl bg-surface px-4 text-[15px] text-ink placeholder:text-ink-faint",
+            "h-12 w-full rounded-xl bg-surface text-[15px] text-ink placeholder:text-ink-faint",
             "outline-none transition-[box-shadow,background-color] duration-150 ease-out",
-            isPassword ? "pr-16" : "",
+            leadingIcon ? "pl-11" : "pl-4",
+            isPassword ? "pr-16" : endAdornment ? "pr-12" : "pr-4",
             error ? "ring-2 ring-accent" : "focus:bg-surface-2 focus:ring-2 focus:ring-ink/15",
             className,
           )}
@@ -69,6 +79,8 @@ export function Input({
           >
             {revealed ? "Hide" : "Show"}
           </button>
+        ) : endAdornment ? (
+          <span className="absolute right-2 top-1/2 -translate-y-1/2">{endAdornment}</span>
         ) : null}
       </div>
       {error ? (

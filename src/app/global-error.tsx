@@ -40,7 +40,7 @@ export default function GlobalError({ reset }: { error: Error; reset: () => void
           style={{
             cursor: "pointer",
             border: "none",
-            borderRadius: 999,
+            borderRadius: 12,
             background: "#e60023",
             color: "#ffffff",
             padding: "12px 24px",
