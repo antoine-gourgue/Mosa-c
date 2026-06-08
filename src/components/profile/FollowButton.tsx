@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
 import { Button } from "@/components/ui";
-import { useAuthPrompt } from "@/hooks/use-auth-prompt";
-import { toggleFollow } from "@/server/actions/follows";
+import { useFollow } from "@/components/engagement";
 
 /**
  * Size preset of the follow button.
@@ -34,27 +32,10 @@ export function FollowButton({
   size = "md",
   isAuthed = true,
 }: FollowButtonProps): ReactElement {
-  const [following, setFollowing] = useState(initialFollowing);
-  const [, startTransition] = useTransition();
-  const withAuth = useAuthPrompt(isAuthed);
-
-  const onToggle = (): void => {
-    withAuth(() => {
-      const wasFollowing = following;
-      setFollowing(!wasFollowing);
-      startTransition(async () => {
-        try {
-          const result = await toggleFollow(creatorId);
-          setFollowing(result.following);
-        } catch {
-          setFollowing(wasFollowing);
-        }
-      });
-    });
-  };
+  const { following, toggle } = useFollow(creatorId, initialFollowing, isAuthed);
 
   return (
-    <Button variant={following ? "dark" : "accent"} size={size} onClick={onToggle}>
+    <Button variant={following ? "dark" : "accent"} size={size} onClick={toggle}>
       {following ? "Following" : "Follow"}
     </Button>
   );

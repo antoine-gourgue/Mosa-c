@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 import type { MouseEvent, ReactElement, ReactNode } from "react";
 import { IconButton } from "@/components/ui";
-import { CloseIcon } from "@/icons";
+import { CloseIcon, ExpandIcon } from "@/icons";
 import { DURATION, REDUCED_MOTION, gsap, useGSAP } from "@/lib/gsap";
 
 /**
@@ -97,23 +97,29 @@ export function DetailModal({ children }: { children: ReactNode }): ReactElement
       onClick={close}
       className="fixed inset-0 z-[60] overflow-y-auto bg-ink/55 p-6"
     >
-      <IconButton
-        ref={closeRef}
-        label="Close"
-        tone="solid"
-        size="lg"
-        className="fixed right-6 top-6 z-10"
-        onClick={close}
-      >
-        <CloseIcon />
-      </IconButton>
+      <div className="fixed right-6 top-6 z-10 flex items-center gap-2">
+        <IconButton
+          label="Open full page"
+          tone="solid"
+          size="lg"
+          onClick={(event) => {
+            event.stopPropagation();
+            window.location.assign(pathname);
+          }}
+        >
+          <ExpandIcon />
+        </IconButton>
+        <IconButton ref={closeRef} label="Close" tone="solid" size="lg" onClick={close}>
+          <CloseIcon />
+        </IconButton>
+      </div>
       <div
         ref={cardRef}
         role="dialog"
         aria-modal="true"
         aria-label="Pin detail"
         onClick={stop}
-        className="mx-auto my-4 max-w-[1016px] overflow-hidden rounded-[32px] bg-bg shadow-pop"
+        className="mx-auto my-4 max-w-[1016px] overflow-hidden rounded-3xl bg-bg shadow-pop"
       >
         {children}
       </div>

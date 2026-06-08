@@ -3,6 +3,7 @@ export {
   getPinById,
   searchPins,
   getCreatedPins,
+  getRelatedPins,
   getHomeFeed,
   FEED_PAGE_SIZE,
 } from "./pins";

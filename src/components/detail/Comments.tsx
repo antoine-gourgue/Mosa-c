@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { FormEvent, ReactElement, ReactNode } from "react";
-import { Avatar, Button, ConfirmDialog, IconButton } from "@/components/ui";
-import { TrashIcon } from "@/icons";
+import { Avatar, ConfirmDialog, IconButton } from "@/components/ui";
+import { CloseIcon, SendIcon, TrashIcon } from "@/icons";
 import { formatRelativeTime } from "@/lib/time";
 import { useEngagementActions } from "@/components/engagement";
 import { addComment, addReply, deleteComment } from "@/server/actions/comments";
@@ -55,15 +55,18 @@ export type CommentsProps = {
   initialComments: PinComment[];
   viewerId: string | null;
   isPinOwner: boolean;
+  header?: ReactNode;
 };
 
 /**
- * Comments section for the pin detail: root comments with one level of replies,
- * a compact inline reply composer, a show/hide replies affordance and, for
- * signed-in users, an add form. Comments can be removed by their author or the
- * pin owner. The per-comment action row leaves room for upcoming reactions.
+ * Comments section for the pin detail: a scrollable thread (root comments with
+ * one level of replies) above a pinned composer that never grows the surrounding
+ * card. Replies reuse the single composer — pressing Reply targets a comment and
+ * shows a "Replying to" banner, Instagram-style. Comments can be removed by their
+ * author or the pin owner.
  *
- * @param props - The pin id, initial comments and viewer context.
+ * @param props - The pin id, initial comments, viewer context and an optional
+ *   header rendered above the thread inside the scroll area.
  * @returns The comments section element.
  */
 export function Comments({
@@ -71,13 +74,13 @@ export function Comments({
   initialComments,
   viewerId,
   isPinOwner,
+  header,
 }: CommentsProps): ReactElement {
   const [comments, setComments] = useState(initialComments);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [replyBody, setReplyBody] = useState("");
+  const [replyTarget, setReplyTarget] = useState<PinComment | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const [, startTransition] = useTransition();
   const { setCommentCount } = useEngagementActions();
@@ -94,13 +97,34 @@ export function Comments({
     return root?.id ?? null;
   };
 
-  const submitComment = (): void => {
+  const submit = (): void => {
     const text = body.trim();
     if (text === "") {
       return;
     }
     setError(null);
+    const target = replyTarget;
     startTransition(async () => {
+      if (target !== null) {
+        const result = await addReply(pinId, target.id, text);
+        if (result.ok) {
+          const rootId = threadRootId(target.id);
+          setComments((current) =>
+            current.map((comment) =>
+              comment.id === rootId
+                ? { ...comment, replies: [...comment.replies, result.comment] }
+                : comment,
+            ),
+          );
+          setCommentCount(pinId, total + 1);
+          setBody("");
+          setReplyTarget(null);
+          router.refresh();
+        } else {
+          setError(result.error);
+        }
+        return;
+      }
       const result = await addComment(pinId, text);
       if (result.ok) {
         setComments((current) => [...current, result.comment]);
@@ -115,53 +139,15 @@ export function Comments({
 
   const onSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
-    submitComment();
+    submit();
   };
 
-  const toggleReply = (comment: PinComment): void => {
-    if (replyingTo === comment.id) {
-      setReplyingTo(null);
-      return;
-    }
-    setReplyingTo(comment.id);
-    setReplyBody(comment.author.username !== null ? `@${comment.author.username} ` : "");
+  const startReply = (comment: PinComment): void => {
+    setReplyTarget(comment);
     const rootId = threadRootId(comment.id);
     if (rootId !== null) {
       setExpanded((prev) => new Set(prev).add(rootId));
     }
-  };
-
-  const submitReply = (): void => {
-    const target = replyingTo;
-    const text = replyBody.trim();
-    if (target === null || text === "") {
-      return;
-    }
-    setError(null);
-    startTransition(async () => {
-      const result = await addReply(pinId, target, text);
-      if (result.ok) {
-        const rootId = threadRootId(target);
-        setComments((current) =>
-          current.map((comment) =>
-            comment.id === rootId
-              ? { ...comment, replies: [...comment.replies, result.comment] }
-              : comment,
-          ),
-        );
-        setCommentCount(pinId, total + 1);
-        setReplyingTo(null);
-        setReplyBody("");
-        router.refresh();
-      } else {
-        setError(result.error);
-      }
-    });
-  };
-
-  const onSubmitReply = (event: FormEvent<HTMLFormElement>): void => {
-    event.preventDefault();
-    submitReply();
   };
 
   const onDelete = (id: string): void => {
@@ -222,7 +208,7 @@ export function Comments({
           {isAuthed ? (
             <button
               type="button"
-              onClick={() => toggleReply(comment)}
+              onClick={() => startReply(comment)}
               className="cursor-pointer py-0.5 font-semibold transition-colors hover:text-ink"
             >
               Reply
@@ -248,99 +234,104 @@ export function Comments({
     </div>
   );
 
-  const replyComposer = (): ReactElement => (
-    <form onSubmit={onSubmitReply} className="ml-11 flex items-start gap-2">
-      <MentionTextarea
-        ariaLabel="Reply"
-        value={replyBody}
-        onChange={setReplyBody}
-        onSubmit={submitReply}
-        placeholder="Write a reply…"
-        rows={1}
-        autoFocus
-        className="min-h-[40px] w-full resize-none rounded-xl bg-surface px-4 py-2.5 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
-      />
-      <Button
-        type="button"
-        variant="plain"
-        size="sm"
-        className="shrink-0 text-ink-soft hover:text-ink"
-        onClick={() => setReplyingTo(null)}
-      >
-        Cancel
-      </Button>
-      <Button type="submit" disabled={replyBody.trim() === ""}>
-        Post
-      </Button>
-    </form>
-  );
-
   return (
-    <section className="flex flex-col gap-4">
-      <h2 className="font-bold text-ink">
-        {total} {total === 1 ? "comment" : "comments"}
-      </h2>
+    <section className="flex min-h-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-3 md:px-8">
+        {header}
 
-      {comments.length === 0 ? (
-        <p className="text-ink-soft">No comments yet. Start the conversation.</p>
-      ) : (
-        <ul className="flex flex-col gap-5">
-          {comments.map((root) => (
-            <li key={root.id} className="flex flex-col gap-3">
-              {renderRow(root, false)}
+        <h2 className="pb-3 pt-5 font-bold text-ink">
+          {total} {total === 1 ? "comment" : "comments"}
+        </h2>
 
-              {root.replies.length > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => toggleExpanded(root.id)}
-                  className="ml-11 flex w-fit cursor-pointer items-center gap-2 py-0.5 text-xs font-semibold text-ink-soft transition-colors hover:text-ink"
-                >
-                  <span className="h-px w-6 bg-line" />
-                  {expanded.has(root.id)
-                    ? "Hide replies"
-                    : `View ${root.replies.length} ${root.replies.length === 1 ? "reply" : "replies"}`}
-                </button>
-              ) : null}
+        {comments.length === 0 ? (
+          <p className="pb-2 text-ink-soft">No comments yet. Start the conversation.</p>
+        ) : (
+          <ul className="flex flex-col gap-5 pb-2">
+            {comments.map((root) => (
+              <li key={root.id} className="flex flex-col gap-3">
+                {renderRow(root, false)}
 
-              {expanded.has(root.id) ? (
-                <ul className="ml-11 flex flex-col gap-4">
-                  {root.replies.map((reply) => (
-                    <li key={reply.id}>{renderRow(reply, true)}</li>
-                  ))}
-                </ul>
-              ) : null}
+                {root.replies.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleExpanded(root.id)}
+                    className="ml-11 flex w-fit cursor-pointer items-center gap-2 py-0.5 text-xs font-semibold text-ink-soft transition-colors hover:text-ink"
+                  >
+                    <span className="h-px w-6 bg-line" />
+                    {expanded.has(root.id)
+                      ? "Hide replies"
+                      : `View ${root.replies.length} ${root.replies.length === 1 ? "reply" : "replies"}`}
+                  </button>
+                ) : null}
 
-              {replyingTo !== null && threadRootId(replyingTo) === root.id ? replyComposer() : null}
-            </li>
-          ))}
-        </ul>
-      )}
+                {expanded.has(root.id) ? (
+                  <ul className="ml-11 flex flex-col gap-4">
+                    {root.replies.map((reply) => (
+                      <li key={reply.id}>{renderRow(reply, true)}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
-      {isAuthed ? (
-        <form onSubmit={onSubmit} className="flex items-start gap-2">
-          <MentionTextarea
-            ariaLabel="Add a comment"
-            value={body}
-            onChange={setBody}
-            onSubmit={submitComment}
-            placeholder="Add a comment"
-            rows={1}
-            className="min-h-[44px] w-full resize-none rounded-xl bg-surface px-4 py-3 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
-          />
-          <Button type="submit" className="h-11" disabled={body.trim() === ""}>
-            Comment
-          </Button>
-        </form>
-      ) : (
-        <Link href="/login" className="text-sm font-semibold text-accent hover:underline">
-          Log in to comment
-        </Link>
-      )}
-      {error !== null ? (
-        <p role="alert" className="text-sm text-accent">
-          {error}
-        </p>
-      ) : null}
+      <div className="shrink-0 border-t border-line px-5 py-3 md:px-8">
+        {replyTarget !== null ? (
+          <div className="mb-2 flex items-center justify-between gap-2 rounded-lg bg-surface px-3 py-1.5">
+            <span className="truncate text-xs text-ink-soft">
+              Replying to <span className="font-semibold text-ink">{replyTarget.author.name}</span>
+            </span>
+            <button
+              type="button"
+              aria-label="Cancel reply"
+              onClick={() => setReplyTarget(null)}
+              className="grid size-5 shrink-0 cursor-pointer place-items-center rounded-full text-ink-soft transition-colors hover:bg-surface-2 hover:text-ink"
+            >
+              <CloseIcon size={14} />
+            </button>
+          </div>
+        ) : null}
+        {error !== null ? (
+          <p role="alert" className="mb-2 text-sm text-accent">
+            {error}
+          </p>
+        ) : null}
+        {isAuthed ? (
+          <form
+            onSubmit={onSubmit}
+            className="flex items-end gap-2 rounded-2xl bg-surface px-3 py-1.5 transition-colors focus-within:bg-surface-2"
+          >
+            <MentionTextarea
+              key={replyTarget?.id ?? "root"}
+              ariaLabel={replyTarget !== null ? "Write a reply" : "Add a comment"}
+              value={body}
+              onChange={setBody}
+              onSubmit={submit}
+              placeholder={replyTarget !== null ? "Write a reply…" : "Add a comment"}
+              rows={1}
+              autoFocus={replyTarget !== null}
+              className="min-h-[36px] w-full resize-none bg-transparent py-2 text-[15px] text-ink outline-none placeholder:text-ink-faint"
+            />
+            <button
+              type="submit"
+              aria-label={replyTarget !== null ? "Post reply" : "Post comment"}
+              disabled={body.trim() === ""}
+              className="mb-1 grid size-8 shrink-0 cursor-pointer place-items-center rounded-xl bg-accent text-bg transition-opacity hover:bg-accent-press disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <SendIcon size={18} />
+            </button>
+          </form>
+        ) : (
+          <Link
+            href="/login"
+            className="inline-flex text-sm font-semibold text-accent hover:underline"
+          >
+            Log in to comment
+          </Link>
+        )}
+      </div>
 
       <ConfirmDialog
         open={confirmId !== null}

@@ -3,6 +3,7 @@ import type { ReactElement } from "react";
 import { Avatar } from "@/components/ui";
 import type { Creator } from "@/types/domain";
 import { FollowButton } from "./FollowButton";
+import { FollowerCount } from "./FollowerCount";
 import { MessageButton } from "./MessageButton";
 
 /**
@@ -44,8 +45,12 @@ export function ProfileHeader({
       {user.username !== null ? <p className="text-ink-soft">@{user.username}</p> : null}
       {user.bio !== null ? <p className="max-w-md text-ink">{user.bio}</p> : null}
       <p className="text-sm text-ink-soft">
-        <span className="font-semibold text-ink">{followers}</span> followers ·{" "}
-        <span className="font-semibold text-ink">{following}</span> following
+        <FollowerCount
+          creatorId={user.id}
+          followers={followers}
+          initialFollowing={initialFollowing}
+        />{" "}
+        followers · <span className="font-semibold text-ink">{following}</span> following
       </p>
       {isOwnProfile ? (
         <Link

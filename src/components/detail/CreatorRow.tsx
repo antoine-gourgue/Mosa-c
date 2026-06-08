@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
 import { Avatar, Button } from "@/components/ui";
-import { useAuthPrompt } from "@/hooks/use-auth-prompt";
-import { toggleFollow } from "@/server/actions/follows";
+import { useFollow } from "@/components/engagement";
+import { cn } from "@/lib/cn";
 import type { Creator } from "@/types/domain";
 
 /**
@@ -17,6 +16,7 @@ export type CreatorRowProps = {
   isSelf?: boolean;
   followers: number;
   isAuthed?: boolean;
+  centered?: boolean;
 };
 
 /**
@@ -34,28 +34,13 @@ export function CreatorRow({
   isSelf = false,
   followers,
   isAuthed = true,
+  centered = false,
 }: CreatorRowProps): ReactElement {
-  const [following, setFollowing] = useState(initialFollowing);
-  const [, startTransition] = useTransition();
-  const withAuth = useAuthPrompt(isAuthed);
-
-  const onToggle = (): void => {
-    withAuth(() => {
-      const wasFollowing = following;
-      setFollowing(!wasFollowing);
-      startTransition(async () => {
-        try {
-          const result = await toggleFollow(creator.id);
-          setFollowing(result.following);
-        } catch {
-          setFollowing(wasFollowing);
-        }
-      });
-    });
-  };
+  const { following, toggle } = useFollow(creator.id, initialFollowing, isAuthed);
+  const followerCount = followers + (following === initialFollowing ? 0 : following ? 1 : -1);
 
   return (
-    <div className="flex items-center gap-3">
+    <div className={cn("flex items-center gap-3", centered && "justify-center")}>
       <Link
         href={creator.username !== null ? `/u/${creator.username}` : "#"}
         className="flex items-center gap-3"
@@ -69,12 +54,16 @@ export function CreatorRow({
         <div className="flex flex-col text-left">
           <span className="font-semibold text-ink hover:underline">{creator.name}</span>
           <span className="text-sm text-ink-soft">
-            {followers} {followers === 1 ? "follower" : "followers"}
+            {followerCount} {followerCount === 1 ? "follower" : "followers"}
           </span>
         </div>
       </Link>
       {isSelf ? null : (
-        <Button variant={following ? "dark" : "ghost"} className="ml-auto" onClick={onToggle}>
+        <Button
+          variant={following ? "dark" : "ghost"}
+          className={centered ? "" : "ml-auto"}
+          onClick={toggle}
+        >
           {following ? "Following" : "Follow"}
         </Button>
       )}
