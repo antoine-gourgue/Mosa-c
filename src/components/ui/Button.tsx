@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ComponentPropsWithRef, ReactElement, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
@@ -26,6 +27,7 @@ export type ButtonProps = ComponentPropsWithRef<"button"> & {
   loading?: boolean;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
+  href?: string;
 };
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
@@ -82,28 +84,36 @@ export function Button({
   disabled,
   className,
   children,
+  href,
   ...rest
 }: ButtonProps): ReactElement {
   const isDisabled = disabled === true || loading;
-  return (
-    <button
-      type={type}
-      disabled={isDisabled}
-      aria-busy={loading}
-      className={cn(
-        "inline-flex select-none items-center justify-center rounded-xl font-semibold",
-        "cursor-pointer transition-[background-color,color,box-shadow,transform] duration-150 ease-out",
-        "active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
-        VARIANT_CLASSES[variant],
-        SIZE_CLASSES[size],
-        fullWidth && "w-full",
-        className,
-      )}
-      {...rest}
-    >
+  const classes = cn(
+    "inline-flex select-none items-center justify-center rounded-xl font-semibold",
+    "cursor-pointer transition-[background-color,color,box-shadow,transform] duration-150 ease-out",
+    "active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
+    VARIANT_CLASSES[variant],
+    SIZE_CLASSES[size],
+    fullWidth && "w-full",
+    className,
+  );
+  const content = (
+    <>
       {loading ? <Spinner /> : leftIcon}
       {children}
       {!loading && rightIcon}
+    </>
+  );
+  if (href !== undefined) {
+    return (
+      <Link href={href} className={classes}>
+        {content}
+      </Link>
+    );
+  }
+  return (
+    <button type={type} disabled={isDisabled} aria-busy={loading} className={classes} {...rest}>
+      {content}
     </button>
   );
 }

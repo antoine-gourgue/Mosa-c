@@ -119,13 +119,23 @@ model VerificationToken {
   @@id([identifier, token])
 }
 
-model Category {
-  id       String @id @default(cuid())
-  slug     String @unique
-  label    String
-  imageUrl String
+model Tag {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  createdAt DateTime @default(now())
 
-  pins Pin[]
+  pins PinTag[]
+}
+
+model PinTag {
+  pinId String
+  tagId String
+  pin   Pin    @relation(fields: [pinId], references: [id], onDelete: Cascade)
+  tag   Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([pinId, tagId])
+  @@index([tagId])
 }
 
 model Pin {
@@ -139,12 +149,10 @@ model Pin {
   downloadCount Int      @default(0)
   createdAt     DateTime @default(now())
 
-  categoryId String?
-  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-
   creatorId String
   creator   User   @relation("PinCreator", fields: [creatorId], references: [id], onDelete: Cascade)
 
+  tags      PinTag[]
   saves     Save[]
   boardPins BoardPin[]
   likes     Like[]
@@ -154,7 +162,6 @@ model Pin {
   notifications Notification[]
 
   @@index([creatorId])
-  @@index([categoryId])
 }
 
 model Like {

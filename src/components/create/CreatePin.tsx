@@ -7,6 +7,7 @@ import { compressImage } from "@/lib/image";
 import { createPin } from "@/server/actions/pins";
 import { BoardPicker } from "./BoardPicker";
 import type { BoardOption } from "./BoardPicker";
+import { TagsInput } from "./TagsInput";
 import { UploadDropzone } from "./UploadDropzone";
 import type { SelectedImage } from "./UploadDropzone";
 
@@ -56,6 +57,7 @@ export function CreatePin({ boards }: CreatePinProps): ReactElement {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [link, setLink] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [boardList, setBoardList] = useState(boards);
   const [board, setBoard] = useState(boards[0]?.name ?? "Quick Saves");
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +86,7 @@ export function CreatePin({ boards }: CreatePinProps): ReactElement {
         formData.set("title", title);
         formData.set("description", description);
         formData.set("link", link);
+        formData.set("tags", tags.join(","));
         formData.set("board", board);
         formData.set("width", String(upload.width));
         formData.set("height", String(upload.height));
@@ -137,6 +140,8 @@ export function CreatePin({ boards }: CreatePinProps): ReactElement {
               className={CONTROL_CLASS}
             />
           </Field>
+
+          <TagsInput value={tags} onChange={setTags} />
 
           <BoardPicker
             boards={boardList}

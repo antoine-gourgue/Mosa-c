@@ -5,14 +5,9 @@ import type { Session } from "next-auth";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { slugify } from "@/lib/slug";
 import { AppError } from "@/server/result";
 
 const roleSchema = z.enum(["USER", "ADMIN"]);
-const categorySchema = z.object({
-  label: z.string().trim().min(1).max(40),
-  imageUrl: z.url(),
-});
 const userProfileSchema = z.object({
   name: z.string().trim().min(1).max(80),
   bio: z.string().trim().max(300),
@@ -21,7 +16,6 @@ const pinSchema = z.object({
   title: z.string().trim().min(1).max(120),
   description: z.string().trim().max(1000),
   link: z.union([z.literal(""), z.url()]),
-  categoryId: z.string().nullable(),
 });
 
 /**
@@ -68,15 +62,15 @@ export async function adminDeletePin(pinId: string): Promise<void> {
 }
 
 /**
- * Updates a pin's title, description, link and category as an admin override.
+ * Updates a pin's title, description and link as an admin override.
  *
  * @param pinId - The pin id.
- * @param input - The new title, description, link and category id.
+ * @param input - The new title, description and link.
  * @returns A promise that resolves once the pin is updated.
  */
 export async function adminUpdatePin(
   pinId: string,
-  input: { title: string; description: string; link: string; categoryId: string | null },
+  input: { title: string; description: string; link: string },
 ): Promise<void> {
   await requireAdminUser();
   const parsed = pinSchema.safeParse(input);
@@ -89,10 +83,6 @@ export async function adminUpdatePin(
       title: parsed.data.title,
       description: parsed.data.description === "" ? null : parsed.data.description,
       link: parsed.data.link === "" ? null : parsed.data.link,
-      category:
-        parsed.data.categoryId === null || parsed.data.categoryId === ""
-          ? { disconnect: true }
-          : { connect: { id: parsed.data.categoryId } },
     },
   });
   revalidatePath("/admin/moderation");
@@ -152,88 +142,6 @@ export async function dismissReport(reportId: string): Promise<void> {
   await requireAdminUser();
   await prisma.report.update({ where: { id: reportId }, data: { status: "DISMISSED" } });
   revalidateReports();
-}
-
-/**
- * Refreshes the surfaces that depend on the category list.
- */
-function revalidateCategories(): void {
-  revalidatePath("/admin/categories");
-  revalidatePath("/search");
-  revalidatePath("/");
-}
-
-/**
- * Validates category input and derives its slug, throwing on invalid input or
- * an empty slug.
- *
- * @param input - The raw label and image URL.
- * @returns The validated label, image URL and slug.
- */
-function parseCategory(input: { label: string; imageUrl: string }): {
-  label: string;
-  imageUrl: string;
-  slug: string;
-} {
-  const parsed = categorySchema.safeParse(input);
-  if (!parsed.success) {
-    throw new AppError("VALIDATION", "Enter a name and a valid image URL.");
-  }
-  const slug = slugify(parsed.data.label);
-  if (slug === "") {
-    throw new AppError("VALIDATION", "The name must contain letters or numbers.");
-  }
-  return { label: parsed.data.label, imageUrl: parsed.data.imageUrl, slug };
-}
-
-/**
- * Creates a category.
- *
- * @param label - The category name.
- * @param imageUrl - The category cover image URL.
- * @returns A promise that resolves once the category is created.
- */
-export async function createCategory(label: string, imageUrl: string): Promise<void> {
-  await requireAdminUser();
-  const data = parseCategory({ label, imageUrl });
-  const existing = await prisma.category.findUnique({ where: { slug: data.slug } });
-  if (existing !== null) {
-    throw new AppError("CONFLICT", "A category with a similar name already exists.");
-  }
-  await prisma.category.create({ data });
-  revalidateCategories();
-}
-
-/**
- * Updates a category's name and cover image.
- *
- * @param id - The category id.
- * @param label - The new name.
- * @param imageUrl - The new cover image URL.
- * @returns A promise that resolves once the category is updated.
- */
-export async function updateCategory(id: string, label: string, imageUrl: string): Promise<void> {
-  await requireAdminUser();
-  const data = parseCategory({ label, imageUrl });
-  const clash = await prisma.category.findUnique({ where: { slug: data.slug } });
-  if (clash !== null && clash.id !== id) {
-    throw new AppError("CONFLICT", "A category with a similar name already exists.");
-  }
-  await prisma.category.update({ where: { id }, data });
-  revalidateCategories();
-}
-
-/**
- * Deletes a category. Its pins are detached (their category is cleared) by the
- * schema's set-null relation, so no pins are lost.
- *
- * @param id - The category id.
- * @returns A promise that resolves once the category is deleted.
- */
-export async function deleteCategory(id: string): Promise<void> {
-  await requireAdminUser();
-  await prisma.category.delete({ where: { id } });
-  revalidateCategories();
 }
 
 /**

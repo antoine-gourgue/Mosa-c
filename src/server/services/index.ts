@@ -15,7 +15,7 @@ export {
   getFollowCounts,
   searchMentionUsers,
 } from "./users";
-export { getCategories } from "./categories";
+export { getPopularTags, getTagBySlug, getPinsByTag } from "./tags";
 export {
   getBoardsForUser,
   getDefaultBoard,
@@ -50,7 +50,6 @@ export {
   getAdminPins,
   getAdminComments,
   getAdminReports,
-  getAdminCategories,
   getAdminUserDetail,
   getAdminPinDetail,
   ADMIN_USERS_PAGE_SIZE,
@@ -68,7 +67,6 @@ export type {
   AdminCommentRow,
   AdminReportsPage,
   AdminReportRow,
-  AdminCategoryRow,
   AdminUserDetail,
   AdminPinDetail,
 } from "./admin";

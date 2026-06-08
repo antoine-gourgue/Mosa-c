@@ -6,12 +6,43 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { getStorage } from "@/lib/storage";
+import { slugify } from "@/lib/slug";
 
 /**
  * Failure outcome of {@link createPin}; a successful call redirects instead of
  * returning.
  */
 export type CreatePinResult = { ok: false; error: string };
+
+/**
+ * Maximum number of tags accepted on a pin.
+ */
+const MAX_TAGS = 8;
+
+/**
+ * Parses the raw comma-separated tags field into unique `{ slug, name }` pairs,
+ * trimming, capping the length and count, and dropping blanks and duplicates.
+ *
+ * @param raw - The raw tags value from the form.
+ * @returns The validated tag pairs.
+ */
+function parseTagNames(raw: string): { slug: string; name: string }[] {
+  const seen = new Set<string>();
+  const result: { slug: string; name: string }[] = [];
+  for (const part of raw.split(",")) {
+    const name = part.trim().slice(0, 30);
+    const slug = slugify(name);
+    if (name === "" || slug === "" || seen.has(slug)) {
+      continue;
+    }
+    seen.add(slug);
+    result.push({ slug, name });
+    if (result.length >= MAX_TAGS) {
+      break;
+    }
+  }
+  return result;
+}
 
 const createPinSchema = z.object({
   title: z.string().trim().min(1, "A title is required.").max(120),
@@ -68,6 +99,16 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
       creatorId: user.id,
     },
   });
+
+  const tags = parseTagNames(formData.get("tags")?.toString() ?? "");
+  for (const { slug, name } of tags) {
+    const tag = await prisma.tag.upsert({
+      where: { slug },
+      update: {},
+      create: { slug, name },
+    });
+    await prisma.pinTag.create({ data: { pinId: pin.id, tagId: tag.id } });
+  }
 
   const boardName = (formData.get("board")?.toString() ?? "").trim() || "Quick Saves";
   const board =

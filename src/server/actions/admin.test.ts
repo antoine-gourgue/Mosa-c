@@ -9,7 +9,6 @@ vi.mock("@/lib/prisma", () => ({
     pin: { delete: vi.fn(), update: vi.fn() },
     comment: { delete: vi.fn() },
     report: { findUnique: vi.fn(), update: vi.fn() },
-    category: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
   },
 }));
 
@@ -20,8 +19,6 @@ import {
   adminDeletePin,
   adminUpdatePin,
   adminUpdateUser,
-  createCategory,
-  deleteCategory,
   deleteUser,
   dismissReport,
   resolveReport,
@@ -34,7 +31,6 @@ const db = prisma as unknown as {
   pin: { delete: Mock; update: Mock };
   comment: { delete: Mock };
   report: { findUnique: Mock; update: Mock };
-  category: { findUnique: Mock; create: Mock; update: Mock; delete: Mock };
 };
 
 /**
@@ -135,31 +131,21 @@ describe("admin actions", () => {
     expect(db.comment.delete).toHaveBeenCalledWith({ where: { id: "c1" } });
   });
 
-  it("updates a pin and connects a category", async () => {
+  it("updates a pin's title, description and link", async () => {
     asAdmin();
-    await adminUpdatePin("pin1", { title: "New", description: "", link: "", categoryId: "cat1" });
+    await adminUpdatePin("pin1", { title: "New", description: "Desc", link: "https://x.example" });
     expect(db.pin.update).toHaveBeenCalledWith({
       where: { id: "pin1" },
-      data: { title: "New", description: null, link: null, category: { connect: { id: "cat1" } } },
+      data: { title: "New", description: "Desc", link: "https://x.example" },
     });
   });
 
-  it("disconnects the category when none is given", async () => {
+  it("clears optional fields when blank", async () => {
     asAdmin();
-    await adminUpdatePin("pin1", {
-      title: "New",
-      description: "Desc",
-      link: "https://x.example",
-      categoryId: null,
-    });
+    await adminUpdatePin("pin1", { title: "New", description: "", link: "" });
     expect(db.pin.update).toHaveBeenCalledWith({
       where: { id: "pin1" },
-      data: {
-        title: "New",
-        description: "Desc",
-        link: "https://x.example",
-        category: { disconnect: true },
-      },
+      data: { title: "New", description: null, link: null },
     });
   });
 
@@ -193,33 +179,5 @@ describe("admin actions", () => {
       data: { status: "DISMISSED" },
     });
     expect(db.pin.delete).not.toHaveBeenCalled();
-  });
-
-  it("creates a category with a derived slug", async () => {
-    asAdmin();
-    db.category.findUnique.mockResolvedValue(null);
-    await createCategory("Street Food", "https://img.example/x.jpg");
-    expect(db.category.create).toHaveBeenCalledWith({
-      data: { label: "Street Food", imageUrl: "https://img.example/x.jpg", slug: "street-food" },
-    });
-  });
-
-  it("rejects a category whose slug already exists", async () => {
-    asAdmin();
-    db.category.findUnique.mockResolvedValue({ id: "other" });
-    await expect(createCategory("Travel", "https://img.example/x.jpg")).rejects.toThrow();
-    expect(db.category.create).not.toHaveBeenCalled();
-  });
-
-  it("rejects a category with an invalid image URL", async () => {
-    asAdmin();
-    await expect(createCategory("Travel", "not-a-url")).rejects.toThrow();
-    expect(db.category.create).not.toHaveBeenCalled();
-  });
-
-  it("deletes a category", async () => {
-    asAdmin();
-    await deleteCategory("cat1");
-    expect(db.category.delete).toHaveBeenCalledWith({ where: { id: "cat1" } });
   });
 });

@@ -48,9 +48,7 @@ export default async function SearchPage({
         </Suspense>
       </div>
       {query === "" ? (
-        <div className="mx-auto max-w-[1180px]">
-          <SearchDiscovery />
-        </div>
+        <SearchDiscovery />
       ) : (
         <SearchResults query={query} sort={resolveSort(sort)} />
       )}
