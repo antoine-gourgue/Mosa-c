@@ -31,5 +31,6 @@ export {
   CommentFilledIcon,
   ComposeIcon,
   SendIcon,
+  GearFilledIcon,
 } from "./glyphs";
 export { Logo } from "./Logo";

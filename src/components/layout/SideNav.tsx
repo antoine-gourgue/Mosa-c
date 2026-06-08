@@ -10,6 +10,7 @@ import {
   BellIcon,
   CommentFilledIcon,
   CommentIcon,
+  GearFilledIcon,
   GearIcon,
   HomeFilledIcon,
   HomeIcon,
@@ -86,6 +87,7 @@ export function SideNav({ unreadCount }: SideNavProps): ReactElement {
         : false;
 
   const panelIsOpen = activePanel !== null;
+  const settingsActive = !panelIsOpen && pathname.startsWith("/settings");
   const itemClass = (active: boolean): string =>
     cn(
       "relative grid size-12 place-items-center rounded-xl transition-colors hover:bg-surface",
@@ -104,7 +106,7 @@ export function SideNav({ unreadCount }: SideNavProps): ReactElement {
         className="mb-1 grid size-12 place-items-center"
       >
         <span className="text-accent">
-          <Logo size={26} />
+          <Logo size={32} />
         </span>
       </Link>
 
@@ -159,10 +161,10 @@ export function SideNav({ unreadCount }: SideNavProps): ReactElement {
         aria-label="Settings"
         title="Settings"
         onClick={close}
-        aria-current={!panelIsOpen && pathname.startsWith("/settings") ? "page" : undefined}
-        className={cn("mt-auto", itemClass(!panelIsOpen && pathname.startsWith("/settings")))}
+        aria-current={settingsActive ? "page" : undefined}
+        className={cn("mt-auto", itemClass(settingsActive))}
       >
-        <GearIcon size={26} />
+        {settingsActive ? <GearFilledIcon size={26} /> : <GearIcon size={26} />}
       </Link>
     </nav>
   );
