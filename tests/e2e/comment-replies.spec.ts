@@ -7,7 +7,8 @@ test("a user can reply to a comment and post with Enter", async ({ page }) => {
   await expect(page.getByText(/Stunning shot/)).toBeVisible();
 
   await page.getByRole("button", { name: "Reply", exact: true }).first().click();
-  const reply = page.getByLabel("Reply");
+  await expect(page.getByText(/Replying to/)).toBeVisible();
+  const reply = page.getByLabel("Write a reply");
   const text = `totally agree ${Date.now()}`;
   await reply.fill(text);
   await reply.press("Enter");

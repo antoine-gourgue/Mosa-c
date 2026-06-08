@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 import { JsonLd } from "@/components/seo";
 import { Divider } from "@/components/ui";
+import { cn } from "@/lib/cn";
 import { getCurrentUser } from "@/lib/auth";
 import {
   getBoardsForUser,
@@ -45,8 +46,15 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
     getFollowCounts(pin.creator.id),
   ]);
 
+  const aspectClass =
+    pin.height > pin.width
+      ? "aspect-[3/4]"
+      : pin.width > pin.height
+        ? "aspect-[4/3]"
+        : "aspect-square";
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2">
+    <div className="flex flex-col md:relative md:block">
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -59,58 +67,64 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
           author: { "@type": "Person", name: pin.creator.name },
         }}
       />
-      <div className="flex min-w-0 items-center justify-center bg-surface">
-        <Image
-          src={pin.imageUrl}
-          alt={pin.title}
-          width={pin.width}
-          height={pin.height}
-          sizes="(max-width: 768px) 100vw, 50vw"
-          className="h-auto max-h-[60vh] w-full min-w-0 object-contain md:max-h-[85vh]"
-        />
+      <div className="shrink-0 p-3 md:flex md:min-h-[520px] md:w-1/2 md:items-center md:justify-center md:p-4">
+        <div className={cn("relative w-full overflow-hidden rounded-2xl bg-surface", aspectClass)}>
+          <Image
+            src={pin.imageUrl}
+            alt={pin.title}
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-cover"
+          />
+        </div>
       </div>
-      <div className="flex min-w-0 flex-col gap-4 px-5 py-6 md:px-9 md:py-8">
-        <DetailActions
-          pinId={pin.id}
-          title={pin.title}
-          imageUrl={pin.imageUrl}
-          link={pin.link}
-          initialLiked={like.liked}
-          likeCount={like.count}
-          downloadCount={pin.downloadCount}
-          isOwner={user?.id === pin.creator.id}
-          boards={boards.map((board) => ({
-            id: board.id,
-            name: board.name,
-            isDefault: board.isDefault,
-          }))}
-          isAuthed={user !== null}
-        />
-        {pin.category !== null ? (
-          <span className="text-sm text-ink-soft">
-            mosaic.app / {pin.category.label.toLowerCase()}
-          </span>
-        ) : null}
-        <h1 className="text-2xl font-extrabold leading-tight text-ink md:text-[30px]">
-          {pin.title}
-        </h1>
-        {pin.description !== null ? (
-          <p className="text-base text-[#3a3a3a]">{pin.description}</p>
-        ) : null}
-        <Divider className="my-2" />
-        <CreatorRow
-          creator={pin.creator}
-          initialFollowing={following}
-          isSelf={user?.id === pin.creator.id}
-          followers={followCounts.followers}
-          isAuthed={user !== null}
-        />
-        <Divider className="my-2" />
+      <div className="flex min-w-0 flex-col md:absolute md:inset-y-0 md:right-0 md:w-1/2 md:overflow-hidden">
+        <div className="shrink-0 px-5 pt-2 md:px-8 md:pt-6">
+          <DetailActions
+            pinId={pin.id}
+            title={pin.title}
+            imageUrl={pin.imageUrl}
+            link={pin.link}
+            initialLiked={like.liked}
+            likeCount={like.count}
+            downloadCount={pin.downloadCount}
+            isOwner={user?.id === pin.creator.id}
+            boards={boards.map((board) => ({
+              id: board.id,
+              name: board.name,
+              isDefault: board.isDefault,
+            }))}
+            isAuthed={user !== null}
+          />
+        </div>
         <Comments
           pinId={pin.id}
           initialComments={comments}
           viewerId={user?.id ?? null}
           isPinOwner={user?.id === pin.creator.id}
+          header={
+            <div className="flex flex-col gap-2">
+              {pin.category !== null ? (
+                <span className="text-sm font-medium text-ink-soft">
+                  mosaic.app / {pin.category.label.toLowerCase()}
+                </span>
+              ) : null}
+              <h1 className="text-2xl font-bold leading-tight text-ink md:text-[28px]">
+                {pin.title}
+              </h1>
+              {pin.description !== null ? (
+                <p className="text-[15px] leading-relaxed text-ink-soft">{pin.description}</p>
+              ) : null}
+              <Divider className="mt-2" />
+              <CreatorRow
+                creator={pin.creator}
+                initialFollowing={following}
+                isSelf={user?.id === pin.creator.id}
+                followers={followCounts.followers}
+                isAuthed={user !== null}
+              />
+            </div>
+          }
         />
       </div>
     </div>

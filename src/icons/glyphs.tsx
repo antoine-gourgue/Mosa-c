@@ -501,6 +501,20 @@ export function SendIcon(props: IconProps): ReactElement {
 }
 
 /**
+ * Diagonal "expand" glyph used to open the pin detail as a full page.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function ExpandIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon {...props}>
+      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+    </SvgIcon>
+  );
+}
+
+/**
  * Filled house glyph for the active home navigation state.
  *
  * @param props - Icon sizing and presentation props.

@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactElement } from "react";
 import { PinDetail } from "@/components/detail";
+import { PinFeed } from "@/components/pin";
 import { BackIcon } from "@/icons";
-import { getPinById } from "@/server/services";
+import { getCurrentUser } from "@/lib/auth";
+import { getLikedPinIds, getPinById, getRelatedPins, getSavedPinIds } from "@/server/services";
 
 /**
  * Builds per-pin metadata so shared links preview the pin's image, title and
@@ -47,18 +49,37 @@ export default async function PinPage({
   params: Promise<{ id: string }>;
 }): Promise<ReactElement> {
   const { id } = await params;
+  const user = await getCurrentUser();
+  const [related, savedIds, likedIds] = await Promise.all([
+    getRelatedPins(id),
+    user === null ? Promise.resolve<string[]>([]) : getSavedPinIds(user.id),
+    user === null ? Promise.resolve<string[]>([]) : getLikedPinIds(user.id),
+  ]);
+
   return (
-    <div className="mx-auto max-w-[1016px]">
-      <Link
-        href="/"
-        aria-label="Back to feed"
-        className="mb-4 inline-flex size-12 items-center justify-center rounded-full bg-bg text-ink shadow-pop transition-colors hover:bg-surface"
-      >
-        <BackIcon />
-      </Link>
-      <div className="overflow-hidden rounded-[32px] bg-bg shadow-pop">
+    <>
+      <div className="mx-auto max-w-[1016px]">
+        <Link
+          href="/"
+          aria-label="Back to feed"
+          className="mb-2 -ml-1 inline-flex size-10 items-center justify-center rounded-xl text-ink-soft transition-colors hover:bg-surface hover:text-ink"
+        >
+          <BackIcon size={20} />
+        </Link>
         <PinDetail pinId={id} />
       </div>
-    </div>
+
+      {related.length > 0 ? (
+        <section className="mx-auto mt-12 max-w-[1280px]">
+          <h2 className="mb-6 text-center text-xl font-bold text-ink">More like this</h2>
+          <PinFeed
+            pins={related}
+            savedIds={savedIds}
+            likedIds={likedIds}
+            viewerId={user?.id ?? null}
+          />
+        </section>
+      ) : null}
+    </>
   );
 }

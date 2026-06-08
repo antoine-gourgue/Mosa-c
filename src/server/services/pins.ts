@@ -125,6 +125,50 @@ export async function getPinById(id: string): Promise<Pin | null> {
 }
 
 /**
+ * Fetches pins related to the given pin for the detail page's "More like this"
+ * section: pins sharing the pin's category first, newest first, topped up with
+ * other recent pins when the category does not have enough. The pin itself is
+ * always excluded.
+ *
+ * @param pinId - The pin to find neighbours for.
+ * @param limit - The maximum number of related pins to return.
+ * @returns The related pins.
+ */
+export async function getRelatedPins(pinId: string, limit = 16): Promise<Pin[]> {
+  const current = await prisma.pin.findUnique({
+    where: { id: pinId },
+    select: { categoryId: true },
+  });
+  if (current === null) {
+    return [];
+  }
+  const sameCategory =
+    current.categoryId === null
+      ? []
+      : (
+          await prisma.pin.findMany({
+            where: { id: { not: pinId }, categoryId: current.categoryId },
+            include: PIN_INCLUDE,
+            orderBy: { createdAt: "desc" },
+            take: limit,
+          })
+        ).map(toPin);
+  if (sameCategory.length >= limit) {
+    return sameCategory;
+  }
+  const excludeIds = [pinId, ...sameCategory.map((pin) => pin.id)];
+  const fillers = (
+    await prisma.pin.findMany({
+      where: { id: { notIn: excludeIds } },
+      include: PIN_INCLUDE,
+      orderBy: { createdAt: "desc" },
+      take: limit - sameCategory.length,
+    })
+  ).map(toPin);
+  return [...sameCategory, ...fillers];
+}
+
+/**
  * Fetches the pins authored by a user, newest first.
  *
  * @param userId - The creator's user id.

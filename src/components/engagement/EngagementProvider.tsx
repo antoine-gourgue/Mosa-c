@@ -18,20 +18,24 @@ export type PinOverride = {
 
 type EngagementContextValue = {
   overrides: ReadonlyMap<string, PinOverride>;
+  follows: ReadonlyMap<string, boolean>;
   setLike: (pinId: string, liked: boolean, likeCount: number) => void;
   setSaved: (pinId: string, saved: boolean) => void;
   setCommentCount: (pinId: string, commentCount: number) => void;
   setDownloadCount: (pinId: string, downloadCount: number) => void;
+  setFollowing: (creatorId: string, following: boolean) => void;
 };
 
 const noop = (): void => {};
 
 const EngagementContext = createContext<EngagementContextValue>({
   overrides: new Map(),
+  follows: new Map(),
   setLike: noop,
   setSaved: noop,
   setCommentCount: noop,
   setDownloadCount: noop,
+  setFollowing: noop,
 });
 
 /**
@@ -45,6 +49,7 @@ const EngagementContext = createContext<EngagementContextValue>({
  */
 export function EngagementProvider({ children }: { children: ReactNode }): ReactElement {
   const [overrides, setOverrides] = useState<Map<string, PinOverride>>(() => new Map());
+  const [follows, setFollows] = useState<Map<string, boolean>>(() => new Map());
 
   const patch = useCallback((pinId: string, part: PinOverride): void => {
     setOverrides((prev) => {
@@ -54,15 +59,25 @@ export function EngagementProvider({ children }: { children: ReactNode }): React
     });
   }, []);
 
+  const setFollowing = useCallback((creatorId: string, following: boolean): void => {
+    setFollows((prev) => {
+      const next = new Map(prev);
+      next.set(creatorId, following);
+      return next;
+    });
+  }, []);
+
   const value = useMemo<EngagementContextValue>(
     () => ({
       overrides,
+      follows,
       setLike: (pinId, liked, likeCount) => patch(pinId, { liked, likeCount }),
       setSaved: (pinId, saved) => patch(pinId, { saved }),
       setCommentCount: (pinId, commentCount) => patch(pinId, { commentCount }),
       setDownloadCount: (pinId, downloadCount) => patch(pinId, { downloadCount }),
+      setFollowing,
     }),
-    [overrides, patch],
+    [overrides, follows, patch, setFollowing],
   );
 
   return <EngagementContext.Provider value={value}>{children}</EngagementContext.Provider>;
@@ -92,11 +107,24 @@ export function usePinOverride(pinId: string): PinOverride {
 }
 
 /**
+ * Reads the current follow override for a creator, shared across every tree so
+ * following in the pin detail stays in sync with the profile and suggestions.
+ *
+ * @param creatorId - The creator id.
+ * @returns The overridden follow state, or undefined when none is set.
+ */
+export function useFollowOverride(creatorId: string): boolean | undefined {
+  const { follows } = useContext(EngagementContext);
+  return follows.get(creatorId);
+}
+
+/**
  * Returns the setters used to publish engagement changes to the shared store.
  *
  * @returns The engagement store setters.
  */
-export function useEngagementActions(): Omit<EngagementContextValue, "overrides"> {
-  const { setLike, setSaved, setCommentCount, setDownloadCount } = useContext(EngagementContext);
-  return { setLike, setSaved, setCommentCount, setDownloadCount };
+export function useEngagementActions(): Omit<EngagementContextValue, "overrides" | "follows"> {
+  const { setLike, setSaved, setCommentCount, setDownloadCount, setFollowing } =
+    useContext(EngagementContext);
+  return { setLike, setSaved, setCommentCount, setDownloadCount, setFollowing };
 }

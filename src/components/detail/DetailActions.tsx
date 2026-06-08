@@ -157,15 +157,6 @@ export function DetailActions({
             className="h-11 px-3"
             isAuthed={isAuthed}
           />
-          {downloads > 0 ? (
-            <span
-              className="inline-flex items-center gap-1 px-1 text-[13px] font-medium text-ink-soft"
-              aria-label={`${downloads} downloads`}
-            >
-              <DownloadIcon size={16} />
-              {downloads}
-            </span>
-          ) : null}
           <Menu label="More options" icon={<MoreIcon />} align="start" items={menuItems} />
         </div>
         {!isOwner && isAuthed && boards.length > 0 ? (
