@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.10.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.9.1...v1.10.0) (2026-06-08)
+
+
+### Features
+
+* **detail:** redesign pin closeup and enrich the standalone page ([03c58b6](https://github.com/antoine-gourgue/Mosa-c/commit/03c58b657c0e1f63b0aa19bbe5268ae5270f49b8))
+* **detail:** redesign pin closeup and enrich the standalone page ([9db6ac8](https://github.com/antoine-gourgue/Mosa-c/commit/9db6ac803966e3b224991cd43033263112753b23))
+
 ## [1.9.1](https://github.com/antoine-gourgue/Mosa-c/compare/v1.9.0...v1.9.1) (2026-06-08)
 
 
