@@ -3,8 +3,15 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { getMessages, getOrCreateConversation, toMessage } from "@/server/services/messages";
-import type { ChatMessage } from "@/types/domain";
+import {
+  getConversations,
+  getMessageRequests,
+  getMessages,
+  getOrCreateConversation,
+  toMessage,
+} from "@/server/services/messages";
+import { getSuggestedCreators, searchMentionUsers } from "@/server/services/users";
+import type { ChatMessage, ConversationSummary, Creator } from "@/types/domain";
 
 const messageSchema = z.object({
   body: z.string().trim().min(1, "Write a message first.").max(4000),
@@ -51,6 +58,55 @@ export async function sendMessage(
     }),
   ]);
   return { ok: true, message: toMessage(row) };
+}
+
+/**
+ * Loads the current user's inbox: accepted conversations and pending message
+ * requests. Used by the messages overlay panel to lazily fetch its contents the
+ * first time it is opened, so the data is not fetched on every page render.
+ *
+ * @returns The conversations and requests, or an authorization error.
+ */
+export async function loadInbox(): Promise<
+  | {
+      ok: true;
+      conversations: ConversationSummary[];
+      requests: ConversationSummary[];
+      suggestions: Creator[];
+    }
+  | { ok: false; error: string }
+> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: "You must be signed in." };
+  }
+  const [conversations, requests, suggestions] = await Promise.all([
+    getConversations(user.id),
+    getMessageRequests(user.id),
+    getSuggestedCreators(user.id, 4),
+  ]);
+  return { ok: true, conversations, requests, suggestions };
+}
+
+/**
+ * Searches for users the current viewer can start a conversation with, by name
+ * or username. Used by the messages panel's "new message" recipient picker.
+ *
+ * @param query - The free-text search query.
+ * @returns The matching users (id, name, username, avatar), or an error.
+ */
+export async function searchRecipients(
+  query: string,
+): Promise<
+  | { ok: true; users: { id: string; name: string; username: string; avatarUrl: string | null }[] }
+  | { ok: false; error: string }
+> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: "You must be signed in." };
+  }
+  const users = await searchMentionUsers(query, user.id, 8);
+  return { ok: true, users };
 }
 
 /**
@@ -118,6 +174,30 @@ export async function startConversation(
     return { ok: false, error: "You can't message this user." };
   }
   return { ok: true, conversationId };
+}
+
+/**
+ * Deletes a conversation the current user is a participant of, removing it (and
+ * its messages, by cascade) for everyone. Used by the inbox swipe-to-delete
+ * gesture.
+ *
+ * @param conversationId - The conversation id.
+ * @returns Whether the conversation was deleted.
+ */
+export async function deleteConversation(
+  conversationId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: "You must be signed in." };
+  }
+  const result = await prisma.conversation.deleteMany({
+    where: { id: conversationId, participants: { some: { userId: user.id } } },
+  });
+  if (result.count === 0) {
+    return { ok: false, error: "Conversation not found." };
+  }
+  return { ok: true };
 }
 
 /**

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
-import { ConfirmDialog, Menu, useToast } from "@/components/ui";
+import { Button, ConfirmDialog, Menu, useToast } from "@/components/ui";
 import { LikeButton } from "@/components/pin";
 import { useEngagementActions, usePinOverride } from "@/components/engagement";
 import { useAuthPrompt } from "@/hooks/use-auth-prompt";
@@ -165,13 +165,7 @@ export function DetailActions({
         {!isOwner && isAuthed && boards.length > 0 ? (
           <SaveToBoard pinId={pinId} title={title} imageUrl={imageUrl} boards={boards} />
         ) : !isAuthed ? (
-          <button
-            type="button"
-            onClick={() => withAuth(() => undefined)}
-            className="h-11 cursor-pointer rounded-full bg-accent px-5 text-[15px] font-semibold text-bg transition-colors duration-150 hover:bg-accent-press"
-          >
-            Save
-          </button>
+          <Button onClick={() => withAuth(() => undefined)}>Save</Button>
         ) : null}
       </div>
     </>

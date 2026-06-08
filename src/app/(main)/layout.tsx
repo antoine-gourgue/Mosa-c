@@ -2,8 +2,16 @@ import { Suspense } from "react";
 import type { ReactElement, ReactNode } from "react";
 import { ToastProvider } from "@/components/ui";
 import { EngagementProvider } from "@/components/engagement";
-import { MessagesProvider } from "@/components/messages";
-import { BottomNav, Fab, TopNav } from "@/components/layout";
+import { MessagesPanel, MessagesProvider } from "@/components/messages";
+import { NotificationsPanel } from "@/components/notifications";
+import {
+  BottomNav,
+  ContentShell,
+  Fab,
+  NavPanelProvider,
+  SideNav,
+  TopNav,
+} from "@/components/layout";
 import { getCurrentUser } from "@/lib/auth";
 import { getCreatorById, getUnreadConversationIds, getUnreadCount } from "@/server/services";
 
@@ -38,20 +46,30 @@ export default async function MainLayout({
       >
         Skip to content
       </a>
-      <Suspense>
-        <TopNav
-          user={{
-            name: profile?.name ?? user?.name ?? "You",
-            image: profile?.avatarUrl ?? user?.image ?? null,
-            username: profile?.username ?? null,
-          }}
-          unreadCount={unreadCount}
-          isAuthed={user !== null}
+      {user !== null ? <SideNav unreadCount={unreadCount} /> : null}
+      <ContentShell offset={user !== null}>
+        <Suspense>
+          <TopNav
+            user={{
+              name: profile?.name ?? user?.name ?? "You",
+              image: profile?.avatarUrl ?? user?.image ?? null,
+              username: profile?.username ?? null,
+            }}
+            isAuthed={user !== null}
+          />
+        </Suspense>
+        <main id="main-content" tabIndex={-1} className="px-6 pb-24 pt-0 sm:pb-20">
+          {children}
+        </main>
+      </ContentShell>
+      {user !== null ? (
+        <MessagesPanel
+          viewerId={user.id}
+          viewerName={profile?.name ?? user.name ?? "You"}
+          viewerImage={profile?.avatarUrl ?? user.image ?? null}
         />
-      </Suspense>
-      <main id="main-content" tabIndex={-1} className="px-6 pb-24 pt-4 sm:pb-20">
-        {children}
-      </main>
+      ) : null}
+      {user !== null ? <NotificationsPanel /> : null}
       {user !== null ? <Fab /> : null}
       {user !== null ? <BottomNav unreadCount={unreadCount} /> : null}
       {modal}
@@ -62,7 +80,7 @@ export default async function MainLayout({
       <EngagementProvider>
         {user !== null ? (
           <MessagesProvider viewerId={user.id} initialUnreadIds={unreadConversationIds}>
-            {shell}
+            <NavPanelProvider>{shell}</NavPanelProvider>
           </MessagesProvider>
         ) : (
           shell

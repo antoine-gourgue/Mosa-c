@@ -281,6 +281,40 @@ export function AtIcon(props: IconProps): ReactElement {
 }
 
 /**
+ * Gear glyph for settings.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function GearIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon strokeWidth={1.6} {...props}>
+      <path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.214 1.28c.062.375.312.687.644.87.074.04.147.083.22.127.325.196.72.257 1.076.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.004.827c-.292.24-.437.613-.43.992a6.932 6.932 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281Z" />
+      <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+    </SvgIcon>
+  );
+}
+
+/**
+ * Filled cog glyph for the active settings navigation state. The centre is cut
+ * out as a hole via the even-odd fill rule.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function GearFilledIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon filled {...props}>
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.214 1.28c.062.375.312.687.644.87.074.04.147.083.22.127.325.196.72.257 1.076.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.004.827c-.292.24-.437.613-.43.992a6.932 6.932 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281ZM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+      />
+    </SvgIcon>
+  );
+}
+
+/**
  * Smiley face glyph for emoji reactions.
  *
  * @param props - Icon sizing and presentation props.
@@ -433,6 +467,82 @@ export function ChevronDownIcon(props: IconProps): ReactElement {
   return (
     <SvgIcon {...props}>
       <path d="m6 9 6 6 6-6" />
+    </SvgIcon>
+  );
+}
+
+/**
+ * Pencil-on-square glyph used for the "new message" compose action.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function ComposeIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon {...props}>
+      <path d="M12 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6" />
+      <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z" />
+    </SvgIcon>
+  );
+}
+
+/**
+ * Upward arrow glyph used inside the message composer's send button.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function SendIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon {...props}>
+      <path d="M12 19V5m0 0-6 6m6-6 6 6" />
+    </SvgIcon>
+  );
+}
+
+/**
+ * Filled house glyph for the active home navigation state.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function HomeFilledIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon filled {...props}>
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M3 9.8 12 3l9 6.8V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.8ZM9.5 21v-6h5v6z"
+      />
+    </SvgIcon>
+  );
+}
+
+/**
+ * Filled bell glyph for the active notifications navigation state.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function BellFilledIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon filled {...props}>
+      <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9Z" />
+      <path d="M14 20a2 2 0 0 1-4 0Z" />
+    </SvgIcon>
+  );
+}
+
+/**
+ * Filled comment-bubble glyph for the active messages navigation state.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function CommentFilledIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon filled {...props}>
+      <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-5A8 8 0 1 1 21 12z" />
     </SvgIcon>
   );
 }

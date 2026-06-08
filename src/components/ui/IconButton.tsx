@@ -66,7 +66,7 @@ export function IconButton({
       title={label}
       aria-pressed={active}
       className={cn(
-        "inline-flex items-center justify-center rounded-full",
+        "inline-flex items-center justify-center rounded-xl",
         "cursor-pointer transition-[background-color,color,transform] duration-150 ease-out",
         "active:scale-[0.94] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
         SIZE_CLASSES[size],

@@ -68,7 +68,7 @@ export function LikeButton({
       aria-pressed={liked}
       aria-label={liked ? "Unlike" : "Like"}
       className={cn(
-        "inline-flex cursor-pointer items-center gap-1.5 rounded-full text-ink transition-colors hover:bg-surface",
+        "inline-flex cursor-pointer items-center gap-1.5 rounded-xl text-ink transition-colors hover:bg-surface",
         className,
       )}
     >

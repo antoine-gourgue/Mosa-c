@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Fragment, useEffect, useRef, useState, useTransition } from "react";
 import type { KeyboardEvent, PointerEvent, ReactElement } from "react";
-import { Avatar, Button } from "@/components/ui";
+import { Avatar, Button, Input } from "@/components/ui";
 import { BackIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { getRealtimeSocket } from "@/lib/realtime";
@@ -446,7 +446,7 @@ export function Messenger({
   );
 
   return (
-    <div className="flex h-[calc(100dvh-10rem)] overflow-hidden border-t border-line sm:h-[calc(100dvh-5rem)]">
+    <div className="flex h-[calc(100dvh-9rem)] overflow-hidden border-t border-line sm:h-[calc(100dvh-4rem)]">
       <aside
         className={cn(
           "w-full shrink-0 overflow-y-auto border-line md:w-80 md:border-r",
@@ -459,7 +459,7 @@ export function Messenger({
               type="button"
               aria-label="Back to messages"
               onClick={() => setTab("inbox")}
-              className="cursor-pointer rounded-full p-1 text-ink-soft hover:text-ink"
+              className="cursor-pointer rounded-lg p-1 text-ink-soft hover:text-ink"
             >
               <BackIcon size={20} />
             </button>
@@ -512,7 +512,7 @@ export function Messenger({
                 type="button"
                 aria-label="Back to conversations"
                 onClick={() => setActiveId(null)}
-                className="cursor-pointer rounded-full p-1 text-ink-soft hover:text-ink md:hidden"
+                className="cursor-pointer rounded-lg p-1 text-ink-soft hover:text-ink md:hidden"
               >
                 <BackIcon size={20} />
               </button>
@@ -624,13 +624,14 @@ export function Messenger({
                   you a message.
                 </p>
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    className="h-11 flex-1"
                     onClick={onDeclineRequest}
-                    className="h-11 flex-1 cursor-pointer rounded-full bg-surface text-[15px] font-semibold text-ink transition-colors hover:bg-surface-2"
                   >
                     Decline
-                  </button>
+                  </Button>
                   <Button type="button" className="h-11 flex-1" onClick={onAcceptRequest}>
                     Accept
                   </Button>
@@ -644,7 +645,7 @@ export function Messenger({
                 }}
                 className="flex items-center gap-2 border-t border-line px-4 py-3"
               >
-                <input
+                <Input
                   aria-label="Message"
                   value={draft}
                   onChange={(event) => {
@@ -653,7 +654,6 @@ export function Messenger({
                   }}
                   onKeyDown={onComposerKeyDown}
                   placeholder="Write a message…"
-                  className="h-11 flex-1 rounded-full bg-surface px-4 text-[15px] text-ink outline-none placeholder:text-ink-faint focus:bg-surface-2"
                 />
                 <Button type="submit" className="h-11" disabled={draft.trim() === ""}>
                   Send

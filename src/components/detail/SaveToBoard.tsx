@@ -2,9 +2,8 @@
 
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
-import { Menu, useToast } from "@/components/ui";
+import { Button, Menu, useToast } from "@/components/ui";
 import { CheckIcon, ChevronDownIcon } from "@/icons";
-import { cn } from "@/lib/cn";
 import { savePinToBoard } from "@/server/actions/saves";
 
 /**
@@ -60,17 +59,13 @@ export function SaveToBoard({ pinId, title, imageUrl, boards }: SaveToBoardProps
 
   return (
     <div className="flex items-center">
-      <button
-        type="button"
+      <Button
         onClick={() => saveTo(boardId)}
         disabled={pending || boardId === ""}
-        className={cn(
-          "h-11 cursor-pointer bg-accent px-5 text-[15px] font-semibold text-bg transition-colors duration-150 hover:bg-accent-press disabled:opacity-50",
-          multi ? "rounded-l-full" : "rounded-full",
-        )}
+        className={multi ? "rounded-r-none" : undefined}
       >
         Save
-      </button>
+      </Button>
       {multi ? (
         <Menu
           label="Choose a board"
@@ -81,7 +76,7 @@ export function SaveToBoard({ pinId, title, imageUrl, boards }: SaveToBoardProps
             onSelect: () => saveTo(board.id),
           }))}
           trigger={
-            <span className="flex h-11 items-center rounded-r-full border-l border-bg/30 bg-accent px-2.5 text-bg transition-colors duration-150 hover:bg-accent-press">
+            <span className="flex h-11 items-center rounded-r-xl border-l border-bg/30 bg-accent px-2.5 text-bg transition-colors duration-150 hover:bg-accent-press">
               <ChevronDownIcon size={18} />
             </span>
           }

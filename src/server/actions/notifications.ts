@@ -4,6 +4,25 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { AppError } from "@/server/result";
+import { getNotifications } from "@/server/services/notifications";
+import type { AppNotification } from "@/types/domain";
+
+/**
+ * Loads the current user's notifications for the rail overlay panel, fetched
+ * lazily the first time the panel is opened.
+ *
+ * @returns The notifications, or an authorization error.
+ */
+export async function loadNotifications(): Promise<
+  { ok: true; notifications: AppNotification[] } | { ok: false; error: string }
+> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: "You must be signed in." };
+  }
+  const notifications = await getNotifications(user.id);
+  return { ok: true, notifications };
+}
 
 /**
  * Marks a single notification as read, scoped to the current user so a user can

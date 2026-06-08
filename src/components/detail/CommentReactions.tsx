@@ -141,7 +141,7 @@ export function CommentReactions({
           disabled={!isAuthed}
           aria-pressed={reaction.reactedByViewer}
           onClick={() => react(reaction.emoji)}
-          className={`flex h-7 cursor-pointer items-center gap-1 rounded-full border px-2 text-[13px] leading-none transition-colors disabled:cursor-default ${
+          className={`flex h-7 cursor-pointer items-center gap-1 rounded-lg border px-2 text-[13px] leading-none transition-colors disabled:cursor-default ${
             reaction.reactedByViewer
               ? "border-accent/40 bg-accent/10 text-ink"
               : "border-line bg-surface text-ink-soft hover:bg-surface-2"
@@ -159,7 +159,7 @@ export function CommentReactions({
           aria-label="Add a reaction"
           aria-expanded={open}
           onClick={togglePicker}
-          className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-line bg-surface text-ink-soft transition-colors hover:bg-surface-2 hover:text-ink"
+          className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-line bg-surface text-ink-soft transition-colors hover:bg-surface-2 hover:text-ink"
         >
           <SmileIcon size={16} />
         </button>

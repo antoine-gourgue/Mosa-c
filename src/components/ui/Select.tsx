@@ -47,7 +47,7 @@ export function Select({
         aria-invalid={error ? true : undefined}
         aria-describedby={messageId}
         className={cn(
-          "h-12 w-full cursor-pointer rounded-2xl bg-surface px-4 text-[15px] text-ink",
+          "h-12 w-full cursor-pointer rounded-xl bg-surface px-4 text-[15px] text-ink",
           "outline-none transition-[box-shadow,background-color] duration-150 ease-out",
           error ? "ring-2 ring-accent" : "focus:bg-surface-2 focus:ring-2 focus:ring-ink/15",
           className,

@@ -103,23 +103,25 @@ export function CategoriesAdmin({ categories }: CategoriesAdminProps): ReactElem
       className: "text-right",
       render: (category) => (
         <div className="flex justify-end gap-1">
-          <button
-            type="button"
+          <Button
+            variant="plain"
+            size="sm"
+            className="text-ink-soft hover:bg-surface hover:text-ink"
             onClick={() => {
               setError(null);
               setDialog({ mode: "edit", category });
             }}
-            className="cursor-pointer rounded-full px-3 py-1.5 text-sm font-semibold text-ink-soft transition-colors hover:bg-surface hover:text-ink"
           >
             Edit
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="plain"
+            size="sm"
+            className="text-accent hover:bg-accent/10"
             onClick={() => setToDelete(category)}
-            className="cursor-pointer rounded-full px-3 py-1.5 text-sm font-semibold text-accent transition-colors hover:bg-accent/10"
           >
             Delete
-          </button>
+          </Button>
         </div>
       ),
     },
