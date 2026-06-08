@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent, ReactElement } from "react";
 import { Button } from "@/components/ui";
 import { SendIcon } from "@/icons";
@@ -65,6 +65,7 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
   const [dragActive, setDragActive] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [urlOpen, setUrlOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File | undefined): Promise<void> => {
     if (file === undefined) {
@@ -98,6 +99,14 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
     void handleFile(event.target.files?.[0]);
   };
 
+  useEffect(() => {
+    const pending = inputRef.current?.files?.[0];
+    if (pending !== undefined) {
+      void handleFile(pending);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const onDrop = (event: DragEvent<HTMLLabelElement>): void => {
     event.preventDefault();
     setDragActive(false);
@@ -116,6 +125,7 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
         className="block cursor-pointer"
       >
         <input
+          ref={inputRef}
           type="file"
           accept="image/*,.heic,.heif"
           className="hidden"
@@ -146,6 +156,8 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
           </div>
         ) : (
           <div
+            role="img"
+            aria-label="Selected preview"
             className={cn(
               "rounded-xl transition-shadow",
               dragActive ? "ring-2 ring-accent ring-offset-2 ring-offset-bg" : "",
@@ -154,7 +166,7 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={value.previewUrl}
-              alt="Selected preview"
+              alt=""
               className="mx-auto block max-h-[70vh] w-auto max-w-full rounded-xl"
             />
           </div>

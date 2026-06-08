@@ -636,6 +636,7 @@ export function MessagesPanel({
     <aside
       aria-label="Messages"
       aria-hidden={!panelOpen}
+      inert={!panelOpen}
       className={cn(
         "fixed bottom-0 left-16 top-0 z-40 hidden w-[360px] flex-col border-r border-line bg-bg transition-transform duration-200 ease-out sm:flex",
         panelOpen ? "translate-x-0" : "pointer-events-none -translate-x-[calc(100%+0.5rem)]",
