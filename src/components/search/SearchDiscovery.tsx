@@ -1,23 +1,31 @@
 import type { ReactElement } from "react";
-import { getCategories, getPins } from "@/server/services";
-import { CategoryGrid } from "./CategoryGrid";
-import { InspirationRail } from "./InspirationRail";
+import { PinFeed } from "@/components/pin";
+import { getCurrentUser } from "@/lib/auth";
+import { getLikedPinIds, getPins, getPopularTags, getSavedPinIds } from "@/server/services";
+import { TagCloud } from "./TagCloud";
 
 /**
  * Discovery view shown when the search has no query: the "Ideas for you"
- * category grid and the "Today's Inspiration" rail.
+ * popular-tags cloud and a "Today's Inspiration" masonry feed like the home page.
  *
  * @returns The discovery view element.
  */
 export async function SearchDiscovery(): Promise<ReactElement> {
-  const [categories, pins] = await Promise.all([getCategories(), getPins()]);
-  const inspiration = pins.slice(0, 8);
+  const user = await getCurrentUser();
+  const [tags, pins, savedIds, likedIds] = await Promise.all([
+    getPopularTags(),
+    getPins(),
+    user === null ? Promise.resolve<string[]>([]) : getSavedPinIds(user.id),
+    user === null ? Promise.resolve<string[]>([]) : getLikedPinIds(user.id),
+  ]);
   return (
     <div className="mt-10">
       <h2 className="text-2xl font-extrabold text-ink">Ideas for you</h2>
-      <CategoryGrid categories={categories} />
+      <TagCloud tags={tags} />
       <h2 className="mt-12 text-2xl font-extrabold text-ink">Today&rsquo;s Inspiration</h2>
-      <InspirationRail pins={inspiration} />
+      <div className="mt-5">
+        <PinFeed pins={pins} savedIds={savedIds} likedIds={likedIds} viewerId={user?.id ?? null} />
+      </div>
     </div>
   );
 }

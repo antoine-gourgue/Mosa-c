@@ -30,8 +30,8 @@ test("admins can open the dashboard and navigate the back office", async ({ page
   await page.goto("/admin");
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   await expect(page.getByText("Pins", { exact: true })).toBeVisible();
-  await page.getByRole("link", { name: "Categories" }).click();
-  await expect(page.getByRole("heading", { name: "Categories" })).toBeVisible();
+  await page.getByRole("link", { name: "Reports" }).click();
+  await expect(page.getByRole("heading", { name: "Reports" })).toBeVisible();
 });
 
 test("admins can list and search users", async ({ page }) => {
@@ -81,18 +81,4 @@ test("admins can open a pin's detail and edit it", async ({ page }) => {
   await page.getByLabel("Title").fill("Paris, blue hour");
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("Pin updated")).toBeVisible();
-});
-
-test("admins can create a category", async ({ page }) => {
-  await loginAsAdmin(page);
-  await page.goto("/admin/categories");
-  await expect(page.getByRole("heading", { name: "Categories" })).toBeVisible();
-  await page.getByRole("button", { name: "Add category" }).click();
-  const name = `Street Food ${Date.now()}`;
-  await page.getByLabel("Name").fill(name);
-  await page
-    .getByLabel("Cover image URL")
-    .fill("https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200");
-  await page.getByRole("button", { name: "Create" }).click();
-  await expect(page.getByText(name)).toBeVisible();
 });

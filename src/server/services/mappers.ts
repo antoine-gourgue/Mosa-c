@@ -1,4 +1,4 @@
-import type { Board, Category, Creator, Pin } from "@/types/domain";
+import type { Board, Creator, Pin, Tag } from "@/types/domain";
 
 /**
  * Structural shape of a creator row read from the database.
@@ -14,13 +14,12 @@ export type CreatorRow = {
 };
 
 /**
- * Structural shape of a category row read from the database.
+ * Structural shape of a tag row read from the database.
  */
-export type CategoryRow = {
+export type TagRow = {
   id: string;
   slug: string;
-  label: string;
-  imageUrl: string;
+  name: string;
 };
 
 /**
@@ -36,7 +35,7 @@ export type PinRow = {
   link: string | null;
   downloadCount: number;
   creator: CreatorRow;
-  category: CategoryRow | null;
+  tags: { tag: TagRow }[];
   _count: { likes: number; comments: number };
 };
 
@@ -51,11 +50,11 @@ export type BoardRow = {
 };
 
 /**
- * Prisma include selecting a pin's creator and category.
+ * Prisma include selecting a pin's creator and tags.
  */
 export const PIN_INCLUDE = {
   creator: true,
-  category: true,
+  tags: { include: { tag: true }, orderBy: { tag: { name: "asc" } } },
   _count: { select: { likes: true, comments: true } },
 } as const;
 
@@ -78,13 +77,13 @@ export function toCreator(row: CreatorRow): Creator {
 }
 
 /**
- * Maps a category row to the UI category type.
+ * Maps a tag row to the UI tag type.
  *
- * @param row - The category row.
- * @returns The mapped category.
+ * @param row - The tag row.
+ * @returns The mapped tag.
  */
-export function toCategory(row: CategoryRow): Category {
-  return { id: row.id, slug: row.slug, label: row.label, imageUrl: row.imageUrl };
+export function toTag(row: TagRow): Tag {
+  return { id: row.id, slug: row.slug, name: row.name };
 }
 
 /**
@@ -103,7 +102,7 @@ export function toPin(row: PinRow): Pin {
     height: row.height,
     link: row.link,
     creator: toCreator(row.creator),
-    category: row.category === null ? null : toCategory(row.category),
+    tags: row.tags.map((pinTag) => toTag(pinTag.tag)),
     likeCount: row._count.likes,
     commentCount: row._count.comments,
     downloadCount: row.downloadCount,

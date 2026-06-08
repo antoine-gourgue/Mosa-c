@@ -17,11 +17,6 @@ type CreatorSeed = {
   followersLabel: string;
 };
 
-type CategorySeed = {
-  label: string;
-  imageUrl: string;
-};
-
 type PinSeed = {
   ref: number;
   imageUrl: string;
@@ -29,7 +24,7 @@ type PinSeed = {
   height: number;
   title: string;
   creator: string;
-  category: string;
+  tag: string;
   description: string;
 };
 
@@ -53,15 +48,6 @@ const creators: CreatorSeed[] = [
   { key: "north", name: "Northlight", avatarUrl: "/images/creator3.png", followersLabel: "4.7m" },
 ];
 
-const categories: CategorySeed[] = [
-  { label: "Travel", imageUrl: unsplash("1501785888041-af3ef285b470", 500, 500) },
-  { label: "Mountains", imageUrl: unsplash("1506905925346-21bda4d32df4", 500, 500) },
-  { label: "Nature", imageUrl: unsplash("1441974231531-c6227db76b6e", 500, 500) },
-  { label: "Food", imageUrl: unsplash("1504674900247-0877df9cc836", 500, 500) },
-  { label: "Animals", imageUrl: unsplash("1518791841217-8f162f1e1131", 500, 500) },
-  { label: "City", imageUrl: unsplash("1480714378408-67cf0d13bc1b", 500, 500) },
-];
-
 const pins: PinSeed[] = [
   {
     ref: 1,
@@ -70,7 +56,7 @@ const pins: PinSeed[] = [
     height: 460,
     title: "Lago di Braies, Dolomites",
     creator: "atlas",
-    category: "Travel",
+    tag: "Travel",
     description: "Turquoise water and wooden rowboats beneath the Dolomite cliffs.",
   },
   {
@@ -80,7 +66,7 @@ const pins: PinSeed[] = [
     height: 520,
     title: "Above the green valley",
     creator: "north",
-    category: "Nature",
+    tag: "Nature",
     description: "A lone hiker on a ridge above mist-filled, forested hills.",
   },
   {
@@ -90,7 +76,7 @@ const pins: PinSeed[] = [
     height: 500,
     title: "Lakeside cabin in the Alps",
     creator: "atlas",
-    category: "Travel",
+    tag: "Travel",
     description: "A wooden boathouse on a still mountain lake at first light.",
   },
   {
@@ -100,7 +86,7 @@ const pins: PinSeed[] = [
     height: 440,
     title: "El Capitan, Yosemite",
     creator: "north",
-    category: "Mountains",
+    tag: "Mountains",
     description: "Morning light on the granite face above the valley meadow.",
   },
   {
@@ -110,7 +96,7 @@ const pins: PinSeed[] = [
     height: 760,
     title: "Path through the woods",
     creator: "bloom",
-    category: "Nature",
+    tag: "Nature",
     description: "A quiet trail winding between tall trees in soft afternoon light.",
   },
   {
@@ -120,7 +106,7 @@ const pins: PinSeed[] = [
     height: 440,
     title: "Moraine Lake at sunrise",
     creator: "atlas",
-    category: "Mountains",
+    tag: "Mountains",
     description: "Alpenglow over the Valley of the Ten Peaks in Banff, Canada.",
   },
   {
@@ -130,7 +116,7 @@ const pins: PinSeed[] = [
     height: 600,
     title: "Curious tabby",
     creator: "bloom",
-    category: "Animals",
+    tag: "Animals",
     description: "A tabby cat caught mid-stare on a soft grey couch.",
   },
   {
@@ -140,7 +126,7 @@ const pins: PinSeed[] = [
     height: 640,
     title: "Happy beagle",
     creator: "mira",
-    category: "Animals",
+    tag: "Animals",
     description: "A grinning beagle on a woodland walk.",
   },
   {
@@ -150,7 +136,7 @@ const pins: PinSeed[] = [
     height: 460,
     title: "Thai beef salad",
     creator: "bloom",
-    category: "Food",
+    tag: "Food",
     description: "Seared beef with crisp greens, chilli and cashews.",
   },
   {
@@ -160,7 +146,7 @@ const pins: PinSeed[] = [
     height: 600,
     title: "Wood-fired pizza",
     creator: "bloom",
-    category: "Food",
+    tag: "Food",
     description: "A blistered pizza topped with red onion and fresh coriander.",
   },
   {
@@ -170,7 +156,7 @@ const pins: PinSeed[] = [
     height: 760,
     title: "Garden bowl & juice",
     creator: "mira",
-    category: "Food",
+    tag: "Food",
     description: "A crunchy salad bowl with a glass of fresh orange juice.",
   },
   {
@@ -180,7 +166,7 @@ const pins: PinSeed[] = [
     height: 600,
     title: "Paris at dusk",
     creator: "north",
-    category: "Travel",
+    tag: "Travel",
     description: "The Eiffel Tower glowing over the Seine at blue hour.",
   },
   {
@@ -190,7 +176,7 @@ const pins: PinSeed[] = [
     height: 440,
     title: "Pont Alexandre III",
     creator: "north",
-    category: "Travel",
+    tag: "Travel",
     description: "Golden lamps lining the most ornate bridge in Paris.",
   },
   {
@@ -200,7 +186,7 @@ const pins: PinSeed[] = [
     height: 760,
     title: "Shibuya after dark",
     creator: "mira",
-    category: "City",
+    tag: "City",
     description: "Neon signs and crossings in the heart of Tokyo at night.",
   },
   {
@@ -210,7 +196,7 @@ const pins: PinSeed[] = [
     height: 440,
     title: "Manhattan sunset",
     creator: "atlas",
-    category: "City",
+    tag: "City",
     description: "Low sunlight raking across the Midtown skyline.",
   },
   {
@@ -220,7 +206,7 @@ const pins: PinSeed[] = [
     height: 460,
     title: "Peaks above the clouds",
     creator: "north",
-    category: "Mountains",
+    tag: "Mountains",
     description: "Snowy summits rising over a sea of cloud at sunset.",
   },
 ];
@@ -252,12 +238,13 @@ async function main(): Promise<void> {
     );
   }
 
-  for (const category of categories) {
-    const slug = slugify(category.label);
-    await prisma.category.upsert({
+  const tagLabels = [...new Set(pins.map((pin) => pin.tag))];
+  for (const label of tagLabels) {
+    const slug = slugify(label);
+    await prisma.tag.upsert({
       where: { slug },
-      update: { label: category.label, imageUrl: category.imageUrl },
-      create: { slug, label: category.label, imageUrl: category.imageUrl },
+      update: { name: label },
+      create: { slug, name: label },
     });
   }
 
@@ -337,7 +324,6 @@ async function main(): Promise<void> {
         imageUrl: pin.imageUrl,
         width: pin.width,
         height: pin.height,
-        category: { connect: { slug: slugify(pin.category) } },
       },
       create: {
         id: `pin_${pin.ref}`,
@@ -347,16 +333,21 @@ async function main(): Promise<void> {
         width: pin.width,
         height: pin.height,
         creator: { connect: { id: `user_${pin.creator}` } },
-        category: { connect: { slug: slugify(pin.category) } },
       },
     });
+    const tag = await prisma.tag.findUnique({ where: { slug: slugify(pin.tag) } });
+    if (tag !== null) {
+      await prisma.pinTag.upsert({
+        where: { pinId_tagId: { pinId: `pin_${pin.ref}`, tagId: tag.id } },
+        update: {},
+        create: { pinId: `pin_${pin.ref}`, tagId: tag.id },
+      });
+    }
   }
 
   const seededPinIds = pins.map((pin) => `pin_${pin.ref}`);
   await prisma.pin.deleteMany({ where: { id: { notIn: seededPinIds } } });
-
-  const seededSlugs = categories.map((category) => slugify(category.label));
-  await prisma.category.deleteMany({ where: { slug: { notIn: seededSlugs } } });
+  await prisma.tag.deleteMany({ where: { pins: { none: {} } } });
 
   for (const ref of [1, 6]) {
     await prisma.save.upsert({

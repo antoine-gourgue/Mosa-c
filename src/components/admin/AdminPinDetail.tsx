@@ -5,10 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
-import { Button, Input, Select, Textarea, useToast } from "@/components/ui";
+import { Button, Input, Textarea, useToast } from "@/components/ui";
 import { adminUpdatePin } from "@/server/actions/admin";
 import type { AdminPinDetail as AdminPinDetailData } from "@/server/services";
-import type { Category } from "@/types/domain";
 import { AdminRemoveAction } from "./AdminRemoveAction";
 
 /**
@@ -16,7 +15,6 @@ import { AdminRemoveAction } from "./AdminRemoveAction";
  */
 export type AdminPinDetailProps = {
   pin: AdminPinDetailData;
-  categories: Category[];
 };
 
 /**
@@ -38,32 +36,26 @@ function Metric({ label, value }: { label: string; value: number }): ReactElemen
 
 /**
  * Admin detail for a single pin: the image and engagement metrics beside an
- * inline editor for the title, description, link and category, with a separated
- * danger zone to remove the pin.
+ * inline editor for the title, description and link, with a separated danger
+ * zone to remove the pin.
  *
- * @param props - The pin detail and the category options.
+ * @param props - The pin detail.
  * @returns The pin detail element.
  */
-export function AdminPinDetail({ pin, categories }: AdminPinDetailProps): ReactElement {
+export function AdminPinDetail({ pin }: AdminPinDetailProps): ReactElement {
   const { show } = useToast();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [title, setTitle] = useState(pin.title);
   const [description, setDescription] = useState(pin.description ?? "");
   const [link, setLink] = useState(pin.link ?? "");
-  const [categoryId, setCategoryId] = useState(pin.categoryId ?? "");
   const [error, setError] = useState<string | null>(null);
 
   const onSave = (): void => {
     setError(null);
     startTransition(async () => {
       try {
-        await adminUpdatePin(pin.id, {
-          title,
-          description,
-          link,
-          categoryId: categoryId === "" ? null : categoryId,
-        });
+        await adminUpdatePin(pin.id, { title, description, link });
         show({ title: "Pin updated" });
         router.refresh();
       } catch (caught) {
@@ -135,18 +127,6 @@ export function AdminPinDetail({ pin, categories }: AdminPinDetailProps): ReactE
               onChange={(event) => setLink(event.target.value)}
               placeholder="https://…"
             />
-            <Select
-              label="Category"
-              value={categoryId}
-              onChange={(event) => setCategoryId(event.target.value)}
-            >
-              <option value="">Uncategorised</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.label}
-                </option>
-              ))}
-            </Select>
             {error !== null ? (
               <p role="alert" className="text-sm text-accent">
                 {error}

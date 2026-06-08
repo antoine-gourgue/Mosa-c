@@ -195,7 +195,6 @@ export type AdminPinDetail = {
   createdAt: Date;
   creatorId: string;
   creatorName: string;
-  categoryId: string | null;
   counts: { likes: number; comments: number; downloads: number; saves: number; reports: number };
 };
 
@@ -219,7 +218,6 @@ export async function getAdminPinDetail(id: string): Promise<AdminPinDetail | nu
       link: true,
       createdAt: true,
       downloadCount: true,
-      categoryId: true,
       creator: { select: { id: true, name: true } },
       _count: { select: { likes: true, comments: true, saves: true, reports: true } },
     },
@@ -238,7 +236,6 @@ export async function getAdminPinDetail(id: string): Promise<AdminPinDetail | nu
     createdAt: pin.createdAt,
     creatorId: pin.creator.id,
     creatorName: pin.creator.name,
-    categoryId: pin.categoryId,
     counts: {
       likes: pin._count.likes,
       comments: pin._count.comments,
@@ -395,43 +392,6 @@ export async function getAdminComments(page: number): Promise<AdminCommentsPage>
     page: current,
     pageSize: ADMIN_COMMENTS_PAGE_SIZE,
   };
-}
-
-/**
- * A category row in the admin categories table.
- */
-export type AdminCategoryRow = {
-  id: string;
-  slug: string;
-  label: string;
-  imageUrl: string;
-  pinCount: number;
-};
-
-/**
- * Lists every category with its pin count for the admin categories table,
- * alphabetically by label.
- *
- * @returns The categories.
- */
-export async function getAdminCategories(): Promise<AdminCategoryRow[]> {
-  const rows = await prisma.category.findMany({
-    orderBy: { label: "asc" },
-    select: {
-      id: true,
-      slug: true,
-      label: true,
-      imageUrl: true,
-      _count: { select: { pins: true } },
-    },
-  });
-  return rows.map((category) => ({
-    id: category.id,
-    slug: category.slug,
-    label: category.label,
-    imageUrl: category.imageUrl,
-    pinCount: category._count.pins,
-  }));
 }
 
 /**

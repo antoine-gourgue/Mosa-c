@@ -2,7 +2,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 import { JsonLd } from "@/components/seo";
-import { Divider } from "@/components/ui";
+import { Divider, Tag } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { getCurrentUser } from "@/lib/auth";
 import {
@@ -104,10 +104,14 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
           isPinOwner={user?.id === pin.creator.id}
           header={
             <div className="flex flex-col gap-2">
-              {pin.category !== null ? (
-                <span className="text-sm font-medium text-ink-soft">
-                  mosaic.app / {pin.category.label.toLowerCase()}
-                </span>
+              {pin.tags.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {pin.tags.map((tag) => (
+                    <Tag key={tag.id} href={`/tag/${tag.slug}`}>
+                      #{tag.name}
+                    </Tag>
+                  ))}
+                </div>
               ) : null}
               <h1 className="text-2xl font-bold leading-tight text-ink md:text-[28px]">
                 {pin.title}

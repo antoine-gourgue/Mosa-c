@@ -126,8 +126,8 @@ export async function getPinById(id: string): Promise<Pin | null> {
 
 /**
  * Fetches pins related to the given pin for the detail page's "More like this"
- * section: pins sharing the pin's category first, newest first, topped up with
- * other recent pins when the category does not have enough. The pin itself is
+ * section: pins sharing any of the pin's tags first, newest first, topped up
+ * with other recent pins when the tags do not have enough. The pin itself is
  * always excluded.
  *
  * @param pinId - The pin to find neighbours for.
@@ -137,35 +137,36 @@ export async function getPinById(id: string): Promise<Pin | null> {
 export async function getRelatedPins(pinId: string, limit = 16): Promise<Pin[]> {
   const current = await prisma.pin.findUnique({
     where: { id: pinId },
-    select: { categoryId: true },
+    select: { tags: { select: { tagId: true } } },
   });
   if (current === null) {
     return [];
   }
-  const sameCategory =
-    current.categoryId === null
+  const tagIds = current.tags.map((pinTag) => pinTag.tagId);
+  const sameTags =
+    tagIds.length === 0
       ? []
       : (
           await prisma.pin.findMany({
-            where: { id: { not: pinId }, categoryId: current.categoryId },
+            where: { id: { not: pinId }, tags: { some: { tagId: { in: tagIds } } } },
             include: PIN_INCLUDE,
             orderBy: { createdAt: "desc" },
             take: limit,
           })
         ).map(toPin);
-  if (sameCategory.length >= limit) {
-    return sameCategory;
+  if (sameTags.length >= limit) {
+    return sameTags;
   }
-  const excludeIds = [pinId, ...sameCategory.map((pin) => pin.id)];
+  const excludeIds = [pinId, ...sameTags.map((pin) => pin.id)];
   const fillers = (
     await prisma.pin.findMany({
       where: { id: { notIn: excludeIds } },
       include: PIN_INCLUDE,
       orderBy: { createdAt: "desc" },
-      take: limit - sameCategory.length,
+      take: limit - sameTags.length,
     })
   ).map(toPin);
-  return [...sameCategory, ...fillers];
+  return [...sameTags, ...fillers];
 }
 
 /**
@@ -184,7 +185,7 @@ export async function getCreatedPins(userId: string): Promise<Pin[]> {
 }
 
 /**
- * Searches pins by title, category label or creator name, case-insensitively,
+ * Searches pins by title, tag name or creator name, case-insensitively,
  * ordered by the given sort.
  *
  * @param query - The raw search query.
@@ -200,7 +201,7 @@ export async function searchPins(query: string, sort: FeedSort = "recent"): Prom
     where: {
       OR: [
         { title: { contains: q, mode: "insensitive" } },
-        { category: { label: { contains: q, mode: "insensitive" } } },
+        { tags: { some: { tag: { name: { contains: q, mode: "insensitive" } } } } },
         { creator: { name: { contains: q, mode: "insensitive" } } },
       ],
     },

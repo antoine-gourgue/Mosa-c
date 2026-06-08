@@ -12,17 +12,23 @@ export type Creator = {
 };
 
 /**
- * A pin category as surfaced to the UI.
+ * A free-form tag as surfaced to the UI.
  */
-export type Category = {
+export type Tag = {
   id: string;
   slug: string;
-  label: string;
-  imageUrl: string;
+  name: string;
 };
 
 /**
- * A pin with its creator and optional category, as surfaced to the UI.
+ * A tag with how many pins carry it, for discovery listings.
+ */
+export type TagWithCount = Tag & {
+  pinCount: number;
+};
+
+/**
+ * A pin with its creator and tags, as surfaced to the UI.
  */
 export type Pin = {
   id: string;
@@ -33,7 +39,7 @@ export type Pin = {
   height: number;
   link: string | null;
   creator: Creator;
-  category: Category | null;
+  tags: Tag[];
   likeCount: number;
   commentCount: number;
   downloadCount: number;
