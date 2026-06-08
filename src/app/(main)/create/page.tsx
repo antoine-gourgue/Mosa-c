@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import type { ReactElement } from "react";
 import { CreatePin } from "@/components/create";
 import { getCurrentUser } from "@/lib/auth";
-import { getBoardsForUser } from "@/server/services";
+import { getUserBoardsWithCovers } from "@/server/services";
 
 /**
  * Metadata for the create route.
@@ -23,6 +23,14 @@ export default async function CreatePage(): Promise<ReactElement> {
   if (user === null) {
     redirect("/login");
   }
-  const boards = await getBoardsForUser(user.id);
-  return <CreatePin boards={boards.map((board) => ({ id: board.id, name: board.name }))} />;
+  const boards = await getUserBoardsWithCovers(user.id);
+  return (
+    <CreatePin
+      boards={boards.map((board) => ({
+        id: board.id,
+        name: board.name,
+        coverUrl: board.coverUrls[0] ?? null,
+      }))}
+    />
+  );
 }
