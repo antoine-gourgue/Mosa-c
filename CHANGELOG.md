@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.1](https://github.com/antoine-gourgue/Mosa-c/compare/v1.9.0...v1.9.1) (2026-06-08)
+
+
+### Documentation
+
+* rewrite README and refresh brand and screenshots ([1dd837c](https://github.com/antoine-gourgue/Mosa-c/commit/1dd837c74e96fb93ea9cf392e2342ccc41f26db9))
+* rewrite README and refresh brand and screenshots ([3580237](https://github.com/antoine-gourgue/Mosa-c/commit/358023710889fee0c54ae9bf93dea202be432235))
+
 ## [1.9.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.8.0...v1.9.0) (2026-06-08)
 
 
