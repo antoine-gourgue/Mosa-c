@@ -6,7 +6,7 @@ import type { ReactElement } from "react";
 import { SearchField } from "@/components/search/SearchField";
 import { useMessagesUnread } from "@/components/messages";
 import { Avatar, IconButton, Menu } from "@/components/ui";
-import { CommentIcon, Logo } from "@/icons";
+import { CommentIcon, ComposeIcon, Logo, LogoutIcon, UserIcon } from "@/icons";
 import { logout } from "@/server/actions/auth";
 
 /**
@@ -67,12 +67,22 @@ export function TopNav({ user, isAuthed }: TopNavProps): ReactElement {
                     ? [
                         {
                           label: "Your profile",
+                          icon: <UserIcon size={18} />,
                           onSelect: () => router.push(`/u/${user.username ?? ""}`),
                         },
                       ]
                     : []),
-                  { label: "Edit profile", onSelect: () => router.push("/settings/profile") },
-                  { label: "Log out", onSelect: () => void logout(), destructive: true },
+                  {
+                    label: "Edit profile",
+                    icon: <ComposeIcon size={18} />,
+                    onSelect: () => router.push("/settings/profile"),
+                  },
+                  {
+                    label: "Log out",
+                    icon: <LogoutIcon size={18} />,
+                    onSelect: () => void logout(),
+                    destructive: true,
+                  },
                 ]}
               />
             </div>

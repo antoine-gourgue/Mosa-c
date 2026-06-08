@@ -151,7 +151,9 @@ export function Menu({
                   )}
                 >
                   {item.icon !== undefined ? (
-                    <span className="shrink-0 text-ink-soft">{item.icon}</span>
+                    <span className={cn("shrink-0", item.destructive ? "" : "text-ink-soft")}>
+                      {item.icon}
+                    </span>
                   ) : null}
                   {item.label}
                 </button>
