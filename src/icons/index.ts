@@ -17,6 +17,7 @@ export {
   HeartFilledIcon,
   CommentIcon,
   SmileIcon,
+  GearIcon,
   AtIcon,
   DownloadIcon,
   SlidersIcon,
@@ -25,5 +26,10 @@ export {
   NotesIcon,
   ChevronDownIcon,
   HomeIcon,
+  HomeFilledIcon,
+  BellFilledIcon,
+  CommentFilledIcon,
+  ComposeIcon,
+  SendIcon,
 } from "./glyphs";
 export { Logo } from "./Logo";
