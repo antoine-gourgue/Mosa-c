@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.8.0...v1.9.0) (2026-06-08)
+
+
+### Features
+
+* **ui:** menu icons and sidebar hover tooltips ([4fb0488](https://github.com/antoine-gourgue/Mosa-c/commit/4fb0488826d38ef98bce4b3af541dda6fde8b133))
+* **ui:** menu icons and sidebar hover tooltips ([449102b](https://github.com/antoine-gourgue/Mosa-c/commit/449102b10deef533fd4f9d2606351c372f1ffcd2))
+
 ## [1.8.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.7.0...v1.8.0) (2026-06-08)
 
 
