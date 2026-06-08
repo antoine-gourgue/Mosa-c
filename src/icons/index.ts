@@ -32,5 +32,8 @@ export {
   ComposeIcon,
   SendIcon,
   GearFilledIcon,
+  UserIcon,
+  FlagIcon,
+  LogoutIcon,
 } from "./glyphs";
 export { Logo } from "./Logo";

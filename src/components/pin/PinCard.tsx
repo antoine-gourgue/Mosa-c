@@ -10,11 +10,13 @@ import { useEngagementActions, usePinOverride } from "@/components/engagement";
 import {
   CommentIcon,
   DownloadIcon,
+  FlagIcon,
   HeartFilledIcon,
   HeartIcon,
   LinkIcon,
   MoreIcon,
   StackIcon,
+  TrashIcon,
 } from "@/icons";
 import { downloadPin } from "@/lib/download";
 import { pinUrl } from "@/lib/share";
@@ -118,8 +120,18 @@ export function PinCard({
       onSelect: () => void onDownload(),
     },
     canDelete
-      ? { label: "Delete Pin", onSelect: () => setConfirmDelete(true), destructive: true }
-      : { label: "Report Pin", onSelect: () => void onReport(), destructive: true },
+      ? {
+          label: "Delete Pin",
+          icon: <TrashIcon size={18} />,
+          onSelect: () => setConfirmDelete(true),
+          destructive: true,
+        }
+      : {
+          label: "Report Pin",
+          icon: <FlagIcon size={18} />,
+          onSelect: () => void onReport(),
+          destructive: true,
+        },
   ];
 
   return (

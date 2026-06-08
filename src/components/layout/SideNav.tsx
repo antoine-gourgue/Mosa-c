@@ -66,6 +66,25 @@ const ITEMS: Item[] = [
 ];
 
 /**
+ * Dark hover tooltip shown to the right of a rail item. Hidden by default and
+ * revealed on hover of the parent `group` item; presentational only, since each
+ * item already carries an `aria-label`.
+ *
+ * @param props - The tooltip label.
+ * @returns The tooltip element.
+ */
+function RailTooltip({ label }: { label: string }): ReactElement {
+  return (
+    <span
+      aria-hidden
+      className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 scale-95 whitespace-nowrap rounded-md bg-ink px-2.5 py-1.5 text-sm font-semibold text-bg opacity-0 shadow-pop transition duration-150 group-hover:scale-100 group-hover:opacity-100 motion-reduce:scale-100 motion-reduce:transition-none"
+    >
+      {label}
+    </span>
+  );
+}
+
+/**
  * Pinterest-style left navigation rail, shown from the `sm` breakpoint up (the
  * top bar and bottom bar cover mobile). The brand sits at the top, icon-only
  * destinations with an active highlight and unread badges in the middle, and
@@ -90,7 +109,7 @@ export function SideNav({ unreadCount }: SideNavProps): ReactElement {
   const settingsActive = !panelIsOpen && pathname.startsWith("/settings");
   const itemClass = (active: boolean): string =>
     cn(
-      "relative grid size-12 place-items-center rounded-xl transition-colors hover:bg-surface",
+      "group relative grid size-12 place-items-center rounded-xl transition-colors hover:bg-surface",
       active ? "text-ink" : "text-ink/70 hover:text-ink",
     );
 
@@ -129,12 +148,12 @@ export function SideNav({ unreadCount }: SideNavProps): ReactElement {
               type="button"
               aria-label={item.label}
               aria-current={panelActive ? "page" : undefined}
-              title={item.label}
               onClick={() => toggle(panel)}
               className={cn("cursor-pointer", itemClass(panelActive))}
             >
               <Glyph size={28} />
               {badge}
+              <RailTooltip label={item.label} />
             </button>
           );
         }
@@ -146,12 +165,12 @@ export function SideNav({ unreadCount }: SideNavProps): ReactElement {
             href={item.href}
             aria-label={item.label}
             aria-current={active ? "page" : undefined}
-            title={item.label}
             onClick={close}
             className={itemClass(active)}
           >
             <Glyph size={28} />
             {badge}
+            <RailTooltip label={item.label} />
           </Link>
         );
       })}
@@ -159,12 +178,12 @@ export function SideNav({ unreadCount }: SideNavProps): ReactElement {
       <Link
         href="/settings/profile"
         aria-label="Settings"
-        title="Settings"
         onClick={close}
         aria-current={settingsActive ? "page" : undefined}
         className={cn("mt-auto", itemClass(settingsActive))}
       >
         {settingsActive ? <GearFilledIcon size={26} /> : <GearIcon size={26} />}
+        <RailTooltip label="Settings" />
       </Link>
     </nav>
   );

@@ -7,7 +7,7 @@ import { Button, ConfirmDialog, Menu, useToast } from "@/components/ui";
 import { LikeButton } from "@/components/pin";
 import { useEngagementActions, usePinOverride } from "@/components/engagement";
 import { useAuthPrompt } from "@/hooks/use-auth-prompt";
-import { DownloadIcon, LinkIcon, MoreIcon } from "@/icons";
+import { DownloadIcon, FlagIcon, LinkIcon, MoreIcon, TrashIcon } from "@/icons";
 import { downloadPin } from "@/lib/download";
 import { pinUrl } from "@/lib/share";
 import { recordDownload } from "@/server/actions/downloads";
@@ -122,9 +122,15 @@ export function DetailActions({
         ]
       : []),
     isOwner
-      ? { label: "Delete Pin", onSelect: () => setConfirmDelete(true), destructive: true }
+      ? {
+          label: "Delete Pin",
+          icon: <TrashIcon size={18} />,
+          onSelect: () => setConfirmDelete(true),
+          destructive: true,
+        }
       : {
           label: "Report Pin",
+          icon: <FlagIcon size={18} />,
           onSelect: () => withAuth(() => void onReport()),
           destructive: true,
         },
