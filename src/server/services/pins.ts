@@ -92,8 +92,184 @@ async function getFeedPins({ skip, sort, creatorIds, limit }: FeedPinsParams): P
 }
 
 /**
- * Fetches a page of the home feed for the chosen source and sort. The
- * "following" source restricts pins to the viewer's followed creators.
+ * Number of recent pins scored as candidates for the personalised "For you"
+ * feed. Bounding the window keeps the in-memory ranking cheap.
+ */
+const FOR_YOU_WINDOW = 400;
+
+/**
+ * Relative weights of each "For you" ranking signal.
+ */
+const FOR_YOU_WEIGHTS = {
+  followedCreator: 5,
+  affineCreator: 2,
+  sharedTag: 1.5,
+  engagement: 1,
+  recency: 2,
+};
+
+/**
+ * Half-life (in days) of the recency boost in the "For you" ranking.
+ */
+const FOR_YOU_RECENCY_HALFLIFE_DAYS = 7;
+
+/**
+ * The viewer's affinity signals used to personalise the "For you" feed: the
+ * creators they follow, and the creators and tags drawn from pins they have
+ * liked or saved. Empty for signed-out viewers, which degrades the ranking to a
+ * popularity + recency blend.
+ */
+export type ForYouAffinity = {
+  followedCreatorIds: Set<string>;
+  affineCreatorIds: Set<string>;
+  affineTagIds: Set<string>;
+};
+
+/**
+ * The minimal pin shape the "For you" ranking scores.
+ */
+type ScoredPin = {
+  id: string;
+  creatorId: string;
+  createdAt: Date;
+  downloadCount: number;
+  tags: { tag: { id: string } }[];
+  _count: { likes: number; comments: number };
+};
+
+/**
+ * Scores a candidate pin for the "For you" feed by blending follow and affinity
+ * matches, engagement and a recency decay.
+ *
+ * @param pin - The candidate pin.
+ * @param affinity - The viewer's affinity signals.
+ * @param now - The current time in milliseconds (injected for determinism).
+ * @returns The pin's score; higher ranks higher.
+ */
+function scoreForYou(pin: ScoredPin, affinity: ForYouAffinity, now: number): number {
+  let score = 0;
+  if (affinity.followedCreatorIds.has(pin.creatorId)) {
+    score += FOR_YOU_WEIGHTS.followedCreator;
+  }
+  if (affinity.affineCreatorIds.has(pin.creatorId)) {
+    score += FOR_YOU_WEIGHTS.affineCreator;
+  }
+  let sharedTags = 0;
+  for (const pinTag of pin.tags) {
+    if (affinity.affineTagIds.has(pinTag.tag.id)) {
+      sharedTags += 1;
+    }
+  }
+  score += sharedTags * FOR_YOU_WEIGHTS.sharedTag;
+  const engagement = pin._count.likes + pin._count.comments + pin.downloadCount;
+  score += Math.log1p(engagement) * FOR_YOU_WEIGHTS.engagement;
+  const ageDays = Math.max(0, (now - pin.createdAt.getTime()) / 86_400_000);
+  score += Math.exp(-ageDays / FOR_YOU_RECENCY_HALFLIFE_DAYS) * FOR_YOU_WEIGHTS.recency;
+  return score;
+}
+
+/**
+ * Ranks candidate pins for the "For you" feed by descending score, tie-breaking
+ * on recency then id so the order is deterministic and stable across pages. Pure
+ * over its inputs to keep it unit-testable.
+ *
+ * @param pins - The candidate pins.
+ * @param affinity - The viewer's affinity signals.
+ * @param now - The current time in milliseconds.
+ * @returns The pins ordered best-first.
+ */
+export function rankForYou<T extends ScoredPin>(
+  pins: T[],
+  affinity: ForYouAffinity,
+  now: number,
+): T[] {
+  return pins
+    .map((pin) => ({ pin, score: scoreForYou(pin, affinity, now) }))
+    .sort((a, b) => {
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
+      const byRecency = b.pin.createdAt.getTime() - a.pin.createdAt.getTime();
+      if (byRecency !== 0) {
+        return byRecency;
+      }
+      return a.pin.id < b.pin.id ? 1 : a.pin.id > b.pin.id ? -1 : 0;
+    })
+    .map((entry) => entry.pin);
+}
+
+/**
+ * Builds the viewer's affinity signals from their follows, likes and saves.
+ *
+ * @param viewerId - The signed-in viewer id.
+ * @returns The viewer's affinity sets.
+ */
+async function getForYouAffinity(viewerId: string): Promise<ForYouAffinity> {
+  const pinSelect = { pin: { select: { creatorId: true, tags: { select: { tagId: true } } } } };
+  const [followedIds, likes, saves] = await Promise.all([
+    getFollowedCreatorIds(viewerId),
+    prisma.like.findMany({
+      where: { userId: viewerId },
+      orderBy: { createdAt: "desc" },
+      take: 200,
+      select: pinSelect,
+    }),
+    prisma.save.findMany({
+      where: { userId: viewerId },
+      orderBy: { savedAt: "desc" },
+      take: 200,
+      select: pinSelect,
+    }),
+  ]);
+  const affineCreatorIds = new Set<string>();
+  const affineTagIds = new Set<string>();
+  for (const { pin } of [...likes, ...saves]) {
+    affineCreatorIds.add(pin.creatorId);
+    for (const tag of pin.tags) {
+      affineTagIds.add(tag.tagId);
+    }
+  }
+  return { followedCreatorIds: new Set(followedIds), affineCreatorIds, affineTagIds };
+}
+
+/**
+ * Builds the personalised "For you" page: scores a bounded window of recent pins
+ * against the viewer's affinity and paginates the ranked result. Signed-out
+ * viewers get an empty affinity, which reduces the ranking to popularity +
+ * recency.
+ *
+ * @param params - The viewer id, offset and page size.
+ * @returns The page of ranked pins and whether more remain.
+ */
+async function getForYouFeed(params: {
+  viewerId: string | null;
+  skip: number;
+  limit: number;
+}): Promise<FeedPage> {
+  const { viewerId, skip, limit } = params;
+  const emptyAffinity: ForYouAffinity = {
+    followedCreatorIds: new Set(),
+    affineCreatorIds: new Set(),
+    affineTagIds: new Set(),
+  };
+  const [affinity, rows] = await Promise.all([
+    viewerId === null ? Promise.resolve(emptyAffinity) : getForYouAffinity(viewerId),
+    prisma.pin.findMany({
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: FOR_YOU_WINDOW,
+      include: PIN_INCLUDE,
+    }),
+  ]);
+  const ranked = rankForYou(rows, affinity, Date.now());
+  const page = ranked.slice(skip, skip + limit);
+  return { pins: page.map(toPin), hasMore: ranked.length > skip + limit };
+}
+
+/**
+ * Fetches a page of the home feed for the chosen source and sort. The default
+ * "For you" view (recency sort) is personalised by {@link getForYouFeed}; the
+ * "following" source restricts pins to the viewer's followed creators, and the
+ * explicit sorts keep their straight ordering.
  *
  * @param params - The offset, sort, feed source and viewer id.
  * @returns The page of pins and whether more remain.
@@ -106,6 +282,9 @@ export async function getHomeFeed(params: {
   limit?: number;
 }): Promise<FeedPage> {
   const { skip = 0, sort = "recent", feed = "foryou", viewerId, limit = FEED_PAGE_SIZE } = params;
+  if (feed === "foryou" && sort === "recent") {
+    return getForYouFeed({ viewerId, skip, limit });
+  }
   let creatorIds: string[] | null = null;
   if (feed === "following") {
     creatorIds = viewerId === null ? [] : await getFollowedCreatorIds(viewerId);
