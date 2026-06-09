@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.12.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.11.0...v1.12.0) (2026-06-09)
+
+
+### Features
+
+* **messages:** group conversations ([04e9554](https://github.com/antoine-gourgue/Mosa-c/commit/04e9554bfa32911d99db9afa153b26768b8d1b5f))
+* **messages:** group conversations (multi-participant) ([9b9c04d](https://github.com/antoine-gourgue/Mosa-c/commit/9b9c04d15c2c185d310852262fa0150594881f9f))
+* **messages:** image, camera & GIF attachments in conversations ([7dc4802](https://github.com/antoine-gourgue/Mosa-c/commit/7dc480216b746d723440df0b482a3f840c1f4a01))
+* **messages:** image, camera and GIF attachments in conversations ([4baf08a](https://github.com/antoine-gourgue/Mosa-c/commit/4baf08abe35cafd91b46695486148adbc3550a69))
+* **messages:** live group leave notice and realtime group creation ([efe5642](https://github.com/antoine-gourgue/Mosa-c/commit/efe5642fe458ae19d517c2e60fcdead12ae7bb4f))
+* **messages:** polish groups — avatar fit, leave icon, desktop panel-only ([9205de8](https://github.com/antoine-gourgue/Mosa-c/commit/9205de80106e2dd6557da32cd0ddd48a96aa83d3))
+
 ## [1.11.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.10.0...v1.11.0) (2026-06-09)
 
 
