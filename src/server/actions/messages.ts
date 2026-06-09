@@ -1,6 +1,5 @@
 "use server";
 
-import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import {
@@ -8,35 +7,37 @@ import {
   getMessageRequests,
   getMessages,
   getOrCreateConversation,
+  MESSAGE_PIN_SELECT,
   toMessage,
 } from "@/server/services/messages";
 import { getSuggestedCreators, searchMentionUsers } from "@/server/services/users";
 import type { ChatMessage, ConversationSummary, Creator } from "@/types/domain";
 
-const messageSchema = z.object({
-  body: z.string().trim().min(1, "Write a message first.").max(4000),
-});
-
 /**
- * Sends a message to a conversation on behalf of the current user. The caller
- * must be a participant. The conversation's activity timestamp is bumped so it
- * sorts to the top of the inbox.
+ * Sends a message — text, a shared pin, or both — to a conversation on behalf of
+ * the current user. The caller must be a participant. The conversation's
+ * activity timestamp is bumped so it sorts to the top of the inbox.
  *
  * @param conversationId - The conversation id.
- * @param body - The message text.
+ * @param body - The message text (may be empty when a pin is attached).
+ * @param pinId - An optional pin to attach to the message.
  * @returns The created message, or a validation/authorization error.
  */
 export async function sendMessage(
   conversationId: string,
   body: string,
+  pinId: string | null = null,
 ): Promise<{ ok: true; message: ChatMessage } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
     return { ok: false, error: "You must be signed in to send messages." };
   }
-  const parsed = messageSchema.safeParse({ body });
-  if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid message." };
+  const text = body.trim();
+  if (text === "" && pinId === null) {
+    return { ok: false, error: "Write a message first." };
+  }
+  if (text.length > 4000) {
+    return { ok: false, error: "Your message is too long." };
   }
   const conversation = await prisma.conversation.findFirst({
     where: { id: conversationId, participants: { some: { userId: user.id } } },
@@ -48,9 +49,18 @@ export async function sendMessage(
   if (conversation.status === "PENDING" && conversation.requestedById !== user.id) {
     return { ok: false, error: "Accept the request to reply." };
   }
+  let sharedPinId: string | null = null;
+  if (pinId !== null) {
+    const pin = await prisma.pin.findUnique({ where: { id: pinId }, select: { id: true } });
+    if (pin === null) {
+      return { ok: false, error: "That pin no longer exists." };
+    }
+    sharedPinId = pin.id;
+  }
   const [row] = await prisma.$transaction([
     prisma.message.create({
-      data: { conversationId, senderId: user.id, body: parsed.data.body },
+      data: { conversationId, senderId: user.id, body: text, pinId: sharedPinId },
+      include: { pin: MESSAGE_PIN_SELECT },
     }),
     prisma.conversation.update({
       where: { id: conversationId },

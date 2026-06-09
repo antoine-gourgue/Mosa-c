@@ -10,6 +10,7 @@ export type RealtimeMessage = {
   senderId: string;
   body: string;
   createdAt: string;
+  pin: { id: string; imageUrl: string; title: string } | null;
 };
 
 /**
@@ -28,8 +29,14 @@ export type RealtimePrisma = {
   };
   message: {
     create(args: {
-      data: { conversationId: string; senderId: string; body: string };
+      data: { conversationId: string; senderId: string; body: string; pinId?: string | null };
     }): Promise<{ id: string; body: string; createdAt: Date }>;
+  };
+  pin: {
+    findUnique(args: {
+      where: { id: string };
+      select: { id: true; imageUrl: true; title: true };
+    }): Promise<{ id: string; imageUrl: string; title: string } | null>;
   };
   conversation: {
     update(args: { where: { id: string }; data: { updatedAt: Date } }): Promise<unknown>;
@@ -104,8 +111,13 @@ export async function handleSend(
 ): Promise<void> {
   const conversationId = readString(payload, "conversationId");
   const body = (readString(payload, "body") ?? "").trim();
-  if (conversationId === null || body === "") {
+  const pinId = readString(payload, "pinId");
+  if (conversationId === null || (body === "" && pinId === null)) {
     ack?.({ ok: false, error: "Invalid message." });
+    return;
+  }
+  if (body.length > 4000) {
+    ack?.({ ok: false, error: "Your message is too long." });
     return;
   }
   const member = await prisma.conversationParticipant.findUnique({
@@ -115,8 +127,19 @@ export async function handleSend(
     ack?.({ ok: false, error: "Not a participant." });
     return;
   }
+  const pin =
+    pinId === null
+      ? null
+      : await prisma.pin.findUnique({
+          where: { id: pinId },
+          select: { id: true, imageUrl: true, title: true },
+        });
+  if (pinId !== null && pin === null) {
+    ack?.({ ok: false, error: "That pin no longer exists." });
+    return;
+  }
   const row = await prisma.message.create({
-    data: { conversationId, senderId: userId, body: body.slice(0, 4000) },
+    data: { conversationId, senderId: userId, body, pinId: pin?.id ?? null },
   });
   await prisma.conversation.update({
     where: { id: conversationId },
@@ -128,6 +151,7 @@ export async function handleSend(
     senderId: userId,
     body: row.body,
     createdAt: row.createdAt.toISOString(),
+    pin,
   };
   io.to(conversationId).emit("message:new", message);
   ack?.({ ok: true, message });

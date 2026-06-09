@@ -27,6 +27,7 @@ import {
   startConversation,
 } from "@/server/actions/messages";
 import type { ChatMessage, ConversationSummary, Creator } from "@/types/domain";
+import { MessagePin } from "./MessagePin";
 import { useMessagesUnread } from "./MessagesProvider";
 
 /**
@@ -209,11 +210,12 @@ export function MessagesPanel({
   viewerName,
   viewerImage,
 }: MessagesPanelProps): ReactElement {
-  const { markRead: clearUnreadBadge } = useMessagesUnread();
+  const { markRead: clearUnreadBadge, inboxRevision } = useMessagesUnread();
   const { activePanel, close: closePanel } = useNavPanel();
   const panelOpen = activePanel === "messages";
 
   const [inboxLoaded, setInboxLoaded] = useState(false);
+  const loadedRevisionRef = useRef(-1);
   const [list, setList] = useState<ConversationSummary[]>([]);
   const [requestList, setRequestList] = useState<ConversationSummary[]>([]);
   const [suggestions, setSuggestions] = useState<Creator[]>([]);
@@ -262,7 +264,10 @@ export function MessagesPanel({
     presenceForOther !== null && !presenceForOther.online ? presenceForOther.lastSeenAt : null;
 
   useEffect(() => {
-    if (!panelOpen || inboxLoaded) {
+    if (!panelOpen) {
+      return;
+    }
+    if (inboxLoaded && loadedRevisionRef.current === inboxRevision) {
       return;
     }
     let cancelled = false;
@@ -276,11 +281,12 @@ export function MessagesPanel({
         setSuggestions(result.suggestions);
       }
       setInboxLoaded(true);
+      loadedRevisionRef.current = inboxRevision;
     });
     return () => {
       cancelled = true;
     };
-  }, [panelOpen, inboxLoaded]);
+  }, [panelOpen, inboxLoaded, inboxRevision]);
 
   useEffect(() => {
     if (!panelOpen) {
@@ -575,6 +581,7 @@ export function MessagesPanel({
       senderId: viewerId,
       body: text,
       createdAt,
+      pin: null,
     };
     setMessages((current) => [...current, optimistic]);
     startTransition(async () => {
@@ -726,16 +733,21 @@ export function MessagesPanel({
                           {formatMessageSeparator(message.createdAt)}
                         </div>
                       ) : null}
-                      <div className={cn("flex", mine ? "justify-end" : "justify-start")}>
-                        <span
-                          title={formatClockTime(message.createdAt)}
-                          className={cn(
-                            "max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px]",
-                            mine ? "bg-accent text-bg" : "bg-surface text-ink",
-                          )}
-                        >
-                          {message.body}
-                        </span>
+                      <div
+                        className={cn("flex flex-col gap-1", mine ? "items-end" : "items-start")}
+                      >
+                        {message.pin !== null ? <MessagePin pin={message.pin} /> : null}
+                        {message.body !== "" ? (
+                          <span
+                            title={formatClockTime(message.createdAt)}
+                            className={cn(
+                              "max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px]",
+                              mine ? "bg-accent text-bg" : "bg-surface text-ink",
+                            )}
+                          >
+                            {message.body}
+                          </span>
+                        ) : null}
                       </div>
                     </Fragment>
                   );

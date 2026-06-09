@@ -16,6 +16,7 @@ import { reportPin } from "@/server/actions/reports";
 import type { MenuItem } from "@/components/ui";
 import { SaveToBoard } from "./SaveToBoard";
 import type { SaveBoardOption } from "./SaveToBoard";
+import { SharePinMenu } from "./SharePinMenu";
 
 /**
  * Props for the {@link DetailActions} component.
@@ -157,6 +158,7 @@ export function DetailActions({
             className="h-11 px-3"
             isAuthed={isAuthed}
           />
+          {isAuthed ? <SharePinMenu pinId={pinId} /> : null}
           <Menu label="More options" icon={<MoreIcon />} align="start" items={menuItems} />
         </div>
         {!isOwner && isAuthed && boards.length > 0 ? (

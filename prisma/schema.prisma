@@ -158,6 +158,7 @@ model Pin {
   likes     Like[]
   comments  Comment[]
   reports   Report[]
+  messages  Message[]
 
   notifications Notification[]
 
@@ -325,9 +326,12 @@ model Message {
   senderId       String
   sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
   body           String
+  pinId          String?
+  pin            Pin?         @relation(fields: [pinId], references: [id], onDelete: SetNull)
   createdAt      DateTime     @default(now())
 
   @@index([conversationId, createdAt])
+  @@index([pinId])
 }
 
 model Notification {

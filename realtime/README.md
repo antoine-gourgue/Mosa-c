@@ -10,8 +10,9 @@ to Next.js — it is **not** part of the Next build.
 - Authenticate the WebSocket handshake by decoding the Auth.js session cookie
   with `AUTH_SECRET` (`auth.ts`).
 - Join each socket to a room per conversation the user belongs to.
-- `message:send` → authorize membership → persist the message + bump the
-  conversation → broadcast `message:new` to the room (with an ack to the sender).
+- `message:send` → authorize membership → persist the message (text and/or an
+  optional shared `pinId`) + bump the conversation → broadcast `message:new` to
+  the room (with an ack to the sender).
 - `typing` → relay a typing indicator to the other participants.
 
 `server.ts` is a dependency-injected factory (`createRealtimeServer`) so it is

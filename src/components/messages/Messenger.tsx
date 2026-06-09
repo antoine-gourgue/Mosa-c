@@ -22,6 +22,7 @@ import {
   sendMessage,
 } from "@/server/actions/messages";
 import type { ChatMessage, ConversationSummary } from "@/types/domain";
+import { MessagePin } from "./MessagePin";
 import { useMessagesUnread } from "./MessagesProvider";
 
 /**
@@ -317,6 +318,7 @@ export function Messenger({
       senderId: viewerId,
       body: text,
       createdAt: new Date(now).toISOString(),
+      pin: null,
     };
     setMessages((current) => [...current, optimistic]);
     startTransition(async () => {
@@ -586,17 +588,23 @@ export function Messenger({
                           </div>
                         ) : null}
                         <div
-                          className={cn("relative flex", mine ? "justify-end" : "justify-start")}
+                          className={cn(
+                            "relative flex flex-col gap-1",
+                            mine ? "items-end" : "items-start",
+                          )}
                         >
-                          <span
-                            title={formatClockTime(message.createdAt)}
-                            className={cn(
-                              "max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px] sm:max-w-[560px]",
-                              mine ? "bg-accent text-bg" : "bg-surface text-ink",
-                            )}
-                          >
-                            {message.body}
-                          </span>
+                          {message.pin !== null ? <MessagePin pin={message.pin} /> : null}
+                          {message.body !== "" ? (
+                            <span
+                              title={formatClockTime(message.createdAt)}
+                              className={cn(
+                                "max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px] sm:max-w-[560px]",
+                                mine ? "bg-accent text-bg" : "bg-surface text-ink",
+                              )}
+                            >
+                              {message.body}
+                            </span>
+                          ) : null}
                           <span
                             className="pointer-events-none absolute right-[-48px] top-1/2 -translate-y-1/2 text-xs tabular-nums text-ink-faint transition-opacity"
                             style={{ opacity: dragX < 0 ? 1 : 0 }}
