@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { Fragment, useEffect, useRef, useState, useTransition } from "react";
 import type { KeyboardEvent, PointerEvent, ReactElement } from "react";
-import { Avatar, Button, Input } from "@/components/ui";
-import { BackIcon } from "@/icons";
+import { Avatar, Button, Input, Menu } from "@/components/ui";
+import { BackIcon, MoreIcon } from "@/icons";
 import { cn } from "@/lib/cn";
+import { conversationName } from "@/lib/conversation";
 import { getRealtimeSocket } from "@/lib/realtime";
 import {
   formatClockTime,
@@ -18,12 +19,14 @@ import {
   acceptRequest,
   declineRequest,
   fetchMessages,
+  leaveConversation,
   markConversationRead,
   sendMessage,
   uploadMessageImage,
 } from "@/server/actions/messages";
 import type { ChatMessage, ConversationSummary } from "@/types/domain";
 import { AttachMenu } from "./AttachMenu";
+import { ConversationAvatar } from "./ConversationAvatar";
 import { MessageImage } from "./MessageImage";
 import { MessagePin } from "./MessagePin";
 import { useMessagesUnread } from "./MessagesProvider";
@@ -427,6 +430,18 @@ export function Messenger({
     });
   };
 
+  const onLeaveGroup = (): void => {
+    if (activeId === null) {
+      return;
+    }
+    const id = activeId;
+    setList((current) => current.filter((conversation) => conversation.id !== id));
+    setActiveId(null);
+    startTransition(async () => {
+      await leaveConversation(id);
+    });
+  };
+
   const emitTyping = (typing: boolean): void => {
     if (activeId === null) {
       return;
@@ -489,15 +504,11 @@ export function Messenger({
           conversation.id === activeId ? "bg-surface" : "",
         )}
       >
-        <Avatar
-          src={conversation.other.avatarUrl ?? undefined}
-          name={conversation.other.name}
-          size={44}
-        />
+        <ConversationAvatar summary={conversation} size={44} />
         <span className="min-w-0 flex-1">
           <span className="flex items-center justify-between gap-2">
             <span className="truncate text-sm font-semibold text-ink">
-              {conversation.other.name}
+              {conversationName(conversation)}
             </span>
             {conversation.lastMessage !== null ? (
               <span className="shrink-0 text-xs text-ink-faint">
@@ -591,31 +602,55 @@ export function Messenger({
               >
                 <BackIcon size={20} />
               </button>
-              <Link
-                href={active.other.username !== null ? `/u/${active.other.username}` : "#"}
-                className="group flex items-center gap-2.5"
-              >
-                <span className="relative shrink-0">
-                  <Avatar
-                    src={active.other.avatarUrl ?? undefined}
-                    name={active.other.name}
-                    size={36}
+              {active.isGroup ? (
+                <>
+                  <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                    <ConversationAvatar summary={active} size={36} />
+                    <span className="flex min-w-0 flex-col">
+                      <span className="truncate font-semibold leading-tight text-ink">
+                        {conversationName(active)}
+                      </span>
+                      <span className="text-xs text-ink-soft">
+                        {active.others.length + 1} members
+                      </span>
+                    </span>
+                  </div>
+                  <Menu
+                    label="Group options"
+                    icon={<MoreIcon />}
+                    align="end"
+                    items={[{ label: "Leave group", destructive: true, onSelect: onLeaveGroup }]}
                   />
-                  {otherOnline ? (
-                    <span className="absolute bottom-0 right-0 size-3 rounded-full border-2 border-bg bg-[#22c55e]" />
-                  ) : null}
-                </span>
-                <span className="flex flex-col">
-                  <span className="font-semibold leading-tight text-ink group-hover:underline">
-                    {active.other.name}
+                </>
+              ) : (
+                <Link
+                  href={active.other.username !== null ? `/u/${active.other.username}` : "#"}
+                  className="group flex items-center gap-2.5"
+                >
+                  <span className="relative shrink-0">
+                    <Avatar
+                      src={active.other.avatarUrl ?? undefined}
+                      name={active.other.name}
+                      size={36}
+                    />
+                    {otherOnline ? (
+                      <span className="absolute bottom-0 right-0 size-3 rounded-full border-2 border-bg bg-[#22c55e]" />
+                    ) : null}
                   </span>
-                  {otherOnline ? (
-                    <span className="text-xs font-medium text-ink">Online</span>
-                  ) : formatLastActive(otherLastSeen) !== null ? (
-                    <span className="text-xs text-ink-soft">{formatLastActive(otherLastSeen)}</span>
-                  ) : null}
-                </span>
-              </Link>
+                  <span className="flex flex-col">
+                    <span className="font-semibold leading-tight text-ink group-hover:underline">
+                      {active.other.name}
+                    </span>
+                    {otherOnline ? (
+                      <span className="text-xs font-medium text-ink">Online</span>
+                    ) : formatLastActive(otherLastSeen) !== null ? (
+                      <span className="text-xs text-ink-soft">
+                        {formatLastActive(otherLastSeen)}
+                      </span>
+                    ) : null}
+                  </span>
+                </Link>
+              )}
             </header>
 
             <div
@@ -653,6 +688,11 @@ export function Messenger({
                   {messages.map((message, index) => {
                     const mine = message.senderId === viewerId;
                     const previous = index === 0 ? null : (messages[index - 1]?.createdAt ?? null);
+                    const showSender =
+                      active.isGroup && !mine && messages[index - 1]?.senderId !== message.senderId;
+                    const senderName = active.others.find(
+                      (member) => member.id === message.senderId,
+                    )?.name;
                     return (
                       <Fragment key={message.id}>
                         {shouldSeparateMessages(previous, message.createdAt) ? (
@@ -666,6 +706,11 @@ export function Messenger({
                             mine ? "items-end" : "items-start",
                           )}
                         >
+                          {showSender && senderName !== undefined ? (
+                            <span className="px-1 text-[11px] font-semibold text-ink-soft">
+                              {senderName}
+                            </span>
+                          ) : null}
                           {message.pin !== null ? <MessagePin pin={message.pin} /> : null}
                           {message.imageUrl !== null ? (
                             <MessageImage url={message.imageUrl} />

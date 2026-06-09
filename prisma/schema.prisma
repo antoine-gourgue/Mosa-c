@@ -298,6 +298,7 @@ enum ConversationStatus {
 model Conversation {
   id            String             @id @default(cuid())
   pairKey       String?            @unique
+  title         String?
   status        ConversationStatus @default(ACCEPTED)
   requestedById String?
   createdAt     DateTime           @default(now())

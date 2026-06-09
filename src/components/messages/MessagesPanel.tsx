@@ -4,9 +4,19 @@ import Link from "next/link";
 import { Fragment, useEffect, useRef, useState, useTransition } from "react";
 import type { KeyboardEvent, PointerEvent, ReactElement } from "react";
 import { useNavPanel } from "@/components/layout/NavPanelProvider";
-import { Avatar, Button, Input } from "@/components/ui";
-import { BackIcon, CloseIcon, ComposeIcon, SearchIcon, SendIcon, TrashIcon } from "@/icons";
+import { Avatar, Button, Input, Menu } from "@/components/ui";
+import {
+  BackIcon,
+  CheckIcon,
+  CloseIcon,
+  ComposeIcon,
+  MoreIcon,
+  SearchIcon,
+  SendIcon,
+  TrashIcon,
+} from "@/icons";
 import { cn } from "@/lib/cn";
+import { conversationName } from "@/lib/conversation";
 import { getRealtimeSocket } from "@/lib/realtime";
 import {
   formatClockTime,
@@ -17,9 +27,11 @@ import {
 } from "@/lib/time";
 import {
   acceptRequest,
+  createGroup,
   declineRequest,
   deleteConversation,
   fetchMessages,
+  leaveConversation,
   loadInbox,
   markConversationRead,
   searchRecipients,
@@ -29,6 +41,7 @@ import {
 } from "@/server/actions/messages";
 import type { ChatMessage, ConversationSummary, Creator } from "@/types/domain";
 import { AttachMenu } from "./AttachMenu";
+import { ConversationAvatar } from "./ConversationAvatar";
 import { MessageImage } from "./MessageImage";
 import { MessagePin } from "./MessagePin";
 import { useMessagesUnread } from "./MessagesProvider";
@@ -165,15 +178,11 @@ function ConversationRow({
           onClick={onClick}
           className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface"
         >
-          <Avatar
-            src={conversation.other.avatarUrl ?? undefined}
-            name={conversation.other.name}
-            size={48}
-          />
+          <ConversationAvatar summary={conversation} size={48} />
           <span className="min-w-0 flex-1">
             <span className="flex items-center justify-between gap-2">
               <span className="truncate text-[15px] font-semibold text-ink">
-                {conversation.other.name}
+                {conversationName(conversation)}
               </span>
               {conversation.lastMessage !== null ? (
                 <span className="shrink-0 text-xs text-ink-faint">
@@ -213,7 +222,7 @@ export function MessagesPanel({
   viewerName,
   viewerImage,
 }: MessagesPanelProps): ReactElement {
-  const { markRead: clearUnreadBadge, inboxRevision } = useMessagesUnread();
+  const { markRead: clearUnreadBadge, inboxRevision, refreshInbox } = useMessagesUnread();
   const { activePanel, close: closePanel } = useNavPanel();
   const panelOpen = activePanel === "messages";
 
@@ -235,10 +244,9 @@ export function MessagesPanel({
   } | null>(null);
   const [recipientQuery, setRecipientQuery] = useState("");
   const [recipients, setRecipients] = useState<Recipient[]>([]);
-  const [pendingConversation, setPendingConversation] = useState<{
-    id: string;
-    other: Creator;
-  } | null>(null);
+  const [selected, setSelected] = useState<Recipient[]>([]);
+  const [groupName, setGroupName] = useState("");
+  const [pendingConversation, setPendingConversation] = useState<ConversationSummary | null>(null);
   const [, startTransition] = useTransition();
 
   const endRef = useRef<HTMLDivElement>(null);
@@ -247,13 +255,7 @@ export function MessagesPanel({
 
   const pendingSummary: ConversationSummary | null =
     pendingConversation !== null && pendingConversation.id === activeId
-      ? {
-          id: pendingConversation.id,
-          other: pendingConversation.other,
-          lastMessage: null,
-          unreadCount: 0,
-          updatedAt: "",
-        }
+      ? pendingConversation
       : null;
   const active =
     list.find((conversation) => conversation.id === activeId) ??
@@ -444,6 +446,16 @@ export function MessagesPanel({
     void markConversationRead(id);
   };
 
+  const recipientToCreator = (recipient: Recipient): Creator => ({
+    id: recipient.id,
+    name: recipient.name,
+    username: recipient.username,
+    avatarUrl: recipient.avatarUrl,
+    bio: null,
+    followersLabel: null,
+    verified: false,
+  });
+
   const startWith = (other: Creator): void => {
     startTransition(async () => {
       const result = await startConversation(other.id);
@@ -453,11 +465,26 @@ export function MessagesPanel({
       const conversationId = result.conversationId;
       const existing = list.find((conversation) => conversation.id === conversationId);
       setActiveId(conversationId);
-      setPendingConversation(existing === undefined ? { id: conversationId, other } : null);
+      setPendingConversation(
+        existing === undefined
+          ? {
+              id: conversationId,
+              other,
+              others: [other],
+              title: null,
+              isGroup: false,
+              lastMessage: null,
+              unreadCount: 0,
+              updatedAt: "",
+            }
+          : null,
+      );
       setMessages([]);
       setOtherTyping(false);
       setLoadingThread(true);
       setView("conversation");
+      setSelected([]);
+      setGroupName("");
       const messagesResult = await fetchMessages(conversationId);
       setLoadingThread(false);
       if (messagesResult.ok) {
@@ -467,16 +494,65 @@ export function MessagesPanel({
     });
   };
 
-  const onPickRecipient = (recipient: Recipient): void => {
-    startWith({
-      id: recipient.id,
-      name: recipient.name,
-      username: recipient.username,
-      avatarUrl: recipient.avatarUrl,
-      bio: null,
-      followersLabel: null,
-      verified: false,
+  const startGroup = (): void => {
+    if (selected.length < 2) {
+      return;
+    }
+    const others = selected.map(recipientToCreator);
+    const name = groupName.trim();
+    startTransition(async () => {
+      const result = await createGroup(
+        others.map((member) => member.id),
+        name,
+      );
+      if (!result.ok) {
+        return;
+      }
+      const first = others[0];
+      if (first === undefined) {
+        return;
+      }
+      setActiveId(result.conversationId);
+      setPendingConversation({
+        id: result.conversationId,
+        other: first,
+        others,
+        title: name === "" ? null : name,
+        isGroup: true,
+        lastMessage: null,
+        unreadCount: 0,
+        updatedAt: "",
+      });
+      setMessages([]);
+      setOtherTyping(false);
+      setLoadingThread(false);
+      setView("conversation");
+      setSelected([]);
+      setGroupName("");
+      refreshInbox();
     });
+  };
+
+  const onPickRecipient = (recipient: Recipient): void => {
+    setSelected((current) =>
+      current.some((entry) => entry.id === recipient.id)
+        ? current.filter((entry) => entry.id !== recipient.id)
+        : [...current, recipient],
+    );
+  };
+
+  const onStartCompose = (): void => {
+    if (selected.length === 0) {
+      return;
+    }
+    if (selected.length === 1) {
+      const only = selected[0];
+      if (only !== undefined) {
+        startWith(recipientToCreator(only));
+      }
+      return;
+    }
+    startGroup();
   };
 
   const onAcceptRequest = (): void => {
@@ -524,6 +600,20 @@ export function MessagesPanel({
     }
     startTransition(async () => {
       await deleteConversation(id);
+    });
+  };
+
+  const onLeaveGroup = (): void => {
+    if (activeId === null) {
+      return;
+    }
+    const id = activeId;
+    setList((current) => current.filter((conversation) => conversation.id !== id));
+    setActiveId(null);
+    setPendingConversation(null);
+    setView("list");
+    startTransition(async () => {
+      await leaveConversation(id);
     });
   };
 
@@ -674,6 +764,9 @@ export function MessagesPanel({
                   {
                     id: conversationId,
                     other: pendingConversation.other,
+                    others: [pendingConversation.other],
+                    title: null,
+                    isGroup: false,
                     lastMessage: null,
                     unreadCount: 0,
                     updatedAt: saved.createdAt,
@@ -730,33 +823,55 @@ export function MessagesPanel({
             >
               <BackIcon size={20} />
             </button>
-            <Link
-              href={active.other.username !== null ? `/u/${active.other.username}` : "#"}
-              className="group flex min-w-0 flex-1 items-center gap-2.5"
-            >
-              <span className="relative shrink-0">
-                <Avatar
-                  src={active.other.avatarUrl ?? undefined}
-                  name={active.other.name}
-                  size={32}
-                />
-                {otherOnline ? (
-                  <span className="absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-bg bg-[#22c55e]" />
-                ) : null}
-              </span>
-              <span className="flex min-w-0 flex-col">
-                <span className="truncate font-semibold leading-tight text-ink group-hover:underline">
-                  {active.other.name}
-                </span>
-                {otherOnline ? (
-                  <span className="text-xs font-medium text-ink">Online</span>
-                ) : formatLastActive(otherLastSeen) !== null ? (
-                  <span className="truncate text-xs text-ink-soft">
-                    {formatLastActive(otherLastSeen)}
+            {active.isGroup ? (
+              <>
+                <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                  <ConversationAvatar summary={active} size={32} />
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate font-semibold leading-tight text-ink">
+                      {conversationName(active)}
+                    </span>
+                    <span className="truncate text-xs text-ink-soft">
+                      {active.others.length + 1} members
+                    </span>
                   </span>
-                ) : null}
-              </span>
-            </Link>
+                </div>
+                <Menu
+                  label="Group options"
+                  icon={<MoreIcon />}
+                  align="end"
+                  items={[{ label: "Leave group", destructive: true, onSelect: onLeaveGroup }]}
+                />
+              </>
+            ) : (
+              <Link
+                href={active.other.username !== null ? `/u/${active.other.username}` : "#"}
+                className="group flex min-w-0 flex-1 items-center gap-2.5"
+              >
+                <span className="relative shrink-0">
+                  <Avatar
+                    src={active.other.avatarUrl ?? undefined}
+                    name={active.other.name}
+                    size={32}
+                  />
+                  {otherOnline ? (
+                    <span className="absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-bg bg-[#22c55e]" />
+                  ) : null}
+                </span>
+                <span className="flex min-w-0 flex-col">
+                  <span className="truncate font-semibold leading-tight text-ink group-hover:underline">
+                    {active.other.name}
+                  </span>
+                  {otherOnline ? (
+                    <span className="text-xs font-medium text-ink">Online</span>
+                  ) : formatLastActive(otherLastSeen) !== null ? (
+                    <span className="truncate text-xs text-ink-soft">
+                      {formatLastActive(otherLastSeen)}
+                    </span>
+                  ) : null}
+                </span>
+              </Link>
+            )}
           </header>
 
           <div className="flex-1 overflow-y-auto px-4 py-3">
@@ -796,6 +911,11 @@ export function MessagesPanel({
                 {messages.map((message, index) => {
                   const mine = message.senderId === viewerId;
                   const previous = index === 0 ? null : (messages[index - 1]?.createdAt ?? null);
+                  const showSender =
+                    active.isGroup && !mine && messages[index - 1]?.senderId !== message.senderId;
+                  const senderName = active.others.find(
+                    (member) => member.id === message.senderId,
+                  )?.name;
                   return (
                     <Fragment key={message.id}>
                       {shouldSeparateMessages(previous, message.createdAt) ? (
@@ -806,6 +926,11 @@ export function MessagesPanel({
                       <div
                         className={cn("flex flex-col gap-1", mine ? "items-end" : "items-start")}
                       >
+                        {showSender && senderName !== undefined ? (
+                          <span className="px-1 text-[11px] font-semibold text-ink-soft">
+                            {senderName}
+                          </span>
+                        ) : null}
                         {message.pin !== null ? <MessagePin pin={message.pin} /> : null}
                         {message.imageUrl !== null ? <MessageImage url={message.imageUrl} /> : null}
                         {message.body !== "" ? (
@@ -917,37 +1042,80 @@ export function MessagesPanel({
               leadingIcon={<SearchIcon size={18} />}
             />
           </div>
+          {selected.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5 px-4 pb-2">
+              {selected.map((entry) => (
+                <button
+                  key={entry.id}
+                  type="button"
+                  aria-label={`Remove ${entry.name}`}
+                  onClick={() => onPickRecipient(entry)}
+                  className="inline-flex cursor-pointer items-center gap-1 rounded-lg bg-surface px-2 py-1 text-[13px] font-semibold text-ink transition-colors hover:bg-surface-2"
+                >
+                  {entry.name}
+                  <CloseIcon size={12} />
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {selected.length >= 2 ? (
+            <div className="px-4 pb-2">
+              <Input
+                aria-label="Group name"
+                value={groupName}
+                onChange={(event) => setGroupName(event.target.value)}
+                placeholder="Group name (optional)"
+              />
+            </div>
+          ) : null}
           <div className="flex-1 overflow-y-auto pb-2">
             {recipients.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-ink-soft">No people found.</p>
             ) : (
               <ul>
-                {recipients.map((recipient) => (
-                  <li key={recipient.id}>
-                    <button
-                      type="button"
-                      onClick={() => onPickRecipient(recipient)}
-                      className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface"
-                    >
-                      <Avatar
-                        src={recipient.avatarUrl ?? undefined}
-                        name={recipient.name}
-                        size={44}
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[15px] font-semibold text-ink">
-                          {recipient.name}
+                {recipients.map((recipient) => {
+                  const isSelected = selected.some((entry) => entry.id === recipient.id);
+                  return (
+                    <li key={recipient.id}>
+                      <button
+                        type="button"
+                        onClick={() => onPickRecipient(recipient)}
+                        className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface"
+                      >
+                        <Avatar
+                          src={recipient.avatarUrl ?? undefined}
+                          name={recipient.name}
+                          size={44}
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[15px] font-semibold text-ink">
+                            {recipient.name}
+                          </span>
+                          <span className="block truncate text-[13px] text-ink-soft">
+                            @{recipient.username}
+                          </span>
                         </span>
-                        <span className="block truncate text-[13px] text-ink-soft">
-                          @{recipient.username}
-                        </span>
-                      </span>
-                    </button>
-                  </li>
-                ))}
+                        {isSelected ? (
+                          <span className="grid size-6 shrink-0 place-items-center rounded-full bg-accent text-bg">
+                            <CheckIcon size={16} />
+                          </span>
+                        ) : (
+                          <span className="size-6 shrink-0 rounded-full border-2 border-line" />
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
+          {selected.length > 0 ? (
+            <div className="border-t border-line p-3">
+              <Button fullWidth onClick={onStartCompose}>
+                {selected.length >= 2 ? `Create group · ${selected.length}` : "Start chat"}
+              </Button>
+            </div>
+          ) : null}
         </>
       ) : view === "requests" ? (
         <>
