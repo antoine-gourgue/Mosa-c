@@ -377,23 +377,30 @@ export function MessagesPanel({
           return current;
         }
         return current
-          .map((conversation) =>
-            conversation.id === message.conversationId
-              ? {
-                  ...conversation,
-                  lastMessage: {
-                    body: message.body,
-                    createdAt: message.createdAt,
-                    senderId: message.senderId,
-                  },
-                  updatedAt: message.createdAt,
-                  unreadCount:
-                    conversation.id === activeId || message.senderId === viewerId
-                      ? conversation.unreadCount
-                      : conversation.unreadCount + 1,
-                }
-              : conversation,
-          )
+          .map((conversation) => {
+            if (conversation.id !== message.conversationId) {
+              return conversation;
+            }
+            const others = message.system
+              ? conversation.others.filter((member) => member.id !== message.senderId)
+              : conversation.others;
+            return {
+              ...conversation,
+              others,
+              isGroup: others.length > 1,
+              other: others[0] ?? conversation.other,
+              lastMessage: {
+                body: message.body,
+                createdAt: message.createdAt,
+                senderId: message.senderId,
+              },
+              updatedAt: message.createdAt,
+              unreadCount:
+                conversation.id === activeId || message.senderId === viewerId
+                  ? conversation.unreadCount
+                  : conversation.unreadCount + 1,
+            };
+          })
           .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
       });
       if (message.senderId === viewerId || message.conversationId !== activeId) {
@@ -530,6 +537,13 @@ export function MessagesPanel({
       if (first === undefined) {
         return;
       }
+      const socket = getRealtimeSocket();
+      if (socket.connected) {
+        socket.emit("conversation:sync", {
+          conversationId: result.conversationId,
+          userIds: others.map((member) => member.id),
+        });
+      }
       setActiveId(result.conversationId);
       setPendingConversation({
         id: result.conversationId,
@@ -631,6 +645,7 @@ export function MessagesPanel({
     setPendingConversation(null);
     setView("list");
     startTransition(async () => {
+      await deliver(id, `${viewerName} left the group`, null, true);
       await leaveConversation(id);
     });
   };
@@ -639,6 +654,7 @@ export function MessagesPanel({
     conversationId: string,
     body: string,
     imageUrl: string | null = null,
+    system = false,
   ): Promise<SendResult> => {
     const socket = getRealtimeSocket();
     if (socket.connected) {
@@ -647,7 +663,7 @@ export function MessagesPanel({
           .timeout(5000)
           .emit(
             "message:send",
-            { conversationId, body, imageUrl },
+            { conversationId, body, imageUrl, system },
             (error: unknown, response: unknown) => {
               const ok =
                 error === null &&
@@ -663,7 +679,7 @@ export function MessagesPanel({
           );
       });
     }
-    return sendMessage(conversationId, body, null, imageUrl).then((result) =>
+    return sendMessage(conversationId, body, null, imageUrl, system).then((result) =>
       result.ok ? { ok: true, message: result.message } : { ok: false },
     );
   };
@@ -685,6 +701,7 @@ export function MessagesPanel({
         createdAt,
         pin: null,
         imageUrl: url,
+        system: false,
       };
       setMessages((current) => [...current, optimistic]);
       const result = await deliver(conversationId, "", url);
@@ -760,6 +777,7 @@ export function MessagesPanel({
       createdAt,
       pin: null,
       imageUrl: null,
+      system: false,
     };
     setMessages((current) => [...current, optimistic]);
     startTransition(async () => {
@@ -948,28 +966,34 @@ export function MessagesPanel({
                           {formatMessageSeparator(message.createdAt)}
                         </div>
                       ) : null}
-                      <div
-                        className={cn("flex flex-col gap-1", mine ? "items-end" : "items-start")}
-                      >
-                        {showSender && senderName !== undefined ? (
-                          <span className="px-1 text-[11px] font-semibold text-ink-soft">
-                            {senderName}
-                          </span>
-                        ) : null}
-                        {message.pin !== null ? <MessagePin pin={message.pin} /> : null}
-                        {message.imageUrl !== null ? <MessageImage url={message.imageUrl} /> : null}
-                        {message.body !== "" ? (
-                          <span
-                            title={formatClockTime(message.createdAt)}
-                            className={cn(
-                              "max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px]",
-                              mine ? "bg-accent text-bg" : "bg-surface text-ink",
-                            )}
-                          >
-                            {message.body}
-                          </span>
-                        ) : null}
-                      </div>
+                      {message.system ? (
+                        <p className="py-1 text-center text-xs text-ink-soft">{message.body}</p>
+                      ) : (
+                        <div
+                          className={cn("flex flex-col gap-1", mine ? "items-end" : "items-start")}
+                        >
+                          {showSender && senderName !== undefined ? (
+                            <span className="px-1 text-[11px] font-semibold text-ink-soft">
+                              {senderName}
+                            </span>
+                          ) : null}
+                          {message.pin !== null ? <MessagePin pin={message.pin} /> : null}
+                          {message.imageUrl !== null ? (
+                            <MessageImage url={message.imageUrl} />
+                          ) : null}
+                          {message.body !== "" ? (
+                            <span
+                              title={formatClockTime(message.createdAt)}
+                              className={cn(
+                                "max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px]",
+                                mine ? "bg-accent text-bg" : "bg-surface text-ink",
+                              )}
+                            >
+                              {message.body}
+                            </span>
+                          ) : null}
+                        </div>
+                      )}
                     </Fragment>
                   );
                 })}

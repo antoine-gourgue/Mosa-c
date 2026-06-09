@@ -108,6 +108,7 @@ export type ChatMessage = {
   createdAt: string;
   pin: { id: string; imageUrl: string; title: string } | null;
   imageUrl: string | null;
+  system: boolean;
 };
 
 /**

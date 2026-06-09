@@ -68,11 +68,16 @@ export function MessagesProvider({
         addUnread(message.conversationId);
       }
     };
+    const onInboxRefresh = (): void => {
+      refreshInbox();
+    };
     socket.on("message:new", onMessageNew);
+    socket.on("inbox:refresh", onInboxRefresh);
     return () => {
       socket.off("message:new", onMessageNew);
+      socket.off("inbox:refresh", onInboxRefresh);
     };
-  }, [viewerId, addUnread]);
+  }, [viewerId, addUnread, refreshInbox]);
 
   const value = useMemo<MessagesContextValue>(
     () => ({ unreadCount: unread.size, markRead, addUnread, inboxRevision, refreshInbox }),

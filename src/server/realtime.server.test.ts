@@ -2,11 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   handlePresenceGet,
   handleSend,
+  handleSync,
   handleTyping,
   markOffline,
   markOnline,
   type RealtimePrisma,
   type RoomEmitter,
+  type SyncEmitter,
 } from "../../realtime/server";
 
 function makeEmitter(): {
@@ -74,6 +76,44 @@ describe("handleSend", () => {
 
     expect(prisma.conversationParticipant.findUnique).not.toHaveBeenCalled();
     expect(ack).toHaveBeenCalledWith(expect.objectContaining({ ok: false }));
+  });
+});
+
+describe("handleSync", () => {
+  function makeSync(): {
+    mock: SyncEmitter;
+    to: ReturnType<typeof vi.fn>;
+    emit: ReturnType<typeof vi.fn>;
+    in: ReturnType<typeof vi.fn>;
+    socketsJoin: ReturnType<typeof vi.fn>;
+  } {
+    const emit = vi.fn();
+    const socketsJoin = vi.fn();
+    const to = vi.fn(() => ({ emit }));
+    const inFn = vi.fn(() => ({ socketsJoin }));
+    return { mock: { to, in: inFn } as unknown as SyncEmitter, to, emit, in: inFn, socketsJoin };
+  }
+
+  it("joins each target's sockets to the room and asks them to refresh", async () => {
+    prisma.conversationParticipant.findUnique.mockResolvedValue({ userId: "uA" });
+    const io = makeSync();
+
+    await handleSync(io.mock, db, "uA", { conversationId: "c1", userIds: ["uB", "uC"] });
+
+    expect(io.in).toHaveBeenCalledWith("user:uB");
+    expect(io.socketsJoin).toHaveBeenCalledWith("c1");
+    expect(io.to).toHaveBeenCalledWith("user:uC");
+    expect(io.emit).toHaveBeenCalledWith("inbox:refresh", { conversationId: "c1" });
+  });
+
+  it("ignores a sync from a non-participant", async () => {
+    prisma.conversationParticipant.findUnique.mockResolvedValue(null);
+    const io = makeSync();
+
+    await handleSync(io.mock, db, "uA", { conversationId: "c1", userIds: ["uB"] });
+
+    expect(io.socketsJoin).not.toHaveBeenCalled();
+    expect(io.emit).not.toHaveBeenCalled();
   });
 });
 

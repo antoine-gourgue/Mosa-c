@@ -39,6 +39,7 @@ export type MessengerProps = {
   conversations: ConversationSummary[];
   requests?: ConversationSummary[];
   viewerId: string;
+  viewerName: string;
   initialConversationId?: string;
   initialMessages?: ChatMessage[];
 };
@@ -62,6 +63,7 @@ export function Messenger({
   conversations,
   requests = [],
   viewerId,
+  viewerName,
   initialConversationId,
   initialMessages = [],
 }: MessengerProps): ReactElement {
@@ -183,23 +185,30 @@ export function Messenger({
           return current;
         }
         return current
-          .map((conversation) =>
-            conversation.id === message.conversationId
-              ? {
-                  ...conversation,
-                  lastMessage: {
-                    body: message.body,
-                    createdAt: message.createdAt,
-                    senderId: message.senderId,
-                  },
-                  updatedAt: message.createdAt,
-                  unreadCount:
-                    conversation.id === activeId || message.senderId === viewerId
-                      ? conversation.unreadCount
-                      : conversation.unreadCount + 1,
-                }
-              : conversation,
-          )
+          .map((conversation) => {
+            if (conversation.id !== message.conversationId) {
+              return conversation;
+            }
+            const others = message.system
+              ? conversation.others.filter((member) => member.id !== message.senderId)
+              : conversation.others;
+            return {
+              ...conversation,
+              others,
+              isGroup: others.length > 1,
+              other: others[0] ?? conversation.other,
+              lastMessage: {
+                body: message.body,
+                createdAt: message.createdAt,
+                senderId: message.senderId,
+              },
+              updatedAt: message.createdAt,
+              unreadCount:
+                conversation.id === activeId || message.senderId === viewerId
+                  ? conversation.unreadCount
+                  : conversation.unreadCount + 1,
+            };
+          })
           .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
       });
 
@@ -301,6 +310,7 @@ export function Messenger({
     conversationId: string,
     body: string,
     imageUrl: string | null = null,
+    system = false,
   ): Promise<SendResult> => {
     const socket = getRealtimeSocket();
     if (socket.connected) {
@@ -309,7 +319,7 @@ export function Messenger({
           .timeout(5000)
           .emit(
             "message:send",
-            { conversationId, body, imageUrl },
+            { conversationId, body, imageUrl, system },
             (error: unknown, response: unknown) => {
               const ok =
                 error === null &&
@@ -325,7 +335,7 @@ export function Messenger({
           );
       });
     }
-    return sendMessage(conversationId, body, null, imageUrl).then((result) =>
+    return sendMessage(conversationId, body, null, imageUrl, system).then((result) =>
       result.ok ? { ok: true, message: result.message } : { ok: false },
     );
   };
@@ -346,6 +356,7 @@ export function Messenger({
         createdAt: new Date().toISOString(),
         pin: null,
         imageUrl: url,
+        system: false,
       };
       setMessages((current) => [...current, optimistic]);
       const result = await deliver(conversationId, "", url);
@@ -410,6 +421,7 @@ export function Messenger({
       createdAt: new Date(now).toISOString(),
       pin: null,
       imageUrl: null,
+      system: false,
     };
     setMessages((current) => [...current, optimistic]);
     startTransition(async () => {
@@ -453,6 +465,7 @@ export function Messenger({
     setList((current) => current.filter((conversation) => conversation.id !== id));
     setActiveId(null);
     startTransition(async () => {
+      await deliver(id, `${viewerName} left the group`, null, true);
       await leaveConversation(id);
     });
   };
@@ -722,39 +735,43 @@ export function Messenger({
                             {formatMessageSeparator(message.createdAt)}
                           </div>
                         ) : null}
-                        <div
-                          className={cn(
-                            "relative flex flex-col gap-1",
-                            mine ? "items-end" : "items-start",
-                          )}
-                        >
-                          {showSender && senderName !== undefined ? (
-                            <span className="px-1 text-[11px] font-semibold text-ink-soft">
-                              {senderName}
-                            </span>
-                          ) : null}
-                          {message.pin !== null ? <MessagePin pin={message.pin} /> : null}
-                          {message.imageUrl !== null ? (
-                            <MessageImage url={message.imageUrl} />
-                          ) : null}
-                          {message.body !== "" ? (
-                            <span
-                              title={formatClockTime(message.createdAt)}
-                              className={cn(
-                                "max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px] sm:max-w-[560px]",
-                                mine ? "bg-accent text-bg" : "bg-surface text-ink",
-                              )}
-                            >
-                              {message.body}
-                            </span>
-                          ) : null}
-                          <span
-                            className="pointer-events-none absolute right-[-48px] top-1/2 -translate-y-1/2 text-xs tabular-nums text-ink-faint transition-opacity"
-                            style={{ opacity: dragX < 0 ? 1 : 0 }}
+                        {message.system ? (
+                          <p className="py-1 text-center text-xs text-ink-soft">{message.body}</p>
+                        ) : (
+                          <div
+                            className={cn(
+                              "relative flex flex-col gap-1",
+                              mine ? "items-end" : "items-start",
+                            )}
                           >
-                            {formatClockTime(message.createdAt)}
-                          </span>
-                        </div>
+                            {showSender && senderName !== undefined ? (
+                              <span className="px-1 text-[11px] font-semibold text-ink-soft">
+                                {senderName}
+                              </span>
+                            ) : null}
+                            {message.pin !== null ? <MessagePin pin={message.pin} /> : null}
+                            {message.imageUrl !== null ? (
+                              <MessageImage url={message.imageUrl} />
+                            ) : null}
+                            {message.body !== "" ? (
+                              <span
+                                title={formatClockTime(message.createdAt)}
+                                className={cn(
+                                  "max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px] sm:max-w-[560px]",
+                                  mine ? "bg-accent text-bg" : "bg-surface text-ink",
+                                )}
+                              >
+                                {message.body}
+                              </span>
+                            ) : null}
+                            <span
+                              className="pointer-events-none absolute right-[-48px] top-1/2 -translate-y-1/2 text-xs tabular-nums text-ink-faint transition-opacity"
+                              style={{ opacity: dragX < 0 ? 1 : 0 }}
+                            >
+                              {formatClockTime(message.createdAt)}
+                            </span>
+                          </div>
+                        )}
                       </Fragment>
                     );
                   })}

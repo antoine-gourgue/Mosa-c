@@ -31,6 +31,7 @@ export async function sendMessage(
   body: string,
   pinId: string | null = null,
   imageUrl: string | null = null,
+  system = false,
 ): Promise<{ ok: true; message: ChatMessage } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
@@ -63,7 +64,7 @@ export async function sendMessage(
   }
   const [row] = await prisma.$transaction([
     prisma.message.create({
-      data: { conversationId, senderId: user.id, body: text, pinId: sharedPinId, imageUrl },
+      data: { conversationId, senderId: user.id, body: text, pinId: sharedPinId, imageUrl, system },
       include: { pin: MESSAGE_PIN_SELECT },
     }),
     prisma.conversation.update({

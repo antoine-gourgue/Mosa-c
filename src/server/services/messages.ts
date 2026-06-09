@@ -61,6 +61,7 @@ type MessageRow = {
   createdAt: Date;
   pin: { id: string; imageUrl: string; title: string } | null;
   imageUrl: string | null;
+  system: boolean;
 };
 
 /**
@@ -83,6 +84,7 @@ export function toMessage(row: MessageRow): ChatMessage {
     createdAt: row.createdAt.toISOString(),
     pin: row.pin,
     imageUrl: row.imageUrl,
+    system: row.system,
   };
 }
 

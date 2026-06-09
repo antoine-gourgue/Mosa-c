@@ -38,10 +38,10 @@ export function ConversationAvatar({ summary, size = 48 }: ConversationAvatarPro
       className="relative inline-block shrink-0"
       style={{ width: size, height: size }}
     >
-      <span className="absolute left-0 top-0 rounded-full ring-2 ring-bg">
+      <span className="absolute left-0 top-0">
         <Avatar src={first?.avatarUrl ?? undefined} name={first?.name ?? "?"} size={sub} />
       </span>
-      <span className="absolute bottom-0 right-0 rounded-full ring-2 ring-bg">
+      <span className="absolute bottom-0 right-0">
         <Avatar src={second?.avatarUrl ?? undefined} name={second?.name ?? "?"} size={sub} />
       </span>
     </span>
