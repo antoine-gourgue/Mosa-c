@@ -1,1 +1,6 @@
 npx lint-staged
+
+# Coverage gate (local only — not enforced in CI): block the commit when
+# business-logic coverage drops below the thresholds in vitest.config.ts.
+echo "▶ Checking test coverage…"
+npm run test:coverage --silent

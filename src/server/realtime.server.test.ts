@@ -25,6 +25,7 @@ const prisma = {
   conversationParticipant: { findUnique: vi.fn(), findMany: vi.fn() },
   message: { create: vi.fn() },
   conversation: { update: vi.fn() },
+  pin: { findUnique: vi.fn() },
   user: { update: vi.fn(), findMany: vi.fn() },
 };
 const db = prisma as unknown as RealtimePrisma;
@@ -76,6 +77,57 @@ describe("handleSend", () => {
 
     expect(prisma.conversationParticipant.findUnique).not.toHaveBeenCalled();
     expect(ack).toHaveBeenCalledWith(expect.objectContaining({ ok: false }));
+  });
+
+  it("rejects a body over the length limit", async () => {
+    const io = makeEmitter();
+    const ack = vi.fn();
+    await handleSend(io.mock, db, "uA", { conversationId: "c1", body: "x".repeat(4001) }, ack);
+    expect(prisma.conversationParticipant.findUnique).not.toHaveBeenCalled();
+    expect(ack).toHaveBeenCalledWith(expect.objectContaining({ ok: false }));
+  });
+
+  it("attaches a shared pin and broadcasts it", async () => {
+    prisma.conversationParticipant.findUnique.mockResolvedValue({ userId: "uA" });
+    prisma.pin.findUnique.mockResolvedValue({ id: "p1", imageUrl: "/p.png", title: "Pin" });
+    prisma.message.create.mockResolvedValue({ id: "m1", body: "", createdAt: new Date() });
+    prisma.conversation.update.mockResolvedValue({});
+    const io = makeEmitter();
+    const ack = vi.fn();
+    await handleSend(io.mock, db, "uA", { conversationId: "c1", pinId: "p1" }, ack);
+    expect(io.emit).toHaveBeenCalledWith(
+      "message:new",
+      expect.objectContaining({ pin: { id: "p1", imageUrl: "/p.png", title: "Pin" } }),
+    );
+  });
+
+  it("rejects a pin that no longer exists", async () => {
+    prisma.conversationParticipant.findUnique.mockResolvedValue({ userId: "uA" });
+    prisma.pin.findUnique.mockResolvedValue(null);
+    const io = makeEmitter();
+    const ack = vi.fn();
+    await handleSend(io.mock, db, "uA", { conversationId: "c1", pinId: "ghost" }, ack);
+    expect(prisma.message.create).not.toHaveBeenCalled();
+    expect(ack).toHaveBeenCalledWith(expect.objectContaining({ ok: false }));
+  });
+
+  it("broadcasts an image-only message flagged as a system event", async () => {
+    prisma.conversationParticipant.findUnique.mockResolvedValue({ userId: "uA" });
+    prisma.message.create.mockResolvedValue({ id: "m2", body: "left", createdAt: new Date() });
+    prisma.conversation.update.mockResolvedValue({});
+    const io = makeEmitter();
+    const ack = vi.fn();
+    await handleSend(
+      io.mock,
+      db,
+      "uA",
+      { conversationId: "c1", body: "left", imageUrl: "/x.gif", system: true },
+      ack,
+    );
+    expect(io.emit).toHaveBeenCalledWith(
+      "message:new",
+      expect.objectContaining({ imageUrl: "/x.gif", system: true }),
+    );
   });
 });
 

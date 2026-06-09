@@ -14,8 +14,30 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
-      include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/generated/**", "src/**/*.{test,spec}.{ts,tsx}"],
+      // Coverage scope = business logic. UI components and RSC pages are covered
+      // by the Playwright e2e suite; non-testable infra (DB client, env, auth
+      // wiring, socket client, browser canvas, storage adapters) is excluded.
+      include: ["src/lib/**/*.ts", "src/server/**/*.ts", "realtime/server.ts", "realtime/auth.ts"],
+      exclude: [
+        "src/**/*.{test,spec}.{ts,tsx}",
+        "**/*.d.ts",
+        "src/lib/prisma.ts",
+        "src/lib/env.ts",
+        "src/lib/auth.ts",
+        "src/lib/auth.config.ts",
+        "src/lib/realtime.ts",
+        "src/lib/image.ts",
+        "src/lib/site.ts",
+        "src/lib/storage/**",
+      ],
+      // Ratchet set just under the level currently achieved so coverage can only
+      // hold or climb. The pre-commit hook blocks any commit that drops below.
+      thresholds: {
+        statements: 95,
+        branches: 87,
+        functions: 95,
+        lines: 95,
+      },
     },
   },
 });
