@@ -119,6 +119,15 @@ model VerificationToken {
   @@id([identifier, token])
 }
 
+model EmailOtp {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
 model Tag {
   id        String   @id @default(cuid())
   slug      String   @unique
