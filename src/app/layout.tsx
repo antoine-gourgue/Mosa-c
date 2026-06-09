@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import type { ReactElement, ReactNode } from "react";
+import { RegisterServiceWorker } from "@/components/pwa/RegisterServiceWorker";
 import { JsonLd } from "@/components/seo";
 import { env } from "@/lib/env";
 import { SITE } from "@/lib/site";
@@ -31,6 +32,15 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SITE.name,
     description: SITE.description,
+  },
+  appleWebApp: {
+    capable: true,
+    title: SITE.name,
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/brand/apple-touch-icon.png",
   },
 };
 
@@ -65,6 +75,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           }}
         />
         {children}
+        <RegisterServiceWorker />
       </body>
       {umamiEnabled ? (
         <Script
