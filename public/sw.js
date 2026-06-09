@@ -53,15 +53,19 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       caches.open(CACHE).then(async (cache) => {
         const cached = await cache.match(request);
-        const network = fetch(request)
-          .then((response) => {
+        const refresh = fetch(request)
+          .then(async (response) => {
             if (response.ok) {
-              cache.put(request, response.clone());
+              await cache.put(request, response.clone());
             }
             return response;
           })
           .catch(() => cached);
-        return cached ?? network;
+        if (cached) {
+          event.waitUntil(refresh);
+          return cached;
+        }
+        return refresh;
       }),
     );
   }
