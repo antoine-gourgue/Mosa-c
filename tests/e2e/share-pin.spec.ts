@@ -11,5 +11,9 @@ test("a user can share a pin into a direct message", async ({ page }) => {
   await expect(page.getByText(/Sent to Mira/)).toBeVisible();
 
   await page.getByRole("button", { name: "Messages" }).first().click();
-  await expect(page.getByText("Sent a pin").first()).toBeVisible();
+  const miraConversation = page
+    .getByRole("button")
+    .filter({ hasText: "Mira" })
+    .filter({ hasText: "Sent a pin" });
+  await expect(miraConversation.first()).toBeVisible();
 });

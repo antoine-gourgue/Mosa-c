@@ -116,6 +116,10 @@ export async function handleSend(
     ack?.({ ok: false, error: "Invalid message." });
     return;
   }
+  if (body.length > 4000) {
+    ack?.({ ok: false, error: "Your message is too long." });
+    return;
+  }
   const member = await prisma.conversationParticipant.findUnique({
     where: { conversationId_userId: { conversationId, userId } },
   });
@@ -130,8 +134,12 @@ export async function handleSend(
           where: { id: pinId },
           select: { id: true, imageUrl: true, title: true },
         });
+  if (pinId !== null && pin === null) {
+    ack?.({ ok: false, error: "That pin no longer exists." });
+    return;
+  }
   const row = await prisma.message.create({
-    data: { conversationId, senderId: userId, body: body.slice(0, 4000), pinId: pin?.id ?? null },
+    data: { conversationId, senderId: userId, body, pinId: pin?.id ?? null },
   });
   await prisma.conversation.update({
     where: { id: conversationId },

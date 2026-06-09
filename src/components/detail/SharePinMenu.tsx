@@ -84,15 +84,32 @@ export function SharePinMenu({ pinId }: SharePinMenuProps): ReactElement {
         return;
       }
       const socket = getRealtimeSocket();
+      let delivered: boolean;
       if (socket.connected) {
-        socket.emit("message:send", { conversationId: conversation.conversationId, pinId });
+        delivered = await new Promise<boolean>((resolve) => {
+          socket
+            .timeout(5000)
+            .emit(
+              "message:send",
+              { conversationId: conversation.conversationId, pinId },
+              (error: unknown, response: unknown) => {
+                resolve(
+                  error === null &&
+                    typeof response === "object" &&
+                    response !== null &&
+                    (response as { ok?: unknown }).ok === true,
+                );
+              },
+            );
+        });
       } else {
         const result = await sendMessage(conversation.conversationId, "", pinId);
-        if (!result.ok) {
-          show({ title: "Couldn't send", description: result.error });
-          setSendingId(null);
-          return;
-        }
+        delivered = result.ok;
+      }
+      if (!delivered) {
+        show({ title: "Couldn't send", description: "Please try again." });
+        setSendingId(null);
+        return;
       }
       refreshInbox();
       show({ title: `Sent to ${recipient.name}` });
