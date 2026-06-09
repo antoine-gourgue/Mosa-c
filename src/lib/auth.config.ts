@@ -1,6 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
 
-const AUTH_ROUTES = new Set(["/login", "/sign-up"]);
+const AUTH_ROUTES = new Set(["/login", "/sign-up", "/verify"]);
 const PUBLIC_EXACT = new Set([
   "/",
   "/robots.txt",

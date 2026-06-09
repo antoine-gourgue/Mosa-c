@@ -257,6 +257,7 @@ async function main(): Promise<void> {
         avatarUrl: creator.avatarUrl,
         followersLabel: creator.followersLabel,
         verified: true,
+        emailVerified: new Date(),
       },
       create: {
         id: `user_${creator.key}`,
@@ -266,6 +267,7 @@ async function main(): Promise<void> {
         avatarUrl: creator.avatarUrl,
         followersLabel: creator.followersLabel,
         verified: true,
+        emailVerified: new Date(),
       },
     });
   }
@@ -273,7 +275,13 @@ async function main(): Promise<void> {
   const demoPasswordHash = await hash("password123", 12);
   await prisma.user.upsert({
     where: { email: "demo@mosaic.app" },
-    update: { name: "You", username: "you", passwordHash: demoPasswordHash, role: "USER" },
+    update: {
+      name: "You",
+      username: "you",
+      passwordHash: demoPasswordHash,
+      role: "USER",
+      emailVerified: new Date(),
+    },
     create: {
       id: "user_demo",
       email: "demo@mosaic.app",
@@ -281,12 +289,13 @@ async function main(): Promise<void> {
       username: "you",
       avatarUrl: "/images/creator1.png",
       passwordHash: demoPasswordHash,
+      emailVerified: new Date(),
     },
   });
 
   await prisma.user.upsert({
     where: { email: "admin@mosaic.app" },
-    update: { role: "ADMIN", passwordHash: demoPasswordHash },
+    update: { role: "ADMIN", passwordHash: demoPasswordHash, emailVerified: new Date() },
     create: {
       id: "user_admin",
       email: "admin@mosaic.app",
@@ -295,6 +304,7 @@ async function main(): Promise<void> {
       avatarUrl: "/images/creator2.png",
       passwordHash: demoPasswordHash,
       role: "ADMIN",
+      emailVerified: new Date(),
     },
   });
 

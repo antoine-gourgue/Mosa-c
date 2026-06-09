@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { FormEvent, ReactElement } from "react";
 import { Button, Input } from "@/components/ui";
@@ -16,6 +17,7 @@ import { GenderStep, type GenderValue } from "./GenderStep";
  * @returns The sign-up flow element.
  */
 export function SignUp(): ReactElement {
+  const router = useRouter();
   const [step, setStep] = useState<"form" | "gender">("form");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,6 +42,10 @@ export function SignUp(): ReactElement {
         age: Number(age),
         gender: gender ?? undefined,
       });
+      if (!result.ok && result.needsVerification === true) {
+        router.push(`/verify?email=${encodeURIComponent(result.email ?? email)}`);
+        return;
+      }
       if (!result.ok) {
         setErrors(result.fieldErrors ?? {});
         setFormError(result.formError ?? null);

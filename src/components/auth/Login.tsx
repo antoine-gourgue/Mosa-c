@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { FormEvent, ReactElement } from "react";
 import { Button, Input } from "@/components/ui";
@@ -15,6 +16,7 @@ import { loginUser, signInWithProvider } from "@/server/actions/auth";
  * @returns The login form element.
  */
 export function Login(): ReactElement {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -27,6 +29,10 @@ export function Login(): ReactElement {
     setFormError(null);
     startTransition(async () => {
       const result = await loginUser({ email, password });
+      if (!result.ok && result.needsVerification === true) {
+        router.push(`/verify?email=${encodeURIComponent(result.email ?? email)}`);
+        return;
+      }
       if (!result.ok) {
         setErrors(result.fieldErrors ?? {});
         setFormError(result.formError ?? null);
