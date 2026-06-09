@@ -11,9 +11,12 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     css: false,
+    // Annotate failing tests inline on the PR when running in GitHub Actions.
+    reporters: process.env.GITHUB_ACTIONS ? ["default", "github-actions"] : ["default"],
     coverage: {
       provider: "v8",
-      reporter: ["text", "html"],
+      // text/html for local use; json + json-summary feed the CI coverage report.
+      reporter: ["text", "html", "json", "json-summary"],
       // Coverage scope = business logic. UI components and RSC pages are covered
       // by the Playwright e2e suite; non-testable infra (DB client, env, auth
       // wiring, socket client, browser canvas, storage adapters) is excluded.
