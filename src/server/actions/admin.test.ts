@@ -24,6 +24,7 @@ import {
   resolveReport,
   setUserDisabled,
   setUserRole,
+  setUserVerified,
 } from "./admin";
 
 const db = prisma as unknown as {
@@ -76,6 +77,15 @@ describe("admin actions", () => {
     asAdmin("admin1");
     await expect(setUserRole("admin1", "USER")).rejects.toThrow();
     expect(db.user.update).not.toHaveBeenCalled();
+  });
+
+  it("toggles a user's verified badge", async () => {
+    asAdmin();
+    await setUserVerified("u2", true);
+    expect(db.user.update).toHaveBeenCalledWith({
+      where: { id: "u2" },
+      data: { verified: true },
+    });
   });
 
   it("promotes another user", async () => {

@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { pinFilename } from "./download";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { downloadPin, pinFilename } from "./download";
 
 describe("pinFilename", () => {
   it("slugifies the title and keeps the source extension", () => {
@@ -16,5 +16,34 @@ describe("pinFilename", () => {
 
   it("falls back to 'pin' when the title has no usable characters", () => {
     expect(pinFilename("!!!", "/images/a.jpg")).toBe("pin.jpg");
+  });
+});
+
+describe("downloadPin", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it("fetches the image and triggers a named download via an anchor", async () => {
+    const blob = new Blob(["data"], { type: "image/png" });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ blob: () => Promise.resolve(blob) } as unknown as Response),
+    );
+    const createObjectURL = vi.fn().mockReturnValue("blob:mock");
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", { createObjectURL, revokeObjectURL });
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
+
+    await downloadPin({ url: "/images/sunset.png", title: "Sunset" });
+
+    expect(fetch).toHaveBeenCalledWith("/images/sunset.png");
+    expect(createObjectURL).toHaveBeenCalledWith(blob);
+    expect(click).toHaveBeenCalledOnce();
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock");
+    expect(document.querySelector("a")).toBeNull();
   });
 });
