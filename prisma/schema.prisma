@@ -328,6 +328,7 @@ model Message {
   body           String
   pinId          String?
   pin            Pin?         @relation(fields: [pinId], references: [id], onDelete: SetNull)
+  imageUrl       String?
   createdAt      DateTime     @default(now())
 
   @@index([conversationId, createdAt])

@@ -31,6 +31,7 @@ export {
   CommentFilledIcon,
   ComposeIcon,
   SendIcon,
+  ImageIcon,
   ExpandIcon,
   GearFilledIcon,
   UserIcon,

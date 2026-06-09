@@ -60,6 +60,7 @@ type MessageRow = {
   body: string;
   createdAt: Date;
   pin: { id: string; imageUrl: string; title: string } | null;
+  imageUrl: string | null;
 };
 
 /**
@@ -81,6 +82,7 @@ export function toMessage(row: MessageRow): ChatMessage {
     body: row.body,
     createdAt: row.createdAt.toISOString(),
     pin: row.pin,
+    imageUrl: row.imageUrl,
   };
 }
 
@@ -143,7 +145,7 @@ function summarySelect(userId: string) {
         messages: {
           orderBy: { createdAt: "desc" as const },
           take: 1,
-          select: { body: true, createdAt: true, senderId: true, pinId: true },
+          select: { body: true, createdAt: true, senderId: true, pinId: true, imageUrl: true },
         },
       },
     },
@@ -156,9 +158,39 @@ type SummaryRow = {
     id: string;
     updatedAt: Date;
     participants: { user: CreatorRow }[];
-    messages: { body: string; createdAt: Date; senderId: string; pinId: string | null }[];
+    messages: {
+      body: string;
+      createdAt: Date;
+      senderId: string;
+      pinId: string | null;
+      imageUrl: string | null;
+    }[];
   };
 };
+
+/**
+ * Builds the inbox preview text for a conversation's last message, labelling pin
+ * and image/GIF attachments that carry no text.
+ *
+ * @param message - The last message's body and attachment markers.
+ * @returns The preview text.
+ */
+function previewBody(message: {
+  body: string;
+  pinId: string | null;
+  imageUrl: string | null;
+}): string {
+  if (message.body !== "") {
+    return message.body;
+  }
+  if (message.pinId !== null) {
+    return "Sent a pin";
+  }
+  if (message.imageUrl !== null) {
+    return /\.gif($|\?)/i.test(message.imageUrl) ? "Sent a GIF" : "Sent a photo";
+  }
+  return message.body;
+}
 
 /**
  * Maps a participant row to a conversation summary, computing the unread count.
@@ -197,7 +229,7 @@ async function toSummary(row: SummaryRow, userId: string): Promise<ConversationS
       last === null
         ? null
         : {
-            body: last.body === "" && last.pinId !== null ? "Sent a pin" : last.body,
+            body: previewBody(last),
             createdAt: last.createdAt.toISOString(),
             senderId: last.senderId,
           },

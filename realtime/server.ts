@@ -11,6 +11,7 @@ export type RealtimeMessage = {
   body: string;
   createdAt: string;
   pin: { id: string; imageUrl: string; title: string } | null;
+  imageUrl: string | null;
 };
 
 /**
@@ -29,7 +30,13 @@ export type RealtimePrisma = {
   };
   message: {
     create(args: {
-      data: { conversationId: string; senderId: string; body: string; pinId?: string | null };
+      data: {
+        conversationId: string;
+        senderId: string;
+        body: string;
+        pinId?: string | null;
+        imageUrl?: string | null;
+      };
     }): Promise<{ id: string; body: string; createdAt: Date }>;
   };
   pin: {
@@ -112,7 +119,8 @@ export async function handleSend(
   const conversationId = readString(payload, "conversationId");
   const body = (readString(payload, "body") ?? "").trim();
   const pinId = readString(payload, "pinId");
-  if (conversationId === null || (body === "" && pinId === null)) {
+  const imageUrl = readString(payload, "imageUrl");
+  if (conversationId === null || (body === "" && pinId === null && imageUrl === null)) {
     ack?.({ ok: false, error: "Invalid message." });
     return;
   }
@@ -139,7 +147,7 @@ export async function handleSend(
     return;
   }
   const row = await prisma.message.create({
-    data: { conversationId, senderId: userId, body, pinId: pin?.id ?? null },
+    data: { conversationId, senderId: userId, body, pinId: pin?.id ?? null, imageUrl },
   });
   await prisma.conversation.update({
     where: { id: conversationId },
@@ -152,6 +160,7 @@ export async function handleSend(
     body: row.body,
     createdAt: row.createdAt.toISOString(),
     pin,
+    imageUrl,
   };
   io.to(conversationId).emit("message:new", message);
   ack?.({ ok: true, message });

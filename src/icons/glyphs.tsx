@@ -501,6 +501,22 @@ export function SendIcon(props: IconProps): ReactElement {
 }
 
 /**
+ * Picture glyph used for the "upload a photo" attachment option.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function ImageIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="9" cy="9" r="2" />
+      <path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" />
+    </SvgIcon>
+  );
+}
+
+/**
  * Diagonal "expand" glyph used to open the pin detail as a full page.
  *
  * @param props - Icon sizing and presentation props.
