@@ -20,12 +20,12 @@ export const metadata: Metadata = {
 export default async function VerifyPage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string }>;
+  searchParams: Promise<{ email?: string; code?: string }>;
 }): Promise<ReactElement> {
-  const { email } = await searchParams;
+  const { email, code } = await searchParams;
   return (
     <AuthLayout>
-      <VerifyEmail email={email ?? ""} />
+      <VerifyEmail email={email ?? ""} initialCode={(code ?? "").replace(/\D/g, "").slice(0, 6)} />
     </AuthLayout>
   );
 }

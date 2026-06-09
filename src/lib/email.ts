@@ -76,7 +76,7 @@ export async function sendEmail(message: EmailMessage): Promise<boolean> {
  * @param code - The 6-digit verification code.
  * @returns The HTML body.
  */
-function renderOtpHtml(code: string): string {
+function renderOtpHtml(code: string, verifyUrl: string): string {
   const digits = code
     .split("")
     .map(
@@ -85,6 +85,10 @@ function renderOtpHtml(code: string): string {
     )
     .join("");
   const sans = "-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif";
+  const button =
+    verifyUrl === ""
+      ? ""
+      : `<tr><td style="padding-top:22px"><a href="${verifyUrl}" style="display:inline-block;background:#db2d44;color:#ffffff;font-family:${sans};font-size:15px;font-weight:600;text-decoration:none;padding:13px 26px;border-radius:12px">Verify my email</a></td></tr>`;
   return `<!doctype html>
 <html lang="en">
   <body style="margin:0;padding:0;background:#ffffff">
@@ -113,8 +117,9 @@ function renderOtpHtml(code: string): string {
                 <table role="presentation" cellpadding="0" cellspacing="0"><tr>${digits}</tr></table>
               </td>
             </tr>
+            ${button}
             <tr>
-              <td style="padding-top:14px">
+              <td style="padding-top:18px">
                 <p style="margin:0;font-family:${sans};font-size:14px;line-height:1.6;color:#6b6b6b">This code expires in <strong style="color:#1a1a1a">10 minutes</strong>. For your security, never share it with anyone &mdash; Mosaic will never ask you for it.</p>
               </td>
             </tr>
@@ -141,12 +146,18 @@ function renderOtpHtml(code: string): string {
  * @returns Whether the email was accepted for delivery.
  */
 export async function sendOtpEmail(to: string, code: string): Promise<boolean> {
+  const base = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
+  const verifyUrl =
+    base === "" ? "" : `${base}/verify?email=${encodeURIComponent(to)}&code=${code}`;
   const subject = `${code} is your Mosaic verification code`;
-  const text = `Your Mosaic verification code is ${code}. It expires in 10 minutes. If you didn't create a Mosaic account, you can ignore this email.`;
+  const text =
+    `Your Mosaic verification code is ${code}. It expires in 10 minutes.` +
+    (verifyUrl === "" ? "" : ` Verify here: ${verifyUrl}`) +
+    ` If you didn't create a Mosaic account, you can ignore this email.`;
   return sendEmail({
     to,
     subject,
-    html: renderOtpHtml(code),
+    html: renderOtpHtml(code, verifyUrl),
     text,
     attachments: [
       { filename: "mosaic-logo.png", content: EMAIL_LOGO_BASE64, contentId: "mosaic-logo" },

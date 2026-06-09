@@ -12,6 +12,7 @@ import { resendOtp, verifyOtp } from "@/server/actions/auth";
  */
 export type VerifyEmailProps = {
   email: string;
+  initialCode?: string;
 };
 
 /**
@@ -22,8 +23,8 @@ export type VerifyEmailProps = {
  * @param props - The email being verified.
  * @returns The verification form element.
  */
-export function VerifyEmail({ email }: VerifyEmailProps): ReactElement {
-  const [code, setCode] = useState("");
+export function VerifyEmail({ email, initialCode = "" }: VerifyEmailProps): ReactElement {
+  const [code, setCode] = useState(initialCode);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
