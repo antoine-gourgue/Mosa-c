@@ -47,6 +47,7 @@ export default async function MessagesPage({
         conversations={conversations}
         requests={requests}
         viewerId={user.id}
+        viewerName={user.name ?? "You"}
         initialConversationId={initialId}
         initialMessages={initialMessages}
       />

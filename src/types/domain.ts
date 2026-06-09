@@ -108,6 +108,7 @@ export type ChatMessage = {
   createdAt: string;
   pin: { id: string; imageUrl: string; title: string } | null;
   imageUrl: string | null;
+  system: boolean;
 };
 
 /**
@@ -116,7 +117,13 @@ export type ChatMessage = {
  */
 export type ConversationSummary = {
   id: string;
+  /** Primary other participant — the single other in a 1:1, or the first member in a group. */
   other: Creator;
+  /** Every participant other than the viewer (one for a 1:1, several for a group). */
+  others: Creator[];
+  /** Optional group name; null for a 1:1 or an unnamed group. */
+  title: string | null;
+  isGroup: boolean;
   lastMessage: { body: string; createdAt: string; senderId: string } | null;
   unreadCount: number;
   updatedAt: string;

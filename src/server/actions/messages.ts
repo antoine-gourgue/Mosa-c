@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { getStorage } from "@/lib/storage";
 import {
+  createGroupConversation,
   getConversations,
   getMessageRequests,
   getMessages,
@@ -30,6 +31,7 @@ export async function sendMessage(
   body: string,
   pinId: string | null = null,
   imageUrl: string | null = null,
+  system = false,
 ): Promise<{ ok: true; message: ChatMessage } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
@@ -62,7 +64,7 @@ export async function sendMessage(
   }
   const [row] = await prisma.$transaction([
     prisma.message.create({
-      data: { conversationId, senderId: user.id, body: text, pinId: sharedPinId, imageUrl },
+      data: { conversationId, senderId: user.id, body: text, pinId: sharedPinId, imageUrl, system },
       include: { pin: MESSAGE_PIN_SELECT },
     }),
     prisma.conversation.update({
@@ -231,6 +233,28 @@ export async function fetchMessages(
 }
 
 /**
+ * Creates a group conversation with the chosen members and an optional name.
+ *
+ * @param memberIds - The other members to add (at least two).
+ * @param title - An optional group name.
+ * @returns The new conversation id, or a validation error.
+ */
+export async function createGroup(
+  memberIds: string[],
+  title: string,
+): Promise<{ ok: true; conversationId: string } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: "You must be signed in." };
+  }
+  const conversationId = await createGroupConversation(user.id, memberIds, title);
+  if (conversationId === null) {
+    return { ok: false, error: "Pick at least two people to start a group." };
+  }
+  return { ok: true, conversationId };
+}
+
+/**
  * Marks a conversation as read for the current user by advancing their
  * last-read timestamp to now.
  *
@@ -296,6 +320,33 @@ export async function deleteConversation(
   });
   if (result.count === 0) {
     return { ok: false, error: "Conversation not found." };
+  }
+  return { ok: true };
+}
+
+/**
+ * Removes the current user from a (group) conversation without deleting it for
+ * everyone. The conversation is dropped only once fewer than two members remain.
+ *
+ * @param conversationId - The conversation id.
+ * @returns Whether the user left.
+ */
+export async function leaveConversation(
+  conversationId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: "You must be signed in." };
+  }
+  const removed = await prisma.conversationParticipant.deleteMany({
+    where: { conversationId, userId: user.id },
+  });
+  if (removed.count === 0) {
+    return { ok: false, error: "Conversation not found." };
+  }
+  const remaining = await prisma.conversationParticipant.count({ where: { conversationId } });
+  if (remaining < 2) {
+    await prisma.conversation.delete({ where: { id: conversationId } }).catch(() => undefined);
   }
   return { ok: true };
 }

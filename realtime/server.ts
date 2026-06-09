@@ -12,6 +12,7 @@ export type RealtimeMessage = {
   createdAt: string;
   pin: { id: string; imageUrl: string; title: string } | null;
   imageUrl: string | null;
+  system: boolean;
 };
 
 /**
@@ -36,6 +37,7 @@ export type RealtimePrisma = {
         body: string;
         pinId?: string | null;
         imageUrl?: string | null;
+        system?: boolean;
       };
     }): Promise<{ id: string; body: string; createdAt: Date }>;
   };
@@ -71,6 +73,15 @@ export type RealtimeHandshake = {
  */
 export type RoomEmitter = {
   to(room: string): { emit(event: string, payload: unknown): unknown };
+};
+
+/**
+ * The io surface needed to propagate a membership change: joining a set of
+ * users' live sockets to a conversation room and emitting to per-user rooms.
+ */
+export type SyncEmitter = {
+  to(room: string): { emit(event: string, payload: unknown): unknown };
+  in(room: string): { socketsJoin(rooms: string): void };
 };
 
 /**
@@ -120,6 +131,10 @@ export async function handleSend(
   const body = (readString(payload, "body") ?? "").trim();
   const pinId = readString(payload, "pinId");
   const imageUrl = readString(payload, "imageUrl");
+  const system =
+    typeof payload === "object" &&
+    payload !== null &&
+    (payload as Record<string, unknown>).system === true;
   if (conversationId === null || (body === "" && pinId === null && imageUrl === null)) {
     ack?.({ ok: false, error: "Invalid message." });
     return;
@@ -147,7 +162,7 @@ export async function handleSend(
     return;
   }
   const row = await prisma.message.create({
-    data: { conversationId, senderId: userId, body, pinId: pin?.id ?? null, imageUrl },
+    data: { conversationId, senderId: userId, body, pinId: pin?.id ?? null, imageUrl, system },
   });
   await prisma.conversation.update({
     where: { id: conversationId },
@@ -161,9 +176,50 @@ export async function handleSend(
     createdAt: row.createdAt.toISOString(),
     pin,
     imageUrl,
+    system,
   };
   io.to(conversationId).emit("message:new", message);
   ack?.({ ok: true, message });
+}
+
+/**
+ * Propagates a conversation membership change (a group was just created, or a
+ * member left) to a set of users: joins each user's live sockets to the
+ * conversation room so they receive its future broadcasts, then asks them to
+ * refresh their inbox. The emitter must itself be a participant.
+ *
+ * @param io - The socket.io server (per-user room join and emit).
+ * @param prisma - The injected Prisma surface.
+ * @param userId - The authenticated emitter id.
+ * @param payload - The raw `conversation:sync` payload (`{ conversationId, userIds }`).
+ */
+export async function handleSync(
+  io: SyncEmitter,
+  prisma: RealtimePrisma,
+  userId: string,
+  payload: unknown,
+): Promise<void> {
+  const conversationId = readString(payload, "conversationId");
+  if (conversationId === null) {
+    return;
+  }
+  const member = await prisma.conversationParticipant.findUnique({
+    where: { conversationId_userId: { conversationId, userId } },
+  });
+  if (member === null) {
+    return;
+  }
+  const raw =
+    typeof payload === "object" && payload !== null
+      ? (payload as Record<string, unknown>).userIds
+      : null;
+  const userIds = Array.isArray(raw)
+    ? raw.filter((id): id is string => typeof id === "string")
+    : [];
+  for (const targetId of userIds) {
+    io.in(`user:${targetId}`).socketsJoin(conversationId);
+    io.to(`user:${targetId}`).emit("inbox:refresh", { conversationId });
+  }
 }
 
 /**
@@ -269,6 +325,7 @@ async function joinUserRooms(
   prisma: RealtimePrisma,
   userId: string,
 ): Promise<void> {
+  await socket.join(`user:${userId}`);
   const parts = await prisma.conversationParticipant.findMany({
     where: { userId },
     select: { conversationId: true },
@@ -296,6 +353,9 @@ function onConnection(
   const userId = socket.data.userId as string;
   socket.on("message:send", (payload: unknown, ack: Ack) => {
     void handleSend(io, prisma, userId, payload, ack);
+  });
+  socket.on("conversation:sync", (payload: unknown) => {
+    void handleSync(io, prisma, userId, payload);
   });
   socket.on("typing", (payload: unknown) => {
     handleTyping(socket, userId, payload);

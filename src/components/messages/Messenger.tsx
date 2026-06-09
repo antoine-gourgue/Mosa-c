@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useRef, useState, useTransition } from "react";
 import type { KeyboardEvent, PointerEvent, ReactElement } from "react";
-import { Avatar, Button, Input } from "@/components/ui";
-import { BackIcon } from "@/icons";
+import { Avatar, Button, Input, Menu } from "@/components/ui";
+import { BackIcon, LogoutIcon, MoreIcon } from "@/icons";
 import { cn } from "@/lib/cn";
+import { conversationName } from "@/lib/conversation";
 import { getRealtimeSocket } from "@/lib/realtime";
 import {
   formatClockTime,
@@ -18,12 +20,14 @@ import {
   acceptRequest,
   declineRequest,
   fetchMessages,
+  leaveConversation,
   markConversationRead,
   sendMessage,
   uploadMessageImage,
 } from "@/server/actions/messages";
 import type { ChatMessage, ConversationSummary } from "@/types/domain";
 import { AttachMenu } from "./AttachMenu";
+import { ConversationAvatar } from "./ConversationAvatar";
 import { MessageImage } from "./MessageImage";
 import { MessagePin } from "./MessagePin";
 import { useMessagesUnread } from "./MessagesProvider";
@@ -35,6 +39,7 @@ export type MessengerProps = {
   conversations: ConversationSummary[];
   requests?: ConversationSummary[];
   viewerId: string;
+  viewerName: string;
   initialConversationId?: string;
   initialMessages?: ChatMessage[];
 };
@@ -58,9 +63,11 @@ export function Messenger({
   conversations,
   requests = [],
   viewerId,
+  viewerName,
   initialConversationId,
   initialMessages = [],
 }: MessengerProps): ReactElement {
+  const router = useRouter();
   const { markRead: clearUnreadBadge } = useMessagesUnread();
   const [list, setList] = useState(() =>
     conversations.map((conversation) =>
@@ -98,6 +105,19 @@ export function Messenger({
       void markConversationRead(initialConversationId);
     }
   }, [initialConversationId, clearUnreadBadge]);
+
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 640px)");
+    const redirectIfDesktop = (matches: boolean): void => {
+      if (matches) {
+        router.replace("/");
+      }
+    };
+    redirectIfDesktop(query.matches);
+    const onChange = (event: MediaQueryListEvent): void => redirectIfDesktop(event.matches);
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, [router]);
 
   const active =
     list.find((conversation) => conversation.id === activeId) ??
@@ -165,23 +185,30 @@ export function Messenger({
           return current;
         }
         return current
-          .map((conversation) =>
-            conversation.id === message.conversationId
-              ? {
-                  ...conversation,
-                  lastMessage: {
-                    body: message.body,
-                    createdAt: message.createdAt,
-                    senderId: message.senderId,
-                  },
-                  updatedAt: message.createdAt,
-                  unreadCount:
-                    conversation.id === activeId || message.senderId === viewerId
-                      ? conversation.unreadCount
-                      : conversation.unreadCount + 1,
-                }
-              : conversation,
-          )
+          .map((conversation) => {
+            if (conversation.id !== message.conversationId) {
+              return conversation;
+            }
+            const others = message.system
+              ? conversation.others.filter((member) => member.id !== message.senderId)
+              : conversation.others;
+            return {
+              ...conversation,
+              others,
+              isGroup: others.length > 1,
+              other: others[0] ?? conversation.other,
+              lastMessage: {
+                body: message.body,
+                createdAt: message.createdAt,
+                senderId: message.senderId,
+              },
+              updatedAt: message.createdAt,
+              unreadCount:
+                conversation.id === activeId || message.senderId === viewerId
+                  ? conversation.unreadCount
+                  : conversation.unreadCount + 1,
+            };
+          })
           .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
       });
 
@@ -283,6 +310,7 @@ export function Messenger({
     conversationId: string,
     body: string,
     imageUrl: string | null = null,
+    system = false,
   ): Promise<SendResult> => {
     const socket = getRealtimeSocket();
     if (socket.connected) {
@@ -291,7 +319,7 @@ export function Messenger({
           .timeout(5000)
           .emit(
             "message:send",
-            { conversationId, body, imageUrl },
+            { conversationId, body, imageUrl, system },
             (error: unknown, response: unknown) => {
               const ok =
                 error === null &&
@@ -307,7 +335,7 @@ export function Messenger({
           );
       });
     }
-    return sendMessage(conversationId, body, null, imageUrl).then((result) =>
+    return sendMessage(conversationId, body, null, imageUrl, system).then((result) =>
       result.ok ? { ok: true, message: result.message } : { ok: false },
     );
   };
@@ -328,6 +356,7 @@ export function Messenger({
         createdAt: new Date().toISOString(),
         pin: null,
         imageUrl: url,
+        system: false,
       };
       setMessages((current) => [...current, optimistic]);
       const result = await deliver(conversationId, "", url);
@@ -392,6 +421,7 @@ export function Messenger({
       createdAt: new Date(now).toISOString(),
       pin: null,
       imageUrl: null,
+      system: false,
     };
     setMessages((current) => [...current, optimistic]);
     startTransition(async () => {
@@ -424,6 +454,19 @@ export function Messenger({
       } else {
         setMessages((current) => current.filter((message) => message.id !== tempId));
       }
+    });
+  };
+
+  const onLeaveGroup = (): void => {
+    if (activeId === null) {
+      return;
+    }
+    const id = activeId;
+    setList((current) => current.filter((conversation) => conversation.id !== id));
+    setActiveId(null);
+    startTransition(async () => {
+      await deliver(id, `${viewerName} left the group`, null, true);
+      await leaveConversation(id);
     });
   };
 
@@ -489,15 +532,11 @@ export function Messenger({
           conversation.id === activeId ? "bg-surface" : "",
         )}
       >
-        <Avatar
-          src={conversation.other.avatarUrl ?? undefined}
-          name={conversation.other.name}
-          size={44}
-        />
+        <ConversationAvatar summary={conversation} size={44} />
         <span className="min-w-0 flex-1">
           <span className="flex items-center justify-between gap-2">
             <span className="truncate text-sm font-semibold text-ink">
-              {conversation.other.name}
+              {conversationName(conversation)}
             </span>
             {conversation.lastMessage !== null ? (
               <span className="shrink-0 text-xs text-ink-faint">
@@ -591,31 +630,62 @@ export function Messenger({
               >
                 <BackIcon size={20} />
               </button>
-              <Link
-                href={active.other.username !== null ? `/u/${active.other.username}` : "#"}
-                className="group flex items-center gap-2.5"
-              >
-                <span className="relative shrink-0">
-                  <Avatar
-                    src={active.other.avatarUrl ?? undefined}
-                    name={active.other.name}
-                    size={36}
+              {active.isGroup ? (
+                <>
+                  <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                    <ConversationAvatar summary={active} size={36} />
+                    <span className="flex min-w-0 flex-col">
+                      <span className="truncate font-semibold leading-tight text-ink">
+                        {conversationName(active)}
+                      </span>
+                      <span className="text-xs text-ink-soft">
+                        {active.others.length + 1} members
+                      </span>
+                    </span>
+                  </div>
+                  <Menu
+                    label="Group options"
+                    icon={<MoreIcon />}
+                    align="end"
+                    items={[
+                      {
+                        label: "Leave group",
+                        icon: <LogoutIcon size={18} />,
+                        destructive: true,
+                        onSelect: onLeaveGroup,
+                      },
+                    ]}
                   />
-                  {otherOnline ? (
-                    <span className="absolute bottom-0 right-0 size-3 rounded-full border-2 border-bg bg-[#22c55e]" />
-                  ) : null}
-                </span>
-                <span className="flex flex-col">
-                  <span className="font-semibold leading-tight text-ink group-hover:underline">
-                    {active.other.name}
+                </>
+              ) : (
+                <Link
+                  href={active.other.username !== null ? `/u/${active.other.username}` : "#"}
+                  className="group flex items-center gap-2.5"
+                >
+                  <span className="relative shrink-0">
+                    <Avatar
+                      src={active.other.avatarUrl ?? undefined}
+                      name={active.other.name}
+                      size={36}
+                    />
+                    {otherOnline ? (
+                      <span className="absolute bottom-0 right-0 size-3 rounded-full border-2 border-bg bg-[#22c55e]" />
+                    ) : null}
                   </span>
-                  {otherOnline ? (
-                    <span className="text-xs font-medium text-ink">Online</span>
-                  ) : formatLastActive(otherLastSeen) !== null ? (
-                    <span className="text-xs text-ink-soft">{formatLastActive(otherLastSeen)}</span>
-                  ) : null}
-                </span>
-              </Link>
+                  <span className="flex flex-col">
+                    <span className="font-semibold leading-tight text-ink group-hover:underline">
+                      {active.other.name}
+                    </span>
+                    {otherOnline ? (
+                      <span className="text-xs font-medium text-ink">Online</span>
+                    ) : formatLastActive(otherLastSeen) !== null ? (
+                      <span className="text-xs text-ink-soft">
+                        {formatLastActive(otherLastSeen)}
+                      </span>
+                    ) : null}
+                  </span>
+                </Link>
+              )}
             </header>
 
             <div
@@ -653,6 +723,11 @@ export function Messenger({
                   {messages.map((message, index) => {
                     const mine = message.senderId === viewerId;
                     const previous = index === 0 ? null : (messages[index - 1]?.createdAt ?? null);
+                    const showSender =
+                      active.isGroup && !mine && messages[index - 1]?.senderId !== message.senderId;
+                    const senderName = active.others.find(
+                      (member) => member.id === message.senderId,
+                    )?.name;
                     return (
                       <Fragment key={message.id}>
                         {shouldSeparateMessages(previous, message.createdAt) ? (
@@ -660,34 +735,43 @@ export function Messenger({
                             {formatMessageSeparator(message.createdAt)}
                           </div>
                         ) : null}
-                        <div
-                          className={cn(
-                            "relative flex flex-col gap-1",
-                            mine ? "items-end" : "items-start",
-                          )}
-                        >
-                          {message.pin !== null ? <MessagePin pin={message.pin} /> : null}
-                          {message.imageUrl !== null ? (
-                            <MessageImage url={message.imageUrl} />
-                          ) : null}
-                          {message.body !== "" ? (
-                            <span
-                              title={formatClockTime(message.createdAt)}
-                              className={cn(
-                                "max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px] sm:max-w-[560px]",
-                                mine ? "bg-accent text-bg" : "bg-surface text-ink",
-                              )}
-                            >
-                              {message.body}
-                            </span>
-                          ) : null}
-                          <span
-                            className="pointer-events-none absolute right-[-48px] top-1/2 -translate-y-1/2 text-xs tabular-nums text-ink-faint transition-opacity"
-                            style={{ opacity: dragX < 0 ? 1 : 0 }}
+                        {message.system ? (
+                          <p className="py-1 text-center text-xs text-ink-soft">{message.body}</p>
+                        ) : (
+                          <div
+                            className={cn(
+                              "relative flex flex-col gap-1",
+                              mine ? "items-end" : "items-start",
+                            )}
                           >
-                            {formatClockTime(message.createdAt)}
-                          </span>
-                        </div>
+                            {showSender && senderName !== undefined ? (
+                              <span className="px-1 text-[11px] font-semibold text-ink-soft">
+                                {senderName}
+                              </span>
+                            ) : null}
+                            {message.pin !== null ? <MessagePin pin={message.pin} /> : null}
+                            {message.imageUrl !== null ? (
+                              <MessageImage url={message.imageUrl} />
+                            ) : null}
+                            {message.body !== "" ? (
+                              <span
+                                title={formatClockTime(message.createdAt)}
+                                className={cn(
+                                  "max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px] sm:max-w-[560px]",
+                                  mine ? "bg-accent text-bg" : "bg-surface text-ink",
+                                )}
+                              >
+                                {message.body}
+                              </span>
+                            ) : null}
+                            <span
+                              className="pointer-events-none absolute right-[-48px] top-1/2 -translate-y-1/2 text-xs tabular-nums text-ink-faint transition-opacity"
+                              style={{ opacity: dragX < 0 ? 1 : 0 }}
+                            >
+                              {formatClockTime(message.createdAt)}
+                            </span>
+                          </div>
+                        )}
                       </Fragment>
                     );
                   })}

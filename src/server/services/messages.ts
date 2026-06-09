@@ -1,6 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
-import type { ChatMessage, ConversationSummary } from "@/types/domain";
+import type { ChatMessage, ConversationSummary, Creator } from "@/types/domain";
 import { type CreatorRow, toCreator } from "./mappers";
 
 const EPOCH = new Date(0);
@@ -61,6 +61,7 @@ type MessageRow = {
   createdAt: Date;
   pin: { id: string; imageUrl: string; title: string } | null;
   imageUrl: string | null;
+  system: boolean;
 };
 
 /**
@@ -83,6 +84,7 @@ export function toMessage(row: MessageRow): ChatMessage {
     createdAt: row.createdAt.toISOString(),
     pin: row.pin,
     imageUrl: row.imageUrl,
+    system: row.system,
   };
 }
 
@@ -128,6 +130,44 @@ export async function getOrCreateConversation(
 }
 
 /**
+ * Creates a group conversation with the creator and the given members, always
+ * accepted. Requires at least two other valid members; the title is optional.
+ *
+ * @param creatorId - The user creating the group.
+ * @param memberIds - The other members to add.
+ * @param title - An optional group name.
+ * @returns The new conversation id, or null when there aren't enough members.
+ */
+export async function createGroupConversation(
+  creatorId: string,
+  memberIds: string[],
+  title: string | null,
+): Promise<string | null> {
+  const uniqueMembers = [...new Set(memberIds.filter((id) => id !== creatorId))];
+  if (uniqueMembers.length < 2) {
+    return null;
+  }
+  const existing = await prisma.user.findMany({
+    where: { id: { in: uniqueMembers } },
+    select: { id: true },
+  });
+  const validIds = existing.map((user) => user.id);
+  if (validIds.length < 2) {
+    return null;
+  }
+  const trimmed = title === null ? "" : title.trim();
+  const created = await prisma.conversation.create({
+    data: {
+      title: trimmed === "" ? null : trimmed.slice(0, 80),
+      status: "ACCEPTED",
+      participants: { create: [creatorId, ...validIds].map((userId) => ({ userId })) },
+    },
+    select: { id: true },
+  });
+  return created.id;
+}
+
+/**
  * The Prisma select used to build a conversation summary for the inbox and the
  * requests list: the other participant, the last message and the read marker.
  *
@@ -141,7 +181,8 @@ function summarySelect(userId: string) {
       select: {
         id: true,
         updatedAt: true,
-        participants: { where: { userId: { not: userId } }, select: { user: true }, take: 1 },
+        title: true,
+        participants: { where: { userId: { not: userId } }, select: { user: true } },
         messages: {
           orderBy: { createdAt: "desc" as const },
           take: 1,
@@ -157,6 +198,7 @@ type SummaryRow = {
   conversation: {
     id: string;
     updatedAt: Date;
+    title: string | null;
     participants: { user: CreatorRow }[];
     messages: {
       body: string;
@@ -202,7 +244,16 @@ function previewBody(message: {
  */
 async function toSummary(row: SummaryRow, userId: string): Promise<ConversationSummary> {
   const conversation = row.conversation;
-  const otherRow = conversation.participants[0]?.user;
+  const others = conversation.participants.map((participant) => toCreator(participant.user));
+  const unknown: Creator = {
+    id: "",
+    name: "Unknown",
+    username: null,
+    bio: null,
+    avatarUrl: null,
+    followersLabel: null,
+    verified: false,
+  };
   const last = conversation.messages[0] ?? null;
   const unreadCount = await prisma.message.count({
     where: {
@@ -213,18 +264,10 @@ async function toSummary(row: SummaryRow, userId: string): Promise<ConversationS
   });
   return {
     id: conversation.id,
-    other:
-      otherRow !== undefined
-        ? toCreator(otherRow)
-        : {
-            id: "",
-            name: "Unknown",
-            username: null,
-            bio: null,
-            avatarUrl: null,
-            followersLabel: null,
-            verified: false,
-          },
+    other: others[0] ?? unknown,
+    others,
+    title: conversation.title,
+    isGroup: others.length > 1,
     lastMessage:
       last === null
         ? null

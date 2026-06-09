@@ -298,6 +298,7 @@ enum ConversationStatus {
 model Conversation {
   id            String             @id @default(cuid())
   pairKey       String?            @unique
+  title         String?
   status        ConversationStatus @default(ACCEPTED)
   requestedById String?
   createdAt     DateTime           @default(now())
@@ -329,6 +330,7 @@ model Message {
   pinId          String?
   pin            Pin?         @relation(fields: [pinId], references: [id], onDelete: SetNull)
   imageUrl       String?
+  system         Boolean      @default(false)
   createdAt      DateTime     @default(now())
 
   @@index([conversationId, createdAt])
