@@ -52,6 +52,21 @@ describe("registerUser", () => {
     expect(db.user.create).not.toHaveBeenCalled();
   });
 
+  it("rejects a taken username when the email is free", async () => {
+    db.user.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: "taken" });
+    const result = await registerUser({
+      username: "ada",
+      email: "free@b.com",
+      password: "password123",
+      age: 20,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.fieldErrors?.username).toBeTruthy();
+    }
+    expect(db.user.create).not.toHaveBeenCalled();
+  });
+
   it("creates the user with a default Quick Saves board on success", async () => {
     db.user.findUnique.mockResolvedValue(null);
     db.user.create.mockResolvedValue({ id: "new" });

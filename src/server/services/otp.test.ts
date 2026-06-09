@@ -99,4 +99,29 @@ describe("checkOtp", () => {
     expect(await checkOtp("a@x.com", "123456")).toEqual({ ok: true });
     expect(db.emailOtp.delete).toHaveBeenCalledWith({ where: { email: "a@x.com" } });
   });
+
+  it("still resolves when clearing the code fails (delete rejects)", async () => {
+    db.emailOtp.delete.mockRejectedValue(new Error("db down"));
+
+    db.emailOtp.findUnique.mockResolvedValue({
+      codeHash: sha("123456"),
+      expiresAt: new Date(Date.now() - 1000),
+      attempts: 0,
+    });
+    expect(await checkOtp("a@x.com", "123456")).toEqual({ ok: false, reason: "expired" });
+
+    db.emailOtp.findUnique.mockResolvedValue({
+      codeHash: sha("123456"),
+      expiresAt: new Date(Date.now() + 10000),
+      attempts: OTP_MAX_ATTEMPTS,
+    });
+    expect(await checkOtp("a@x.com", "000000")).toEqual({ ok: false, reason: "locked" });
+
+    db.emailOtp.findUnique.mockResolvedValue({
+      codeHash: sha("123456"),
+      expiresAt: new Date(Date.now() + 10000),
+      attempts: 0,
+    });
+    expect(await checkOtp("a@x.com", "123456")).toEqual({ ok: true });
+  });
 });
