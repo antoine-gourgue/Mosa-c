@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.13.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.12.0...v1.13.0) (2026-06-09)
+
+
+### Features
+
+* **auth:** add a one-tap verify button to the OTP email ([968e58d](https://github.com/antoine-gourgue/Mosa-c/commit/968e58da4338f9c7b1149fe532e6135557ad786e))
+* **auth:** brand the verification email with the logo ([8a8c955](https://github.com/antoine-gourgue/Mosa-c/commit/8a8c955cb636a3d773a0e9b016804e9765479fd2))
+* **auth:** email OTP verification on sign-up ([23f7309](https://github.com/antoine-gourgue/Mosa-c/commit/23f7309908b66d80f1583a5367405cb4888cd47b))
+* **auth:** flatten the verification email and use a logo lockup ([326a2d9](https://github.com/antoine-gourgue/Mosa-c/commit/326a2d97855a112b794b0b0d2b10a7db15a1a77a))
+* **auth:** single-step sign-up with username and inline gender ([27825a4](https://github.com/antoine-gourgue/Mosa-c/commit/27825a4cf172167de5908af6b0cabc36f69d58bd))
+* **auth:** verify email with an OTP on sign-up ([965ed5e](https://github.com/antoine-gourgue/Mosa-c/commit/965ed5eff40f31b6aaafb4a462433af6d6a43c21)), closes [#335](https://github.com/antoine-gourgue/Mosa-c/issues/335)
+
 ## [1.12.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.11.0...v1.12.0) (2026-06-09)
 
 
