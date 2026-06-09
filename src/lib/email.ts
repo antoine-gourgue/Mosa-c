@@ -1,3 +1,15 @@
+import { EMAIL_LOGO_BASE64 } from "./email-logo";
+
+/**
+ * An inline or regular email attachment. `contentId` makes it referenceable
+ * from the HTML via `cid:<contentId>` (used for the inline logo).
+ */
+export type EmailAttachment = {
+  filename: string;
+  content: string;
+  contentId?: string;
+};
+
 /**
  * A transactional email to send.
  */
@@ -6,6 +18,7 @@ export type EmailMessage = {
   subject: string;
   html: string;
   text: string;
+  attachments?: EmailAttachment[];
 };
 
 /**
@@ -38,12 +51,80 @@ export async function sendEmail(message: EmailMessage): Promise<boolean> {
         subject: message.subject,
         html: message.html,
         text: message.text,
+        ...(message.attachments !== undefined
+          ? {
+              attachments: message.attachments.map((attachment) => ({
+                filename: attachment.filename,
+                content: attachment.content,
+                content_id: attachment.contentId,
+              })),
+            }
+          : {}),
       }),
     });
     return response.ok;
   } catch {
     return false;
   }
+}
+
+/**
+ * Renders the branded HTML for the verification email. Uses a table-based,
+ * inline-styled layout for broad email-client compatibility (Gmail, Outlook,
+ * Apple Mail), with the code spelled out per character so it never wraps.
+ *
+ * @param code - The 6-digit verification code.
+ * @returns The HTML body.
+ */
+function renderOtpHtml(code: string): string {
+  const digits = code
+    .split("")
+    .map(
+      (digit) =>
+        `<td style="padding:0 5px"><div style="width:44px;height:56px;line-height:56px;background:#f4f4f5;border:1px solid #ececee;border-radius:12px;font-size:26px;font-weight:700;color:#1a1a1a;text-align:center;font-family:'SFMono-Regular',Menlo,Consolas,monospace">${digit}</div></td>`,
+    )
+    .join("");
+  return `<!doctype html>
+<html lang="en">
+  <body style="margin:0;padding:0;background:#f4f4f5">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5">
+      <tr>
+        <td align="center" style="padding:32px 16px">
+          <table role="presentation" width="460" cellpadding="0" cellspacing="0" style="max-width:460px;width:100%;background:#ffffff;border:1px solid #ececee;border-radius:18px;overflow:hidden">
+            <tr>
+              <td style="padding:32px 36px 8px">
+                <img src="cid:mosaic-logo" width="44" height="44" alt="Mosaic" style="display:block;border:0;border-radius:11px" />
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:8px 36px 0">
+                <h1 style="margin:0 0 8px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:22px;font-weight:700;color:#1a1a1a">Confirm your email</h1>
+                <p style="margin:0 0 24px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5;color:#6b6b6b">Enter this code to finish creating your Mosaic account.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 36px 8px">
+                <table role="presentation" cellpadding="0" cellspacing="0"><tr>${digits}</tr></table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 36px 0">
+                <p style="margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#9a9a9a">This code expires in 10 minutes.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 36px 32px">
+                <div style="height:1px;background:#ececee;margin-bottom:16px"></div>
+                <p style="margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#9a9a9a">If you didn&rsquo;t create a Mosaic account, you can safely ignore this email.</p>
+              </td>
+            </tr>
+          </table>
+          <p style="margin:16px 0 0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:11px;color:#bcbcc0;text-align:center">Mosaic &middot; Discover, save and share visual ideas</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
 }
 
 /**
@@ -54,14 +135,15 @@ export async function sendEmail(message: EmailMessage): Promise<boolean> {
  * @returns Whether the email was accepted for delivery.
  */
 export async function sendOtpEmail(to: string, code: string): Promise<boolean> {
-  const subject = "Your Mosaic verification code";
-  const text = `Your Mosaic verification code is ${code}. It expires in 10 minutes. If you didn't request this, you can ignore this email.`;
-  const html = `
-    <div style="font-family:system-ui,sans-serif;max-width:420px;margin:0 auto;padding:24px">
-      <h1 style="font-size:20px;margin:0 0 12px">Confirm your email</h1>
-      <p style="color:#444;margin:0 0 16px">Enter this code to finish creating your Mosaic account:</p>
-      <p style="font-size:32px;font-weight:700;letter-spacing:8px;margin:0 0 16px">${code}</p>
-      <p style="color:#888;font-size:13px;margin:0">It expires in 10 minutes. If you didn't request this, ignore this email.</p>
-    </div>`;
-  return sendEmail({ to, subject, html, text });
+  const subject = `${code} is your Mosaic verification code`;
+  const text = `Your Mosaic verification code is ${code}. It expires in 10 minutes. If you didn't create a Mosaic account, you can ignore this email.`;
+  return sendEmail({
+    to,
+    subject,
+    html: renderOtpHtml(code),
+    text,
+    attachments: [
+      { filename: "mosaic-logo.png", content: EMAIL_LOGO_BASE64, contentId: "mosaic-logo" },
+    ],
+  });
 }
