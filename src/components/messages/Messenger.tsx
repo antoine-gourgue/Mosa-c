@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useRef, useState, useTransition } from "react";
 import type { KeyboardEvent, PointerEvent, ReactElement } from "react";
 import { Avatar, Button, Input, Menu } from "@/components/ui";
-import { BackIcon, MoreIcon } from "@/icons";
+import { BackIcon, LogoutIcon, MoreIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { conversationName } from "@/lib/conversation";
 import { getRealtimeSocket } from "@/lib/realtime";
@@ -64,6 +65,7 @@ export function Messenger({
   initialConversationId,
   initialMessages = [],
 }: MessengerProps): ReactElement {
+  const router = useRouter();
   const { markRead: clearUnreadBadge } = useMessagesUnread();
   const [list, setList] = useState(() =>
     conversations.map((conversation) =>
@@ -101,6 +103,19 @@ export function Messenger({
       void markConversationRead(initialConversationId);
     }
   }, [initialConversationId, clearUnreadBadge]);
+
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 640px)");
+    const redirectIfDesktop = (matches: boolean): void => {
+      if (matches) {
+        router.replace("/");
+      }
+    };
+    redirectIfDesktop(query.matches);
+    const onChange = (event: MediaQueryListEvent): void => redirectIfDesktop(event.matches);
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, [router]);
 
   const active =
     list.find((conversation) => conversation.id === activeId) ??
@@ -619,7 +634,14 @@ export function Messenger({
                     label="Group options"
                     icon={<MoreIcon />}
                     align="end"
-                    items={[{ label: "Leave group", destructive: true, onSelect: onLeaveGroup }]}
+                    items={[
+                      {
+                        label: "Leave group",
+                        icon: <LogoutIcon size={18} />,
+                        destructive: true,
+                        onSelect: onLeaveGroup,
+                      },
+                    ]}
                   />
                 </>
               ) : (

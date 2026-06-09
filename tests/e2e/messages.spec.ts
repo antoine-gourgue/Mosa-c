@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { login } from "./helpers";
 
+// The /messages page is the mobile experience; desktop uses the slide-in panel.
+test.use({ viewport: { width: 390, height: 844 } });
+
 test("a user can open a conversation and send a message", async ({ page }) => {
   await login(page);
   await page.goto("/messages");

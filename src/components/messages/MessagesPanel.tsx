@@ -10,6 +10,7 @@ import {
   CheckIcon,
   CloseIcon,
   ComposeIcon,
+  LogoutIcon,
   MoreIcon,
   SearchIcon,
   SendIcon,
@@ -223,7 +224,12 @@ export function MessagesPanel({
   viewerImage,
 }: MessagesPanelProps): ReactElement {
   const { markRead: clearUnreadBadge, inboxRevision, refreshInbox } = useMessagesUnread();
-  const { activePanel, close: closePanel } = useNavPanel();
+  const {
+    activePanel,
+    close: closePanel,
+    pendingConversationId,
+    clearPendingConversation,
+  } = useNavPanel();
   const panelOpen = activePanel === "messages";
 
   const [inboxLoaded, setInboxLoaded] = useState(false);
@@ -445,6 +451,18 @@ export function MessagesPanel({
     });
     void markConversationRead(id);
   };
+
+  useEffect(() => {
+    if (!panelOpen || !inboxLoaded || pendingConversationId === null) {
+      return;
+    }
+    const id = pendingConversationId;
+    queueMicrotask(() => {
+      openConversation(id);
+      clearPendingConversation();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [panelOpen, inboxLoaded, pendingConversationId]);
 
   const recipientToCreator = (recipient: Recipient): Creator => ({
     id: recipient.id,
@@ -840,7 +858,14 @@ export function MessagesPanel({
                   label="Group options"
                   icon={<MoreIcon />}
                   align="end"
-                  items={[{ label: "Leave group", destructive: true, onSelect: onLeaveGroup }]}
+                  items={[
+                    {
+                      label: "Leave group",
+                      icon: <LogoutIcon size={18} />,
+                      destructive: true,
+                      onSelect: onLeaveGroup,
+                    },
+                  ]}
                 />
               </>
             ) : (

@@ -30,7 +30,7 @@ export function ConversationAvatar({ summary, size = 48 }: ConversationAvatarPro
       </span>
     );
   }
-  const sub = Math.round(size * 0.64);
+  const sub = Math.round(size * 0.6);
   const [first, second] = summary.others;
   return (
     <span
@@ -38,18 +38,12 @@ export function ConversationAvatar({ summary, size = 48 }: ConversationAvatarPro
       className="relative inline-block shrink-0"
       style={{ width: size, height: size }}
     >
-      <Avatar
-        src={first?.avatarUrl ?? undefined}
-        name={first?.name ?? "?"}
-        size={sub}
-        className="absolute left-0 top-0 rounded-full ring-2 ring-bg"
-      />
-      <Avatar
-        src={second?.avatarUrl ?? undefined}
-        name={second?.name ?? "?"}
-        size={sub}
-        className="absolute bottom-0 right-0 rounded-full ring-2 ring-bg"
-      />
+      <span className="absolute left-0 top-0 rounded-full ring-2 ring-bg">
+        <Avatar src={first?.avatarUrl ?? undefined} name={first?.name ?? "?"} size={sub} />
+      </span>
+      <span className="absolute bottom-0 right-0 rounded-full ring-2 ring-bg">
+        <Avatar src={second?.avatarUrl ?? undefined} name={second?.name ?? "?"} size={sub} />
+      </span>
     </span>
   );
 }
