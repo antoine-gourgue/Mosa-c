@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.11.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.10.0...v1.11.0) (2026-06-09)
+
+
+### Features
+
+* **feed:** personalise the "For you" home feed ([a68e79b](https://github.com/antoine-gourgue/Mosa-c/commit/a68e79b1fca8b6c8928a40e4cc6926f6a1500bbd))
+* **feed:** personalise the "For you" home feed ([c382383](https://github.com/antoine-gourgue/Mosa-c/commit/c382383f038e077d7b165c23c3f949270da9dc85))
+* **messages:** share a pin into a direct message ([a57ecf8](https://github.com/antoine-gourgue/Mosa-c/commit/a57ecf86121cea6c4b577f8c2c4e7e9c499c114b))
+* **messages:** share a pin into a direct message ([3ccd0f9](https://github.com/antoine-gourgue/Mosa-c/commit/3ccd0f9fc31cf6391e9aa5a42d2769e8d4121f2a))
+* **tags:** replace categories with free-form tags ([2896558](https://github.com/antoine-gourgue/Mosa-c/commit/28965581af74102f64da09220c1f409d41fe8594))
+* **tags:** replace categories with free-form tags ([1eeafe0](https://github.com/antoine-gourgue/Mosa-c/commit/1eeafe00bc9b50d5895ed2655a318d3dbfd78193))
+
+
+### Bug Fixes
+
+* **messages:** harden pin sharing per review ([66d474c](https://github.com/antoine-gourgue/Mosa-c/commit/66d474c90325cb1b6f1e8bad2a9f6c301a376ee5))
+
 ## [1.10.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.9.1...v1.10.0) (2026-06-08)
 
 
