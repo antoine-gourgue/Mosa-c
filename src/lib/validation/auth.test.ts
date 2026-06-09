@@ -20,6 +20,7 @@ describe("signInSchema", () => {
 describe("registerSchema", () => {
   it("coerces the age and accepts valid input", () => {
     const result = registerSchema.safeParse({
+      username: "ada_99",
       email: "a@b.com",
       password: "password123",
       age: "20",
@@ -32,7 +33,19 @@ describe("registerSchema", () => {
 
   it("rejects an age below 13", () => {
     expect(
-      registerSchema.safeParse({ email: "a@b.com", password: "password123", age: 10 }).success,
+      registerSchema.safeParse({
+        username: "ada",
+        email: "a@b.com",
+        password: "password123",
+        age: 10,
+      }).success,
     ).toBe(false);
+  });
+
+  it("rejects an invalid username", () => {
+    const base = { email: "a@b.com", password: "password123", age: 20 };
+    expect(registerSchema.safeParse({ ...base, username: "ab" }).success).toBe(false);
+    expect(registerSchema.safeParse({ ...base, username: "bad name!" }).success).toBe(false);
+    expect(registerSchema.safeParse({ ...base, username: "good_one" }).success).toBe(true);
   });
 });

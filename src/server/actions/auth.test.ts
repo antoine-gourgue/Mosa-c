@@ -39,7 +39,12 @@ describe("registerUser", () => {
 
   it("rejects a duplicate email", async () => {
     db.user.findUnique.mockResolvedValue({ id: "existing" });
-    const result = await registerUser({ email: "a@b.com", password: "password123", age: 20 });
+    const result = await registerUser({
+      username: "ada",
+      email: "a@b.com",
+      password: "password123",
+      age: 20,
+    });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.fieldErrors?.email).toBeTruthy();
@@ -50,7 +55,13 @@ describe("registerUser", () => {
   it("creates the user with a default Quick Saves board on success", async () => {
     db.user.findUnique.mockResolvedValue(null);
     db.user.create.mockResolvedValue({ id: "new" });
-    await registerUser({ email: "a@b.com", password: "password123", age: 20, gender: "FEMALE" });
+    await registerUser({
+      username: "ada",
+      email: "a@b.com",
+      password: "password123",
+      age: 20,
+      gender: "FEMALE",
+    });
     expect(db.user.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -63,7 +74,7 @@ describe("registerUser", () => {
   });
 
   it("returns field errors for invalid input", async () => {
-    const result = await registerUser({ email: "nope", password: "short", age: 5 });
+    const result = await registerUser({ username: "ab", email: "nope", password: "short", age: 5 });
     expect(result.ok).toBe(false);
   });
 });
@@ -118,7 +129,12 @@ describe("registerUser (verification)", () => {
   });
 
   it("creates an unverified account and emails a code", async () => {
-    const result = await registerUser({ email: "a@b.com", password: "password123", age: 20 });
+    const result = await registerUser({
+      username: "ada",
+      email: "a@b.com",
+      password: "password123",
+      age: 20,
+    });
     expect(result).toMatchObject({ ok: false, needsVerification: true, email: "a@b.com" });
     expect(issueOtp).toHaveBeenCalledWith("a@b.com");
     expect(sendOtpEmail).toHaveBeenCalledWith("a@b.com", "123456");

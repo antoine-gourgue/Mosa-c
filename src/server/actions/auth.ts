@@ -74,19 +74,27 @@ export async function registerUser(input: RegisterInput): Promise<ActionResult> 
   if (!parsed.success) {
     return { ok: false, fieldErrors: toFieldErrors(parsed.error.issues) };
   }
-  const { email, password, gender } = parsed.data;
+  const { username, email, password, gender } = parsed.data;
+  const handle = username.toLowerCase();
 
-  const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
-  if (existing !== null) {
+  const [existingEmail, existingUsername] = await Promise.all([
+    prisma.user.findUnique({ where: { email }, select: { id: true } }),
+    prisma.user.findUnique({ where: { username: handle }, select: { id: true } }),
+  ]);
+  if (existingEmail !== null) {
     return { ok: false, fieldErrors: { email: "An account with this email already exists." } };
+  }
+  if (existingUsername !== null) {
+    return { ok: false, fieldErrors: { username: "That username is already taken." } };
   }
 
   const passwordHash = await hashPassword(password);
   await prisma.user.create({
     data: {
       email,
+      username: handle,
       passwordHash,
-      name: email.split("@")[0] ?? "Member",
+      name: username,
       gender,
       boards: { create: { name: "Quick Saves", isDefault: true } },
     },
