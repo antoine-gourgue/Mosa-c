@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.14.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.13.0...v1.14.0) (2026-06-09)
+
+
+### Features
+
+* **pwa:** installable desktop app (macOS & Windows) ([8ad4c93](https://github.com/antoine-gourgue/Mosa-c/commit/8ad4c93dde8098656ce9bb4e490325e4ce347826))
+* **pwa:** installable desktop app with manifest, icons and offline SW ([6ab1caf](https://github.com/antoine-gourgue/Mosa-c/commit/6ab1cafbfdee2e228b000640eca5fbadd3704572))
+
+
+### Bug Fixes
+
+* **pwa:** register SW after load and keep the cache refresh alive ([3fa2b4e](https://github.com/antoine-gourgue/Mosa-c/commit/3fa2b4e2f3263b25842a8a30eade53066f346fc2))
+
 ## [1.13.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.12.0...v1.13.0) (2026-06-09)
 
 
