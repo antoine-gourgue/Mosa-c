@@ -77,6 +77,14 @@ export function Login(): ReactElement {
           onChange={(event) => setPassword(event.target.value)}
           error={errors.password}
         />
+        <div className="-mt-1 text-right">
+          <Link
+            href="/forgot-password"
+            className="text-sm font-semibold text-ink-soft hover:text-ink"
+          >
+            Forgot password?
+          </Link>
+        </div>
         {formError !== null ? (
           <p role="alert" className="text-sm text-accent">
             {formError}

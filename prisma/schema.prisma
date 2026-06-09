@@ -128,6 +128,23 @@ model EmailOtp {
   createdAt DateTime @default(now())
 }
 
+enum AccountTokenKind {
+  EMAIL_CHANGE
+  PASSWORD_RESET
+}
+
+model AccountToken {
+  id        String           @id @default(cuid())
+  userId    String
+  kind      AccountTokenKind
+  newEmail  String?
+  tokenHash String           @unique
+  expiresAt DateTime
+  createdAt DateTime         @default(now())
+
+  @@index([userId, kind])
+}
+
 model Tag {
   id        String   @id @default(cuid())
   slug      String   @unique

@@ -1,0 +1,82 @@
+import { createHash, randomBytes } from "node:crypto";
+import { prisma } from "@/lib/prisma";
+
+/**
+ * How long an account action token (email change, password reset) stays valid.
+ */
+export const ACCOUNT_TOKEN_TTL_MS = 30 * 60 * 1000;
+
+/**
+ * The kinds of account action a token authorises.
+ */
+export type AccountTokenKind = "EMAIL_CHANGE" | "PASSWORD_RESET";
+
+/**
+ * Generates a high-entropy, URL-safe token to embed in an email link.
+ *
+ * @returns The plaintext token.
+ */
+export function generateToken(): string {
+  return randomBytes(32).toString("hex");
+}
+
+/**
+ * Hashes a token for storage and lookup; tokens are never stored in clear.
+ *
+ * @param token - The plaintext token.
+ * @returns The hex SHA-256 hash.
+ */
+export function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+/**
+ * Issues a single-use token for an account action, replacing any existing token
+ * of the same kind for the user.
+ *
+ * @param userId - The user the token belongs to.
+ * @param kind - The action the token authorises.
+ * @param newEmail - The pending new email, for an email change.
+ * @returns The plaintext token to put in the email link.
+ */
+export async function issueAccountToken(
+  userId: string,
+  kind: AccountTokenKind,
+  newEmail: string | null = null,
+): Promise<string> {
+  const token = generateToken();
+  await prisma.accountToken.deleteMany({ where: { userId, kind } });
+  await prisma.accountToken.create({
+    data: {
+      userId,
+      kind,
+      newEmail,
+      tokenHash: hashToken(token),
+      expiresAt: new Date(Date.now() + ACCOUNT_TOKEN_TTL_MS),
+    },
+  });
+  return token;
+}
+
+/**
+ * Validates and consumes a token: it is deleted on use (single-use) and only
+ * returned when it matches the expected kind and has not expired.
+ *
+ * @param token - The plaintext token from the link.
+ * @param kind - The expected action kind.
+ * @returns The token's user and pending email, or null when invalid/expired.
+ */
+export async function consumeAccountToken(
+  token: string,
+  kind: AccountTokenKind,
+): Promise<{ userId: string; newEmail: string | null } | null> {
+  const record = await prisma.accountToken.findUnique({ where: { tokenHash: hashToken(token) } });
+  if (record === null || record.kind !== kind) {
+    return null;
+  }
+  await prisma.accountToken.delete({ where: { id: record.id } }).catch(() => undefined);
+  if (record.expiresAt.getTime() < Date.now()) {
+    return null;
+  }
+  return { userId: record.userId, newEmail: record.newEmail };
+}
