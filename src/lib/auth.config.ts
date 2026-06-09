@@ -7,6 +7,8 @@ const PUBLIC_EXACT = new Set([
   "/sitemap.xml",
   "/manifest.webmanifest",
   "/icon.svg",
+  "/sw.js",
+  "/offline",
 ]);
 const PUBLIC_PREFIXES = ["/styleguide", "/pin/", "/u/"];
 
