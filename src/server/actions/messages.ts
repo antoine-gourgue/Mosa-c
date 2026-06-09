@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { getStorage } from "@/lib/storage";
 import {
   getConversations,
   getMessageRequests,
@@ -19,21 +20,23 @@ import type { ChatMessage, ConversationSummary, Creator } from "@/types/domain";
  * activity timestamp is bumped so it sorts to the top of the inbox.
  *
  * @param conversationId - The conversation id.
- * @param body - The message text (may be empty when a pin is attached).
+ * @param body - The message text (may be empty when a pin or image is attached).
  * @param pinId - An optional pin to attach to the message.
+ * @param imageUrl - An optional uploaded image/GIF to attach to the message.
  * @returns The created message, or a validation/authorization error.
  */
 export async function sendMessage(
   conversationId: string,
   body: string,
   pinId: string | null = null,
+  imageUrl: string | null = null,
 ): Promise<{ ok: true; message: ChatMessage } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
     return { ok: false, error: "You must be signed in to send messages." };
   }
   const text = body.trim();
-  if (text === "" && pinId === null) {
+  if (text === "" && pinId === null && imageUrl === null) {
     return { ok: false, error: "Write a message first." };
   }
   if (text.length > 4000) {
@@ -59,7 +62,7 @@ export async function sendMessage(
   }
   const [row] = await prisma.$transaction([
     prisma.message.create({
-      data: { conversationId, senderId: user.id, body: text, pinId: sharedPinId },
+      data: { conversationId, senderId: user.id, body: text, pinId: sharedPinId, imageUrl },
       include: { pin: MESSAGE_PIN_SELECT },
     }),
     prisma.conversation.update({
@@ -68,6 +71,93 @@ export async function sendMessage(
     }),
   ]);
   return { ok: true, message: toMessage(row) };
+}
+
+/**
+ * Maximum accepted size for an image/GIF attached to a message.
+ */
+const MAX_MESSAGE_IMAGE_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Uploads an image or GIF to attach to a message, reusing the app's storage
+ * backend. Returns its URL, which the caller then sends with {@link sendMessage}
+ * (or the realtime socket).
+ *
+ * @param formData - Form data carrying the `image` file.
+ * @returns The stored image URL, or a validation error.
+ */
+export async function uploadMessageImage(
+  formData: FormData,
+): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: "You must be signed in." };
+  }
+  const file = formData.get("image");
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, error: "Please choose an image." };
+  }
+  if (!file.type.startsWith("image/")) {
+    return { ok: false, error: "The file must be an image." };
+  }
+  if (file.size > MAX_MESSAGE_IMAGE_BYTES) {
+    return { ok: false, error: "The image must be under 10 MB." };
+  }
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const stored = await getStorage().put(buffer, { filename: file.name, contentType: file.type });
+  return { ok: true, url: stored.url };
+}
+
+/**
+ * A GIF result from the picker.
+ */
+export type GifResult = { id: string; url: string; preview: string };
+
+/**
+ * Searches GIFs through Giphy (or returns trending GIFs for a blank query) for
+ * the message composer's GIF picker. Reads `GIPHY_API_KEY` directly so the
+ * feature stays optional: with no key it returns an empty list and never calls
+ * out, keeping it free by default.
+ *
+ * @param query - The free-text GIF search query.
+ * @returns The matching GIFs (sendable URL + preview), or an empty list.
+ */
+export async function searchGifs(query: string): Promise<{ gifs: GifResult[] }> {
+  const key = process.env.GIPHY_API_KEY;
+  if (key === undefined || key === "") {
+    return { gifs: [] };
+  }
+  const q = query.trim();
+  const endpoint = q === "" ? "trending" : "search";
+  const params = new URLSearchParams({ api_key: key, limit: "24", rating: "g" });
+  if (q !== "") {
+    params.set("q", q);
+  }
+  try {
+    const response = await fetch(`https://api.giphy.com/v1/gifs/${endpoint}?${params.toString()}`);
+    if (!response.ok) {
+      return { gifs: [] };
+    }
+    const json = (await response.json()) as {
+      data?: {
+        id: string;
+        images?: {
+          fixed_height?: { url?: string };
+          fixed_height_small?: { url?: string };
+        };
+      }[];
+    };
+    const gifs: GifResult[] = [];
+    for (const item of json.data ?? []) {
+      const url = item.images?.fixed_height?.url;
+      if (typeof url === "string") {
+        gifs.push({ id: item.id, url, preview: item.images?.fixed_height_small?.url ?? url });
+      }
+    }
+    return { gifs };
+  } catch {
+    return { gifs: [] };
+  }
 }
 
 /**

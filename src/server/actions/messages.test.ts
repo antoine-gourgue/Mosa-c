@@ -2,6 +2,7 @@ import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/auth", () => ({ getCurrentUser: vi.fn() }));
+vi.mock("@/lib/storage", () => ({ getStorage: () => ({ put: vi.fn() }) }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     conversationParticipant: { updateMany: vi.fn() },

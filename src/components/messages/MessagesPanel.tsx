@@ -25,8 +25,11 @@ import {
   searchRecipients,
   sendMessage,
   startConversation,
+  uploadMessageImage,
 } from "@/server/actions/messages";
 import type { ChatMessage, ConversationSummary, Creator } from "@/types/domain";
+import { AttachMenu } from "./AttachMenu";
+import { MessageImage } from "./MessageImage";
 import { MessagePin } from "./MessagePin";
 import { useMessagesUnread } from "./MessagesProvider";
 
@@ -524,29 +527,95 @@ export function MessagesPanel({
     });
   };
 
-  const deliver = (conversationId: string, body: string): Promise<SendResult> => {
+  const deliver = (
+    conversationId: string,
+    body: string,
+    imageUrl: string | null = null,
+  ): Promise<SendResult> => {
     const socket = getRealtimeSocket();
     if (socket.connected) {
       return new Promise<SendResult>((resolve) => {
         socket
           .timeout(5000)
-          .emit("message:send", { conversationId, body }, (error: unknown, response: unknown) => {
-            const ok =
-              error === null &&
-              typeof response === "object" &&
-              response !== null &&
-              (response as { ok?: unknown }).ok === true;
-            if (ok) {
-              resolve({ ok: true, message: (response as { message: ChatMessage }).message });
-            } else {
-              resolve({ ok: false });
-            }
-          });
+          .emit(
+            "message:send",
+            { conversationId, body, imageUrl },
+            (error: unknown, response: unknown) => {
+              const ok =
+                error === null &&
+                typeof response === "object" &&
+                response !== null &&
+                (response as { ok?: unknown }).ok === true;
+              if (ok) {
+                resolve({ ok: true, message: (response as { message: ChatMessage }).message });
+              } else {
+                resolve({ ok: false });
+              }
+            },
+          );
       });
     }
-    return sendMessage(conversationId, body).then((result) =>
+    return sendMessage(conversationId, body, null, imageUrl).then((result) =>
       result.ok ? { ok: true, message: result.message } : { ok: false },
     );
+  };
+
+  const sendImageUrl = (url: string): void => {
+    if (activeId === null) {
+      return;
+    }
+    const conversationId = activeId;
+    const preview = /\.gif($|\?)/i.test(url) ? "Sent a GIF" : "Sent a photo";
+    startTransition(async () => {
+      const createdAt = nowIso();
+      const tempId = `temp-${createdAt}`;
+      const optimistic: ChatMessage = {
+        id: tempId,
+        conversationId,
+        senderId: viewerId,
+        body: "",
+        createdAt,
+        pin: null,
+        imageUrl: url,
+      };
+      setMessages((current) => [...current, optimistic]);
+      const result = await deliver(conversationId, "", url);
+      if (!result.ok) {
+        setMessages((current) => current.filter((message) => message.id !== tempId));
+        return;
+      }
+      const saved = result.message;
+      setMessages((current) => {
+        const withoutTemp = current.filter((message) => message.id !== tempId);
+        return withoutTemp.some((message) => message.id === saved.id)
+          ? withoutTemp
+          : [...withoutTemp, saved];
+      });
+      setList((current) =>
+        current
+          .map((conversation) =>
+            conversation.id === conversationId
+              ? {
+                  ...conversation,
+                  lastMessage: { body: preview, createdAt: saved.createdAt, senderId: viewerId },
+                  updatedAt: saved.createdAt,
+                }
+              : conversation,
+          )
+          .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
+      );
+    });
+  };
+
+  const onAttachImage = (file: File): void => {
+    const form = new FormData();
+    form.set("image", file);
+    void (async () => {
+      const uploaded = await uploadMessageImage(form);
+      if (uploaded.ok) {
+        sendImageUrl(uploaded.url);
+      }
+    })();
   };
 
   const emitTyping = (typing: boolean): void => {
@@ -582,6 +651,7 @@ export function MessagesPanel({
       body: text,
       createdAt,
       pin: null,
+      imageUrl: null,
     };
     setMessages((current) => [...current, optimistic]);
     startTransition(async () => {
@@ -737,6 +807,7 @@ export function MessagesPanel({
                         className={cn("flex flex-col gap-1", mine ? "items-end" : "items-start")}
                       >
                         {message.pin !== null ? <MessagePin pin={message.pin} /> : null}
+                        {message.imageUrl !== null ? <MessageImage url={message.imageUrl} /> : null}
                         {message.body !== "" ? (
                           <span
                             title={formatClockTime(message.createdAt)}
@@ -788,9 +859,11 @@ export function MessagesPanel({
                 event.preventDefault();
                 onSend();
               }}
-              className="px-3 py-3"
+              className="flex items-center gap-2 px-3 py-3"
             >
+              <AttachMenu onPickFile={onAttachImage} onPickGifUrl={sendImageUrl} />
               <Input
+                className="flex-1"
                 aria-label="Message"
                 value={draft}
                 onChange={(event) => {
