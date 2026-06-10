@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.18.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.17.0...v1.18.0) (2026-06-10)
+
+
+### Features
+
+* **boards:** secret boards with description ([3206d38](https://github.com/antoine-gourgue/Mosa-c/commit/3206d38c3c3c3edd2cc95f753495d0c1d5f1ae9a))
+* **boards:** secret boards with description ([#349](https://github.com/antoine-gourgue/Mosa-c/issues/349)) ([ff5d4e4](https://github.com/antoine-gourgue/Mosa-c/commit/ff5d4e46ccf337cf39a4a4a28fe89df77bb33857))
+* **pins:** edit a pin's title, description, link and tags ([#350](https://github.com/antoine-gourgue/Mosa-c/issues/350)) ([bc97d3a](https://github.com/antoine-gourgue/Mosa-c/commit/bc97d3aa556a6136d84fee7a36a030a88bf42d3d))
+* **pins:** edit pins ([9ac4d77](https://github.com/antoine-gourgue/Mosa-c/commit/9ac4d77dafdd41b52eb4e4708759d6eab6938d2b))
+* **safety:** block users and report comments and profiles ([87a5f8d](https://github.com/antoine-gourgue/Mosa-c/commit/87a5f8d1b365a3faf62ea32b9c979cca89d30000))
+* **safety:** block users and report comments and profiles ([ac08fd8](https://github.com/antoine-gourgue/Mosa-c/commit/ac08fd820a9c704695cc1043a21ffd0d47a84d79)), closes [#351](https://github.com/antoine-gourgue/Mosa-c/issues/351)
+* **settings:** settings hub with notifications, privacy and account ([f2bde31](https://github.com/antoine-gourgue/Mosa-c/commit/f2bde31e772ff3d0ae3b4cfdf630659cc4f3b034))
+* **settings:** settings hub with notifications, privacy and account ([8e983b8](https://github.com/antoine-gourgue/Mosa-c/commit/8e983b827f197d84d2919ea85c233f130a770a05)), closes [#352](https://github.com/antoine-gourgue/Mosa-c/issues/352)
+
 ## [1.17.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.16.0...v1.17.0) (2026-06-10)
 
 
