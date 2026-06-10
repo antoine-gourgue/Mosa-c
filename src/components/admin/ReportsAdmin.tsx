@@ -24,15 +24,65 @@ function reportsHref(page: number): string {
   return page > 1 ? `/admin/reports?page=${page}` : "/admin/reports";
 }
 
+const TARGET_LABEL = { PIN: "Pin", COMMENT: "Comment", USER: "Profile", UNKNOWN: "—" } as const;
+
+/**
+ * Renders the reported entity behind a report as a labelled link to its admin
+ * detail, or plain text when the target is no longer available.
+ *
+ * @param target - The report's discriminated target.
+ * @returns The target cell content.
+ */
+function TargetCell({ target }: { target: AdminReportRow["target"] }): ReactElement {
+  const tag = (
+    <span className="mr-2 rounded-full bg-surface px-2 py-0.5 text-xs font-semibold text-ink-soft">
+      {TARGET_LABEL[target.type]}
+    </span>
+  );
+  if (target.type === "PIN") {
+    return (
+      <span className="flex items-center">
+        {tag}
+        <Link
+          href={`/admin/pins/${target.pinId}`}
+          className="font-semibold text-ink hover:underline"
+        >
+          {target.title}
+        </Link>
+      </span>
+    );
+  }
+  if (target.type === "COMMENT") {
+    return (
+      <span className="flex items-center">
+        {tag}
+        <Link href={`/admin/pins/${target.pinId}`} className="text-ink-soft hover:underline">
+          “{target.body.length > 80 ? `${target.body.slice(0, 80)}…` : target.body}”
+        </Link>
+      </span>
+    );
+  }
+  if (target.type === "USER") {
+    return (
+      <span className="flex items-center">
+        {tag}
+        <Link
+          href={`/admin/users/${target.userId}`}
+          className="font-semibold text-ink hover:underline"
+        >
+          {target.username !== null ? `@${target.username}` : target.name}
+        </Link>
+      </span>
+    );
+  }
+  return <span className="text-ink-soft">{TARGET_LABEL.UNKNOWN}</span>;
+}
+
 const COLUMNS: Column<AdminReportRow>[] = [
   {
-    key: "pin",
-    header: "Pin",
-    render: (report) => (
-      <Link href={`/admin/pins/${report.pinId}`} className="font-semibold text-ink hover:underline">
-        {report.pinTitle}
-      </Link>
-    ),
+    key: "target",
+    header: "Reported",
+    render: (report) => <TargetCell target={report.target} />,
   },
   {
     key: "reporter",
@@ -50,8 +100,8 @@ const COLUMNS: Column<AdminReportRow>[] = [
     render: (report) => <span className="text-ink-soft">{report.reason ?? "No reason given"}</span>,
   },
   {
-    key: "reported",
-    header: "Reported",
+    key: "date",
+    header: "Date",
     render: (report) =>
       report.createdAt.toLocaleDateString("en-US", {
         day: "numeric",
@@ -63,7 +113,7 @@ const COLUMNS: Column<AdminReportRow>[] = [
     key: "actions",
     header: "",
     className: "text-right",
-    render: (report) => <ReportRowActions reportId={report.id} pinTitle={report.pinTitle} />,
+    render: (report) => <ReportRowActions reportId={report.id} target={report.target} />,
   },
 ];
 

@@ -10,6 +10,7 @@ import { JsonLd } from "@/components/seo";
 import { getCurrentUser } from "@/lib/auth";
 import { env } from "@/lib/env";
 import {
+  getBlockState,
   getCreatedPins,
   getFollowCounts,
   getLikedPinIds,
@@ -168,6 +169,24 @@ async function BoardsView({
 }
 
 /**
+ * Notice shown in place of a profile's content when the viewer has blocked the
+ * user. The Unblock control lives in the profile header's actions menu.
+ *
+ * @param props - The blocked user's username, for the message.
+ * @param props.username - The blocked user's handle.
+ * @returns The blocked-profile notice.
+ */
+async function BlockedNotice({ username }: { username: string }): Promise<ReactElement> {
+  const t = await getTranslations("profile");
+  return (
+    <div className="mx-auto flex max-w-md flex-col items-center gap-2 py-24 text-center">
+      <h2 className="text-xl font-bold text-ink">{t("blockedTitle", { user: `@${username}` })}</h2>
+      <p className="text-ink-soft">{t("blockedBody")}</p>
+    </div>
+  );
+}
+
+/**
  * Public profile route at `/u/[username]`: header, tabs and the active tab's
  * content.
  *
@@ -191,6 +210,16 @@ export default async function ProfilePage({
 
   const viewer = await getCurrentUser();
   const isOwnProfile = viewer?.id === user.id;
+  const blockState = await getBlockState(viewer?.id ?? null, user.id);
+  if (blockState.blocksViewer) {
+    const t = await getTranslations("profile");
+    return (
+      <div className="mx-auto flex max-w-md flex-col items-center gap-2 py-32 text-center">
+        <h1 className="text-2xl font-bold text-ink">{t("unavailableTitle")}</h1>
+        <p className="text-ink-soft">{t("unavailableBody")}</p>
+      </div>
+    );
+  }
   const [counts, following, savedIds, likedIds] = await Promise.all([
     getFollowCounts(user.id),
     viewer !== null && !isOwnProfile ? isFollowing(viewer.id, user.id) : Promise.resolve(false),
@@ -219,35 +248,44 @@ export default async function ProfilePage({
         initialFollowing={following}
         isOwnProfile={isOwnProfile}
         isAuthed={viewer !== null}
+        blockedByViewer={blockState.blockedByViewer}
       />
-      <ProfileTabs username={username} active={active} isOwnProfile={isOwnProfile} />
-      <div className="mt-6">
-        {active === "created" ? (
-          <CreatedView
-            userId={user.id}
-            savedIds={savedIds}
-            likedIds={likedIds}
-            viewerId={viewer?.id ?? null}
-          />
-        ) : null}
-        {active === "saved" ? (
-          <SavedView
-            userId={user.id}
-            savedIds={savedIds}
-            likedIds={likedIds}
-            viewerId={viewer?.id ?? null}
-          />
-        ) : null}
-        {active === "liked" ? (
-          <LikedView
-            userId={user.id}
-            savedIds={savedIds}
-            likedIds={likedIds}
-            viewerId={viewer?.id ?? null}
-          />
-        ) : null}
-        {active === "boards" ? <BoardsView userId={user.id} viewerId={viewer?.id ?? null} /> : null}
-      </div>
+      {blockState.blockedByViewer ? (
+        <BlockedNotice username={username} />
+      ) : (
+        <>
+          <ProfileTabs username={username} active={active} isOwnProfile={isOwnProfile} />
+          <div className="mt-6">
+            {active === "created" ? (
+              <CreatedView
+                userId={user.id}
+                savedIds={savedIds}
+                likedIds={likedIds}
+                viewerId={viewer?.id ?? null}
+              />
+            ) : null}
+            {active === "saved" ? (
+              <SavedView
+                userId={user.id}
+                savedIds={savedIds}
+                likedIds={likedIds}
+                viewerId={viewer?.id ?? null}
+              />
+            ) : null}
+            {active === "liked" ? (
+              <LikedView
+                userId={user.id}
+                savedIds={savedIds}
+                likedIds={likedIds}
+                viewerId={viewer?.id ?? null}
+              />
+            ) : null}
+            {active === "boards" ? (
+              <BoardsView userId={user.id} viewerId={viewer?.id ?? null} />
+            ) : null}
+          </div>
+        </>
+      )}
     </div>
   );
 }

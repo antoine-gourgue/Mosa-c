@@ -1,16 +1,24 @@
-import type { PinOrderByWithRelationInput } from "@/generated/prisma/models";
+import type { PinOrderByWithRelationInput, PinWhereInput } from "@/generated/prisma/models";
 import { prisma } from "@/lib/prisma";
 import type { Pin } from "@/types/domain";
+import { getHiddenUserIds } from "./blocks";
 import { getFollowedCreatorIds } from "./follows";
 import { PIN_INCLUDE, toPin } from "./mappers";
 
 /**
- * Fetches all pins for the feed, newest first.
+ * Fetches all pins for the feed, newest first, excluding pins from users the
+ * viewer has blocked or who have blocked the viewer.
  *
+ * @param viewerId - The current viewer id, or null when signed out.
  * @returns The list of pins.
  */
-export async function getPins(): Promise<Pin[]> {
-  const rows = await prisma.pin.findMany({ include: PIN_INCLUDE, orderBy: { createdAt: "desc" } });
+export async function getPins(viewerId: string | null = null): Promise<Pin[]> {
+  const hidden = await getHiddenUserIds(viewerId);
+  const rows = await prisma.pin.findMany({
+    where: hidden.length > 0 ? { creatorId: { notIn: hidden } } : {},
+    include: PIN_INCLUDE,
+    orderBy: { createdAt: "desc" },
+  });
   return rows.map(toPin);
 }
 
@@ -62,20 +70,30 @@ type FeedPinsParams = {
   skip: number;
   sort: FeedSort;
   creatorIds: string[] | null;
+  hiddenIds: string[];
   limit: number;
 };
 
 /**
  * Fetches one offset-paginated page of pins for an optional set of creators,
- * ordered by the given sort.
+ * ordered by the given sort, excluding pins from hidden (blocked) users.
  *
- * @param params - The offset, sort, creator filter and page size.
+ * @param params - The offset, sort, creator filter, hidden filter and page size.
  * @returns The page of pins and whether more remain.
  */
-async function getFeedPins({ skip, sort, creatorIds, limit }: FeedPinsParams): Promise<FeedPage> {
-  const where: { creatorId?: { in: string[] } } = {};
+async function getFeedPins({
+  skip,
+  sort,
+  creatorIds,
+  hiddenIds,
+  limit,
+}: FeedPinsParams): Promise<FeedPage> {
+  const where: { creatorId?: { in?: string[]; notIn?: string[] } } = {};
   if (creatorIds !== null) {
     where.creatorId = { in: creatorIds };
+  }
+  if (hiddenIds.length > 0) {
+    where.creatorId = { ...(where.creatorId ?? {}), notIn: hiddenIds };
   }
 
   const rows = await prisma.pin.findMany({
@@ -243,10 +261,11 @@ async function getForYouAffinity(viewerId: string): Promise<ForYouAffinity> {
  */
 async function getForYouFeed(params: {
   viewerId: string | null;
+  hiddenIds: string[];
   skip: number;
   limit: number;
 }): Promise<FeedPage> {
-  const { viewerId, skip, limit } = params;
+  const { viewerId, hiddenIds, skip, limit } = params;
   const emptyAffinity: ForYouAffinity = {
     followedCreatorIds: new Set(),
     affineCreatorIds: new Set(),
@@ -255,6 +274,7 @@ async function getForYouFeed(params: {
   const [affinity, rows] = await Promise.all([
     viewerId === null ? Promise.resolve(emptyAffinity) : getForYouAffinity(viewerId),
     prisma.pin.findMany({
+      where: hiddenIds.length > 0 ? { creatorId: { notIn: hiddenIds } } : {},
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: FOR_YOU_WINDOW,
       include: PIN_INCLUDE,
@@ -282,14 +302,15 @@ export async function getHomeFeed(params: {
   limit?: number;
 }): Promise<FeedPage> {
   const { skip = 0, sort = "recent", feed = "foryou", viewerId, limit = FEED_PAGE_SIZE } = params;
+  const hiddenIds = await getHiddenUserIds(viewerId);
   if (feed === "foryou" && sort === "recent") {
-    return getForYouFeed({ viewerId, skip, limit });
+    return getForYouFeed({ viewerId, hiddenIds, skip, limit });
   }
   let creatorIds: string[] | null = null;
   if (feed === "following") {
     creatorIds = viewerId === null ? [] : await getFollowedCreatorIds(viewerId);
   }
-  return getFeedPins({ skip, sort, creatorIds, limit });
+  return getFeedPins({ skip, sort, creatorIds, hiddenIds, limit });
 }
 
 /**
@@ -311,9 +332,14 @@ export async function getPinById(id: string): Promise<Pin | null> {
  *
  * @param pinId - The pin to find neighbours for.
  * @param limit - The maximum number of related pins to return.
+ * @param viewerId - The current viewer id, or null when signed out.
  * @returns The related pins.
  */
-export async function getRelatedPins(pinId: string, limit = 16): Promise<Pin[]> {
+export async function getRelatedPins(
+  pinId: string,
+  limit = 16,
+  viewerId: string | null = null,
+): Promise<Pin[]> {
   const current = await prisma.pin.findUnique({
     where: { id: pinId },
     select: { tags: { select: { tagId: true } } },
@@ -321,13 +347,19 @@ export async function getRelatedPins(pinId: string, limit = 16): Promise<Pin[]> 
   if (current === null) {
     return [];
   }
+  const hidden = await getHiddenUserIds(viewerId);
+  const hiddenWhere: PinWhereInput = hidden.length > 0 ? { creatorId: { notIn: hidden } } : {};
   const tagIds = current.tags.map((pinTag) => pinTag.tagId);
   const sameTags =
     tagIds.length === 0
       ? []
       : (
           await prisma.pin.findMany({
-            where: { id: { not: pinId }, tags: { some: { tagId: { in: tagIds } } } },
+            where: {
+              id: { not: pinId },
+              tags: { some: { tagId: { in: tagIds } } },
+              ...hiddenWhere,
+            },
             include: PIN_INCLUDE,
             orderBy: { createdAt: "desc" },
             take: limit,
@@ -339,7 +371,7 @@ export async function getRelatedPins(pinId: string, limit = 16): Promise<Pin[]> 
   const excludeIds = [pinId, ...sameTags.map((pin) => pin.id)];
   const fillers = (
     await prisma.pin.findMany({
-      where: { id: { notIn: excludeIds } },
+      where: { id: { notIn: excludeIds }, ...hiddenWhere },
       include: PIN_INCLUDE,
       orderBy: { createdAt: "desc" },
       take: limit - sameTags.length,
@@ -369,13 +401,19 @@ export async function getCreatedPins(userId: string): Promise<Pin[]> {
  *
  * @param query - The raw search query.
  * @param sort - The sort order, defaulting to most recent.
+ * @param viewerId - The current viewer id, or null when signed out.
  * @returns The matching pins, or an empty list for a blank query.
  */
-export async function searchPins(query: string, sort: FeedSort = "recent"): Promise<Pin[]> {
+export async function searchPins(
+  query: string,
+  sort: FeedSort = "recent",
+  viewerId: string | null = null,
+): Promise<Pin[]> {
   const q = query.trim();
   if (q === "") {
     return [];
   }
+  const hidden = await getHiddenUserIds(viewerId);
   const rows = await prisma.pin.findMany({
     where: {
       OR: [
@@ -383,6 +421,7 @@ export async function searchPins(query: string, sort: FeedSort = "recent"): Prom
         { tags: { some: { tag: { name: { contains: q, mode: "insensitive" } } } } },
         { creator: { name: { contains: q, mode: "insensitive" } } },
       ],
+      ...(hidden.length > 0 ? { creatorId: { notIn: hidden } } : {}),
     },
     include: PIN_INCLUDE,
     orderBy: feedOrderBy(sort),

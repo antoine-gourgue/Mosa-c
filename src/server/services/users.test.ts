@@ -5,6 +5,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     user: { findMany: vi.fn(), findUnique: vi.fn() },
     follow: { count: vi.fn() },
+    block: { findMany: vi.fn().mockResolvedValue([]) },
   },
 }));
 

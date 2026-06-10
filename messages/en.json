@@ -108,7 +108,9 @@
     "cannotSaveBoard": "You cannot save to this board.",
     "messageTooLong": "Your message is too long.",
     "titleRequired": "A title is required.",
-    "editOwnPins": "You can only edit your own pins."
+    "editOwnPins": "You can only edit your own pins.",
+    "cannotBlockSelf": "You can’t block yourself.",
+    "cannotMessageBlocked": "You can’t message someone you’ve blocked."
   },
   "nav": {
     "home": "Home",
@@ -149,7 +151,23 @@
     "tabSaved": "Saved",
     "tabLiked": "Liked",
     "tabBoards": "Boards",
-    "followerCount": "{count, plural, one {# follower} other {# followers}}"
+    "followerCount": "{count, plural, one {# follower} other {# followers}}",
+    "moreOptions": "More options",
+    "thisUser": "this user",
+    "block": "Block",
+    "unblock": "Unblock",
+    "reportProfile": "Report profile",
+    "blocked": "Blocked {user}",
+    "unblocked": "Unblocked {user}",
+    "actionFailed": "Something went wrong",
+    "reportReceived": "Report received",
+    "reportThanks": "Thanks for helping keep Mosaic safe.",
+    "blockConfirmTitle": "Block {user}?",
+    "blockConfirmBody": "They won’t be able to message you, and you’ll stop seeing each other’s Pins and profiles. Any follow between you is removed.",
+    "blockedTitle": "You blocked {user}",
+    "blockedBody": "Unblock them from the menu above to see their profile again.",
+    "unavailableTitle": "This account is unavailable",
+    "unavailableBody": "You can’t view this profile."
   },
   "messages": {
     "title": "Messages",
@@ -226,7 +244,11 @@
     "deleteCommentBody": "This comment will be permanently removed.",
     "delete": "Delete",
     "logInToComment": "Log in to comment",
-    "commentCount": "{count, plural, one {# comment} other {# comments}}"
+    "commentCount": "{count, plural, one {# comment} other {# comments}}",
+    "reportComment": "Report comment",
+    "reportReceived": "Report received",
+    "reportThanks": "Thanks for helping keep Mosaic safe.",
+    "reportFailed": "Couldn’t report this comment"
   },
   "create": {
     "createPin": "Create Pin",

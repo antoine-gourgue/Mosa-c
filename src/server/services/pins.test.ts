@@ -7,6 +7,7 @@ vi.mock("@/lib/prisma", () => ({
     like: { findMany: vi.fn() },
     save: { findMany: vi.fn() },
     follow: { findMany: vi.fn() },
+    block: { findMany: vi.fn().mockResolvedValue([]) },
   },
 }));
 

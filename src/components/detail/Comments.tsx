@@ -5,11 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { FormEvent, ReactElement, ReactNode } from "react";
-import { Avatar, ConfirmDialog, IconButton } from "@/components/ui";
-import { CloseIcon, SendIcon, TrashIcon } from "@/icons";
+import { Avatar, ConfirmDialog, IconButton, useToast } from "@/components/ui";
+import { CloseIcon, FlagIcon, SendIcon, TrashIcon } from "@/icons";
 import { useTimeFormat } from "@/hooks/use-time-format";
 import { useEngagementActions } from "@/components/engagement";
 import { addComment, addReply, deleteComment } from "@/server/actions/comments";
+import { reportComment } from "@/server/actions/reports";
 import type { PinComment } from "@/types/domain";
 import { CommentReactions } from "./CommentReactions";
 import { MentionTextarea } from "./MentionTextarea";
@@ -87,6 +88,7 @@ export function Comments({
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const [, startTransition] = useTransition();
   const { setCommentCount } = useEngagementActions();
+  const { show } = useToast();
   const router = useRouter();
   const isAuthed = viewerId !== null;
 
@@ -179,6 +181,17 @@ export function Comments({
 
   const canDelete = (comment: PinComment): boolean => viewerId === comment.author.id || isPinOwner;
 
+  const onReport = (id: string): void => {
+    startTransition(async () => {
+      try {
+        await reportComment(id);
+        show({ title: t("reportReceived"), description: t("reportThanks") });
+      } catch {
+        show({ title: t("reportFailed") });
+      }
+    });
+  };
+
   const toggleExpanded = (rootId: string): void => {
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -232,6 +245,15 @@ export function Comments({
           onClick={() => setConfirmId(comment.id)}
         >
           <TrashIcon size={16} />
+        </IconButton>
+      ) : isAuthed ? (
+        <IconButton
+          label={t("reportComment")}
+          size="sm"
+          className="shrink-0 text-ink-soft opacity-0 transition-opacity hover:text-accent group-hover/comment:opacity-100"
+          onClick={() => onReport(comment.id)}
+        >
+          <FlagIcon size={16} />
         </IconButton>
       ) : null}
     </div>

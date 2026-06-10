@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { CommentReaction, PinComment } from "@/types/domain";
+import { getHiddenUserIds } from "./blocks";
 import { type CreatorRow, toCreator } from "./mappers";
 
 type ReactionRow = {
@@ -75,12 +76,15 @@ export async function getComments(
   viewerId: string | null = null,
 ): Promise<PinComment[]> {
   const reactionSelect = { select: { emoji: true, userId: true } } as const;
+  const hidden = await getHiddenUserIds(viewerId);
+  const notHidden = hidden.length > 0 ? { authorId: { notIn: hidden } } : {};
   const rows = await prisma.comment.findMany({
-    where: { pinId, parentId: null },
+    where: { pinId, parentId: null, ...notHidden },
     include: {
       author: true,
       reactions: reactionSelect,
       replies: {
+        where: notHidden,
         include: { author: true, reactions: reactionSelect },
         orderBy: { createdAt: "asc" },
       },

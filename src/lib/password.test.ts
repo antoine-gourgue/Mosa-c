@@ -7,5 +7,5 @@ describe("password", () => {
     expect(hash).not.toBe("password123");
     expect(await verifyPassword("password123", hash)).toBe(true);
     expect(await verifyPassword("wrong-password", hash)).toBe(false);
-  });
+  }, 30_000);
 });

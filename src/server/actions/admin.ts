@@ -113,22 +113,30 @@ function revalidateReports(): void {
 }
 
 /**
- * Resolves a report by removing the reported pin. Deleting the pin cascades to
- * its reports, closing this one.
+ * Resolves a report by acting on its target: a pin or comment report removes the
+ * offending content (which cascades to close the report), while a user report is
+ * marked reviewed without auto-deleting the account — admins disable users from
+ * the users queue. Closes the report either way.
  *
  * @param reportId - The report id.
- * @returns A promise that resolves once the pin is removed.
+ * @returns A promise that resolves once the report is resolved.
  */
 export async function resolveReport(reportId: string): Promise<void> {
   await requireAdminUser();
   const report = await prisma.report.findUnique({
     where: { id: reportId },
-    select: { pinId: true },
+    select: { targetType: true, pinId: true, commentId: true },
   });
   if (report === null) {
     throw new AppError("NOT_FOUND", "Report not found.");
   }
-  await prisma.pin.delete({ where: { id: report.pinId } });
+  if (report.targetType === "PIN" && report.pinId !== null) {
+    await prisma.pin.delete({ where: { id: report.pinId } });
+  } else if (report.targetType === "COMMENT" && report.commentId !== null) {
+    await prisma.comment.delete({ where: { id: report.commentId } });
+  } else {
+    await prisma.report.update({ where: { id: reportId }, data: { status: "REVIEWED" } });
+  }
   revalidateReports();
 }
 

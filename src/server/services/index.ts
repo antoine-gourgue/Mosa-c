@@ -28,6 +28,8 @@ export {
 } from "./boards";
 export { getSavedPinIds, getSavedPins, isSaved } from "./saves";
 export { getFollowedCreatorIds, isFollowing } from "./follows";
+export { getHiddenUserIds, getBlockState } from "./blocks";
+export type { BlockState } from "./blocks";
 export { getLikeState, getLikedPinIds, getLikedPins } from "./likes";
 export { getComments } from "./comments";
 export { getNotifications, getUnreadCount } from "./notifications";
@@ -67,6 +69,7 @@ export type {
   AdminCommentRow,
   AdminReportsPage,
   AdminReportRow,
+  AdminReportTarget,
   AdminUserDetail,
   AdminPinDetail,
 } from "./admin";

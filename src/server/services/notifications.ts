@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import type { AppNotification, NotificationKind } from "@/types/domain";
+import { getHiddenUserIds } from "./blocks";
 import { type CreatorRow, toCreator } from "./mappers";
 
 /**
@@ -76,8 +77,9 @@ function toNotification(row: NotificationRow, t: NotificationTranslator): AppNot
  * @returns The user's notifications.
  */
 export async function getNotifications(userId: string, limit = 50): Promise<AppNotification[]> {
+  const hidden = await getHiddenUserIds(userId);
   const rows = await prisma.notification.findMany({
-    where: { recipientId: userId },
+    where: { recipientId: userId, ...(hidden.length > 0 ? { actorId: { notIn: hidden } } : {}) },
     include: { actor: true, pin: { select: { imageUrl: true } } },
     orderBy: { createdAt: "desc" },
     take: limit,

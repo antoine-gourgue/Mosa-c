@@ -8,6 +8,7 @@ vi.mock("@/lib/prisma", () => ({
     conversationParticipant: { findUnique: vi.fn(), findMany: vi.fn() },
     user: { findMany: vi.fn() },
     message: { count: vi.fn(), findMany: vi.fn() },
+    block: { findMany: vi.fn().mockResolvedValue([]) },
   },
 }));
 

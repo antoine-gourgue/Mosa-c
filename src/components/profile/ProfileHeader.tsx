@@ -6,6 +6,7 @@ import type { Creator } from "@/types/domain";
 import { FollowButton } from "./FollowButton";
 import { FollowerCount } from "./FollowerCount";
 import { MessageButton } from "./MessageButton";
+import { ProfileActions } from "./ProfileActions";
 
 /**
  * Props for the {@link ProfileHeader} component.
@@ -17,6 +18,7 @@ export type ProfileHeaderProps = {
   initialFollowing: boolean;
   isOwnProfile: boolean;
   isAuthed: boolean;
+  blockedByViewer: boolean;
 };
 
 /**
@@ -33,6 +35,7 @@ export async function ProfileHeader({
   initialFollowing,
   isOwnProfile,
   isAuthed,
+  blockedByViewer,
 }: ProfileHeaderProps): Promise<ReactElement> {
   const t = await getTranslations("profile");
   return (
@@ -70,6 +73,13 @@ export async function ProfileHeader({
             isAuthed={isAuthed}
           />
           {isAuthed ? <MessageButton userId={user.id} /> : null}
+          {isAuthed ? (
+            <ProfileActions
+              userId={user.id}
+              username={user.username}
+              initialBlocked={blockedByViewer}
+            />
+          ) : null}
         </div>
       )}
     </header>

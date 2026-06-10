@@ -400,6 +400,16 @@ export async function getAdminComments(page: number): Promise<AdminCommentsPage>
 export const ADMIN_REPORTS_PAGE_SIZE = 20;
 
 /**
+ * The reported entity behind a report row, discriminated by target type so the
+ * admin queue can link to and label each kind.
+ */
+export type AdminReportTarget =
+  | { type: "PIN"; pinId: string; title: string }
+  | { type: "COMMENT"; commentId: string; pinId: string; body: string }
+  | { type: "USER"; userId: string; name: string; username: string | null }
+  | { type: "UNKNOWN" };
+
+/**
  * A report row in the admin reports queue.
  */
 export type AdminReportRow = {
@@ -407,8 +417,7 @@ export type AdminReportRow = {
   reason: string | null;
   reporterName: string;
   reporterEmail: string;
-  pinId: string;
-  pinTitle: string;
+  target: AdminReportTarget;
   createdAt: Date;
 };
 
@@ -442,8 +451,11 @@ export async function getAdminReports(page: number): Promise<AdminReportsPage> {
         id: true,
         reason: true,
         createdAt: true,
+        targetType: true,
         reporter: { select: { name: true, email: true } },
         pin: { select: { id: true, title: true } },
+        comment: { select: { id: true, body: true, pinId: true } },
+        targetUser: { select: { id: true, name: true, username: true } },
       },
     }),
   ]);
@@ -453,14 +465,48 @@ export async function getAdminReports(page: number): Promise<AdminReportsPage> {
       reason: report.reason,
       reporterName: report.reporter.name,
       reporterEmail: report.reporter.email,
-      pinId: report.pin.id,
-      pinTitle: report.pin.title,
+      target: toReportTarget(report),
       createdAt: report.createdAt,
     })),
     total,
     page: current,
     pageSize: ADMIN_REPORTS_PAGE_SIZE,
   };
+}
+
+/**
+ * Resolves the discriminated target of a report row from its selected relations,
+ * falling back to UNKNOWN if the related entity is missing.
+ *
+ * @param report - The selected report row.
+ * @returns The report's target.
+ */
+function toReportTarget(report: {
+  targetType: "PIN" | "COMMENT" | "USER";
+  pin: { id: string; title: string } | null;
+  comment: { id: string; body: string; pinId: string } | null;
+  targetUser: { id: string; name: string; username: string | null } | null;
+}): AdminReportTarget {
+  if (report.targetType === "PIN" && report.pin !== null) {
+    return { type: "PIN", pinId: report.pin.id, title: report.pin.title };
+  }
+  if (report.targetType === "COMMENT" && report.comment !== null) {
+    return {
+      type: "COMMENT",
+      commentId: report.comment.id,
+      pinId: report.comment.pinId,
+      body: report.comment.body,
+    };
+  }
+  if (report.targetType === "USER" && report.targetUser !== null) {
+    return {
+      type: "USER",
+      userId: report.targetUser.id,
+      name: report.targetUser.name,
+      username: report.targetUser.username,
+    };
+  }
+  return { type: "UNKNOWN" };
 }
 
 /**

@@ -25,7 +25,7 @@ export async function SearchResults({ query, sort }: SearchResultsProps): Promis
   const t = await getTranslations("search");
   const user = await getCurrentUser();
   const [results, savedIds, likedIds] = await Promise.all([
-    searchPins(query, sort),
+    searchPins(query, sort, user?.id ?? null),
     user === null ? Promise.resolve<string[]>([]) : getSavedPinIds(user.id),
     user === null ? Promise.resolve<string[]>([]) : getLikedPinIds(user.id),
   ]);

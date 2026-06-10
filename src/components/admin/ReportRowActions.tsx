@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
 import { Button, ConfirmDialog, useToast } from "@/components/ui";
+import type { AdminReportTarget } from "@/server/services";
 import { dismissReport, resolveReport } from "@/server/actions/admin";
 
 /**
@@ -11,21 +12,63 @@ import { dismissReport, resolveReport } from "@/server/actions/admin";
  */
 export type ReportRowActionsProps = {
   reportId: string;
-  pinTitle: string;
+  target: AdminReportTarget;
 };
 
 /**
- * Row actions for a pending report: dismiss it (keeping the pin) or resolve it
- * by removing the reported pin, which closes the report. Removal is confirmed.
+ * The resolve action's label, confirm copy and success toast for a report,
+ * derived from its target: pins and comments are removed, while profiles are
+ * marked reviewed (admins disable accounts from the users queue).
  *
- * @param props - The report id and the reported pin's title.
+ * @param target - The report's discriminated target.
+ * @returns The labels for the resolve action.
+ */
+function resolveCopy(target: AdminReportTarget): {
+  label: string;
+  title: string;
+  description: string;
+  success: string;
+} {
+  switch (target.type) {
+    case "PIN":
+      return {
+        label: "Remove pin",
+        title: "Remove this pin?",
+        description: `"${target.title}" and its likes, comments and saves will be permanently removed, closing the report.`,
+        success: "Pin removed",
+      };
+    case "COMMENT":
+      return {
+        label: "Remove comment",
+        title: "Remove this comment?",
+        description: "The comment and its replies will be permanently removed, closing the report.",
+        success: "Comment removed",
+      };
+    default:
+      return {
+        label: "Mark reviewed",
+        title: "Mark as reviewed?",
+        description:
+          "The report will be closed. Disable the account from the users queue if needed.",
+        success: "Report reviewed",
+      };
+  }
+}
+
+/**
+ * Row actions for a pending report: dismiss it (keeping the content) or resolve
+ * it. Resolving removes the reported pin/comment, or marks a profile report
+ * reviewed. The resolve action is confirmed.
+ *
+ * @param props - The report id and its target.
  * @returns The report actions element.
  */
-export function ReportRowActions({ reportId, pinTitle }: ReportRowActionsProps): ReactElement {
+export function ReportRowActions({ reportId, target }: ReportRowActionsProps): ReactElement {
   const { show } = useToast();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [confirm, setConfirm] = useState(false);
+  const copy = resolveCopy(target);
 
   const run = (action: () => Promise<void>, success: string): void => {
     startTransition(async () => {
@@ -60,16 +103,16 @@ export function ReportRowActions({ reportId, pinTitle }: ReportRowActionsProps):
         className="text-accent hover:bg-accent/10"
         onClick={() => setConfirm(true)}
       >
-        Remove pin
+        {copy.label}
       </Button>
       <ConfirmDialog
         open={confirm}
-        title="Remove this pin?"
-        description={`"${pinTitle}" and its likes, comments and saves will be permanently removed, closing the report.`}
-        confirmLabel="Remove pin"
+        title={copy.title}
+        description={copy.description}
+        confirmLabel={copy.label}
         destructive
         pending={pending}
-        onConfirm={() => run(() => resolveReport(reportId), "Pin removed")}
+        onConfirm={() => run(() => resolveReport(reportId), copy.success)}
         onCancel={() => setConfirm(false)}
       />
     </div>

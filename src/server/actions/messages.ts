@@ -13,6 +13,7 @@ import {
   MESSAGE_PIN_SELECT,
   toMessage,
 } from "@/server/services/messages";
+import { getHiddenUserIds } from "@/server/services/blocks";
 import { getSuggestedCreators, searchMentionUsers } from "@/server/services/users";
 import type { ChatMessage, ConversationSummary, Creator } from "@/types/domain";
 
@@ -47,13 +48,24 @@ export async function sendMessage(
   }
   const conversation = await prisma.conversation.findFirst({
     where: { id: conversationId, participants: { some: { userId: user.id } } },
-    select: { status: true, requestedById: true },
+    select: {
+      status: true,
+      requestedById: true,
+      participants: { select: { userId: true } },
+    },
   });
   if (conversation === null) {
     return { ok: false, error: await errorMessage("conversationNotFound") };
   }
   if (conversation.status === "PENDING" && conversation.requestedById !== user.id) {
     return { ok: false, error: await errorMessage("acceptToReply") };
+  }
+  const hidden = await getHiddenUserIds(user.id);
+  if (
+    hidden.length > 0 &&
+    conversation.participants.some((participant) => hidden.includes(participant.userId))
+  ) {
+    return { ok: false, error: await errorMessage("cannotMessageBlocked") };
   }
   let sharedPinId: string | null = null;
   if (pinId !== null) {

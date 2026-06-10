@@ -108,7 +108,9 @@
     "cannotSaveBoard": "Vous ne pouvez pas enregistrer dans ce tableau.",
     "messageTooLong": "Votre message est trop long.",
     "titleRequired": "Un titre est requis.",
-    "editOwnPins": "Vous ne pouvez modifier que vos propres épingles."
+    "editOwnPins": "Vous ne pouvez modifier que vos propres épingles.",
+    "cannotBlockSelf": "Vous ne pouvez pas vous bloquer vous-même.",
+    "cannotMessageBlocked": "Vous ne pouvez pas envoyer de message à une personne que vous avez bloquée."
   },
   "nav": {
     "home": "Accueil",
@@ -149,7 +151,23 @@
     "tabSaved": "Enregistrées",
     "tabLiked": "Aimées",
     "tabBoards": "Tableaux",
-    "followerCount": "{count, plural, one {# abonné} other {# abonnés}}"
+    "followerCount": "{count, plural, one {# abonné} other {# abonnés}}",
+    "moreOptions": "Plus d’options",
+    "thisUser": "cet utilisateur",
+    "block": "Bloquer",
+    "unblock": "Débloquer",
+    "reportProfile": "Signaler le profil",
+    "blocked": "{user} bloqué",
+    "unblocked": "{user} débloqué",
+    "actionFailed": "Une erreur s’est produite",
+    "reportReceived": "Signalement reçu",
+    "reportThanks": "Merci de nous aider à garder Mosaic sûr.",
+    "blockConfirmTitle": "Bloquer {user} ?",
+    "blockConfirmBody": "Cette personne ne pourra plus vous envoyer de message, et vous ne verrez plus vos épingles et profils respectifs. Tout abonnement entre vous est supprimé.",
+    "blockedTitle": "Vous avez bloqué {user}",
+    "blockedBody": "Débloquez cette personne depuis le menu ci-dessus pour revoir son profil.",
+    "unavailableTitle": "Ce compte est indisponible",
+    "unavailableBody": "Vous ne pouvez pas voir ce profil."
   },
   "messages": {
     "title": "Messages",
@@ -226,7 +244,11 @@
     "deleteCommentBody": "Ce commentaire sera définitivement supprimé.",
     "delete": "Supprimer",
     "logInToComment": "Connectez-vous pour commenter",
-    "commentCount": "{count, plural, one {# commentaire} other {# commentaires}}"
+    "commentCount": "{count, plural, one {# commentaire} other {# commentaires}}",
+    "reportComment": "Signaler le commentaire",
+    "reportReceived": "Signalement reçu",
+    "reportThanks": "Merci de nous aider à garder Mosaic sûr.",
+    "reportFailed": "Impossible de signaler ce commentaire"
   },
   "create": {
     "createPin": "Créer une épingle",

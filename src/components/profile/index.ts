@@ -2,6 +2,8 @@ export { FollowButton } from "./FollowButton";
 export type { FollowButtonProps } from "./FollowButton";
 export { ProfileHeader } from "./ProfileHeader";
 export type { ProfileHeaderProps } from "./ProfileHeader";
+export { ProfileActions } from "./ProfileActions";
+export type { ProfileActionsProps } from "./ProfileActions";
 export { ProfileTabs } from "./ProfileTabs";
 export type { ProfileTab, ProfileTabsProps } from "./ProfileTabs";
 export { EditProfile } from "./EditProfile";
