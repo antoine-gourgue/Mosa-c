@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { Input } from "@/components/ui";
@@ -23,6 +24,7 @@ export type GifPickerProps = {
  * @returns The GIF picker element.
  */
 export function GifPicker({ onSelect }: GifPickerProps): ReactElement {
+  const t = useTranslations("messages");
   const [query, setQuery] = useState("");
   const [gifs, setGifs] = useState<GifResult[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,15 +49,15 @@ export function GifPicker({ onSelect }: GifPickerProps): ReactElement {
   return (
     <div className="w-80">
       <Input
-        aria-label="Search GIFs"
+        aria-label={t("searchGifs")}
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search GIFs"
+        placeholder={t("searchGifs")}
         leadingIcon={<SearchIcon size={18} />}
       />
       <div className="mt-2 max-h-64 overflow-auto">
         {loading ? (
-          <p className="py-8 text-center text-sm text-ink-soft">Loading…</p>
+          <p className="py-8 text-center text-sm text-ink-soft">{t("loading")}</p>
         ) : gifs.length === 0 ? (
           <p className="px-2 py-8 text-center text-sm text-ink-soft">
             No GIFs found. Set <code>GIPHY_API_KEY</code> to enable GIF search.

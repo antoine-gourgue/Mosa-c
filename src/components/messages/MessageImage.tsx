@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import type { ReactElement } from "react";
 
 /**
@@ -17,6 +20,7 @@ export type MessageImageProps = {
  * @returns The image attachment element.
  */
 export function MessageImage({ url }: MessageImageProps): ReactElement {
+  const t = useTranslations("messages");
   return (
     <a
       href={url}
@@ -27,7 +31,7 @@ export function MessageImage({ url }: MessageImageProps): ReactElement {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={url}
-        alt="Shared image"
+        alt={t("sharedImage")}
         loading="lazy"
         className="max-h-80 max-w-[240px] rounded-2xl object-cover"
       />

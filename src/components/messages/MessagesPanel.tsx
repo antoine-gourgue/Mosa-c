@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Fragment, useEffect, useRef, useState, useTransition } from "react";
 import type { KeyboardEvent, PointerEvent, ReactElement } from "react";
@@ -93,6 +94,7 @@ function ConversationRow({
   onOpen: (id: string) => void;
   onDelete?: (id: string) => void;
 }): ReactElement {
+  const t = useTranslations("messages");
   const [offset, setOffset] = useState(0);
   const [dragging, setDragging] = useState(false);
   const startRef = useRef<{ x: number; y: number; base: number; active: boolean } | null>(null);
@@ -155,7 +157,7 @@ function ConversationRow({
       {onDelete !== undefined ? (
         <button
           type="button"
-          aria-label={`Delete conversation with ${conversation.other.name}`}
+          aria-label={t("deleteConversation", { name: conversation.other.name })}
           onClick={() => onDelete(conversation.id)}
           className="absolute inset-y-0 right-0 grid w-[72px] cursor-pointer place-items-center bg-[#e60023] text-bg"
         >
@@ -193,7 +195,7 @@ function ConversationRow({
             </span>
             <span className="flex items-center justify-between gap-2">
               <span className="truncate text-[13px] text-ink-soft">
-                {conversation.lastMessage?.body ?? "No messages yet"}
+                {conversation.lastMessage?.body ?? t("noMessages")}
               </span>
               {conversation.unreadCount > 0 ? (
                 <span className="size-2.5 shrink-0 rounded-full bg-accent" />
@@ -223,6 +225,7 @@ export function MessagesPanel({
   viewerName,
   viewerImage,
 }: MessagesPanelProps): ReactElement {
+  const t = useTranslations("messages");
   const { markRead: clearUnreadBadge, inboxRevision, refreshInbox } = useMessagesUnread();
   const {
     activePanel,
@@ -689,7 +692,7 @@ export function MessagesPanel({
       return;
     }
     const conversationId = activeId;
-    const preview = /\.gif($|\?)/i.test(url) ? "Sent a GIF" : "Sent a photo";
+    const preview = /\.gif($|\?)/i.test(url) ? t("sentGif") : t("sentPhoto");
     startTransition(async () => {
       const createdAt = nowIso();
       const tempId = `temp-${createdAt}`;
@@ -840,7 +843,7 @@ export function MessagesPanel({
 
   return (
     <aside
-      aria-label="Messages"
+      aria-label={t("title")}
       aria-hidden={!panelOpen}
       inert={!panelOpen}
       className={cn(
@@ -853,7 +856,7 @@ export function MessagesPanel({
           <header className="flex items-center gap-1 px-2 py-2.5">
             <button
               type="button"
-              aria-label="Back to messages"
+              aria-label={t("backToMessages")}
               onClick={() => setView("list")}
               className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl text-ink-soft hover:bg-surface hover:text-ink"
             >
@@ -873,12 +876,12 @@ export function MessagesPanel({
                   </span>
                 </div>
                 <Menu
-                  label="Group options"
+                  label={t("groupOptions")}
                   icon={<MoreIcon />}
                   align="end"
                   items={[
                     {
-                      label: "Leave group",
+                      label: t("leaveGroup"),
                       icon: <LogoutIcon size={18} />,
                       destructive: true,
                       onSelect: onLeaveGroup,
@@ -906,7 +909,7 @@ export function MessagesPanel({
                     {active.other.name}
                   </span>
                   {otherOnline ? (
-                    <span className="text-xs font-medium text-ink">Online</span>
+                    <span className="text-xs font-medium text-ink">{t("online")}</span>
                   ) : formatLastActive(otherLastSeen) !== null ? (
                     <span className="truncate text-xs text-ink-soft">
                       {formatLastActive(otherLastSeen)}
@@ -1038,18 +1041,18 @@ export function MessagesPanel({
               <AttachMenu onPickFile={onAttachImage} onPickGifUrl={sendImageUrl} />
               <Input
                 className="flex-1"
-                aria-label="Message"
+                aria-label={t("messageAria")}
                 value={draft}
                 onChange={(event) => {
                   setDraft(event.target.value);
                   emitTyping(event.target.value !== "");
                 }}
                 onKeyDown={onComposerKeyDown}
-                placeholder="Type a message…"
+                placeholder={t("typeMessage")}
                 endAdornment={
                   <button
                     type="submit"
-                    aria-label="Send message"
+                    aria-label={t("sendMessage")}
                     disabled={draft.trim() === ""}
                     className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-xl bg-accent text-bg transition-opacity hover:bg-accent-press disabled:cursor-not-allowed disabled:opacity-40"
                   >
@@ -1065,16 +1068,16 @@ export function MessagesPanel({
           <header className="flex items-center gap-1 px-2 py-2.5">
             <button
               type="button"
-              aria-label="Back to messages"
+              aria-label={t("backToMessages")}
               onClick={() => setView("list")}
               className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl text-ink-soft hover:bg-surface hover:text-ink"
             >
               <BackIcon size={20} />
             </button>
-            <h2 className="flex-1 text-lg font-bold text-ink">New message</h2>
+            <h2 className="flex-1 text-lg font-bold text-ink">{t("newMessage")}</h2>
             <button
               type="button"
-              aria-label="Close messages"
+              aria-label={t("closeMessages")}
               onClick={closePanel}
               className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl text-ink-soft hover:bg-surface hover:text-ink"
             >
@@ -1083,11 +1086,11 @@ export function MessagesPanel({
           </header>
           <div className="px-4 pb-2">
             <Input
-              aria-label="Search people"
+              aria-label={t("searchPeople")}
               autoFocus
               value={recipientQuery}
               onChange={(event) => setRecipientQuery(event.target.value)}
-              placeholder="Search by name or username"
+              placeholder={t("searchPlaceholder")}
               leadingIcon={<SearchIcon size={18} />}
             />
           </div>
@@ -1097,7 +1100,7 @@ export function MessagesPanel({
                 <button
                   key={entry.id}
                   type="button"
-                  aria-label={`Remove ${entry.name}`}
+                  aria-label={t("removeMember", { name: entry.name })}
                   onClick={() => onPickRecipient(entry)}
                   className="inline-flex cursor-pointer items-center gap-1 rounded-lg bg-surface px-2 py-1 text-[13px] font-semibold text-ink transition-colors hover:bg-surface-2"
                 >
@@ -1110,16 +1113,16 @@ export function MessagesPanel({
           {selected.length >= 2 ? (
             <div className="px-4 pb-2">
               <Input
-                aria-label="Group name"
+                aria-label={t("groupName")}
                 value={groupName}
                 onChange={(event) => setGroupName(event.target.value)}
-                placeholder="Group name (optional)"
+                placeholder={t("groupNamePlaceholder")}
               />
             </div>
           ) : null}
           <div className="flex-1 overflow-y-auto pb-2">
             {recipients.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-ink-soft">No people found.</p>
+              <p className="px-4 py-8 text-center text-sm text-ink-soft">{t("noPeopleFound")}</p>
             ) : (
               <ul>
                 {recipients.map((recipient) => {
@@ -1161,7 +1164,7 @@ export function MessagesPanel({
           {selected.length > 0 ? (
             <div className="border-t border-line p-3">
               <Button fullWidth onClick={onStartCompose}>
-                {selected.length >= 2 ? `Create group · ${selected.length}` : "Start chat"}
+                {selected.length >= 2 ? `Create group · ${selected.length}` : t("startChat")}
               </Button>
             </div>
           ) : null}
@@ -1171,16 +1174,16 @@ export function MessagesPanel({
           <header className="flex items-center gap-1 px-2 py-2.5">
             <button
               type="button"
-              aria-label="Back to messages"
+              aria-label={t("backToMessages")}
               onClick={() => setView("list")}
               className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl text-ink-soft hover:bg-surface hover:text-ink"
             >
               <BackIcon size={20} />
             </button>
-            <h2 className="flex-1 text-lg font-bold text-ink">Requests</h2>
+            <h2 className="flex-1 text-lg font-bold text-ink">{t("requests")}</h2>
             <button
               type="button"
-              aria-label="Close messages"
+              aria-label={t("closeMessages")}
               onClick={closePanel}
               className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl text-ink-soft hover:bg-surface hover:text-ink"
             >
@@ -1189,7 +1192,7 @@ export function MessagesPanel({
           </header>
           <div className="flex-1 overflow-y-auto pb-2">
             {requestList.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-ink-soft">No requests.</p>
+              <p className="px-4 py-8 text-center text-sm text-ink-soft">{t("noRequests")}</p>
             ) : (
               <ul>
                 {requestList.map((conversation) => (
@@ -1206,10 +1209,10 @@ export function MessagesPanel({
       ) : (
         <>
           <header className="flex items-center justify-between px-4 pb-1 pt-3">
-            <h2 className="text-xl font-bold text-ink">Messages</h2>
+            <h2 className="text-xl font-bold text-ink">{t("title")}</h2>
             <button
               type="button"
-              aria-label="Close messages"
+              aria-label={t("closeMessages")}
               onClick={closePanel}
               className="-mr-1 grid size-9 cursor-pointer place-items-center rounded-xl text-ink-soft hover:bg-surface hover:text-ink"
             >
@@ -1225,7 +1228,7 @@ export function MessagesPanel({
               <span className="grid size-12 shrink-0 place-items-center rounded-full bg-accent text-bg">
                 <ComposeIcon size={22} />
               </span>
-              <span className="text-[16px] font-bold text-ink">New message</span>
+              <span className="text-[16px] font-bold text-ink">{t("newMessage")}</span>
             </button>
           </div>
           <div className="flex-1 overflow-y-auto pb-2">
@@ -1249,7 +1252,7 @@ export function MessagesPanel({
                     onClick={() => setView("requests")}
                     className="flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left transition-colors hover:bg-surface"
                   >
-                    <span className="text-[15px] font-semibold text-ink">Requests</span>
+                    <span className="text-[15px] font-semibold text-ink">{t("requests")}</span>
                     <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold text-bg">
                       {requestList.length}
                     </span>

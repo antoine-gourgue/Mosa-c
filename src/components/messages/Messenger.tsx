@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useRef, useState, useTransition } from "react";
@@ -67,6 +68,7 @@ export function Messenger({
   initialConversationId,
   initialMessages = [],
 }: MessengerProps): ReactElement {
+  const t = useTranslations("messages");
   const router = useRouter();
   const { markRead: clearUnreadBadge } = useMessagesUnread();
   const [list, setList] = useState(() =>
@@ -345,7 +347,7 @@ export function Messenger({
       return;
     }
     const conversationId = activeId;
-    const preview = /\.gif($|\?)/i.test(url) ? "Sent a GIF" : "Sent a photo";
+    const preview = /\.gif($|\?)/i.test(url) ? t("sentGif") : t("sentPhoto");
     startTransition(async () => {
       const tempId = `temp-${Date.now()}`;
       const optimistic: ChatMessage = {
@@ -546,7 +548,7 @@ export function Messenger({
           </span>
           <span className="flex items-center justify-between gap-2">
             <span className="truncate text-[13px] text-ink-soft">
-              {conversation.lastMessage?.body ?? "No messages yet"}
+              {conversation.lastMessage?.body ?? t("noMessages")}
             </span>
             {conversation.unreadCount > 0 ? (
               <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold text-bg">
@@ -571,16 +573,16 @@ export function Messenger({
           <div className="flex items-center gap-2 px-3 py-4">
             <button
               type="button"
-              aria-label="Back to messages"
+              aria-label={t("backToMessages")}
               onClick={() => setTab("inbox")}
               className="cursor-pointer rounded-lg p-1 text-ink-soft hover:text-ink"
             >
               <BackIcon size={20} />
             </button>
-            <h1 className="text-lg font-bold text-ink">Requests</h1>
+            <h1 className="text-lg font-bold text-ink">{t("requests")}</h1>
           </div>
         ) : (
-          <h1 className="px-4 py-4 text-lg font-bold text-ink">Messages</h1>
+          <h1 className="px-4 py-4 text-lg font-bold text-ink">{t("title")}</h1>
         )}
 
         {tab === "inbox" ? (
@@ -591,7 +593,7 @@ export function Messenger({
                 onClick={() => setTab("requests")}
                 className="flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left transition-colors hover:bg-surface"
               >
-                <span className="text-sm font-semibold text-ink">Requests</span>
+                <span className="text-sm font-semibold text-ink">{t("requests")}</span>
                 <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold text-bg">
                   {requestList.length}
                 </span>
@@ -606,7 +608,7 @@ export function Messenger({
             )}
           </>
         ) : requestList.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-ink-soft">No requests.</p>
+          <p className="px-4 py-8 text-center text-sm text-ink-soft">{t("noRequests")}</p>
         ) : (
           <ul>{requestList.map(renderConversationRow)}</ul>
         )}
@@ -624,7 +626,7 @@ export function Messenger({
             <header className="flex items-center gap-2 border-b border-line px-4 py-3">
               <button
                 type="button"
-                aria-label="Back to conversations"
+                aria-label={t("backToConversations")}
                 onClick={() => setActiveId(null)}
                 className="cursor-pointer rounded-lg p-1 text-ink-soft hover:text-ink md:hidden"
               >
@@ -644,12 +646,12 @@ export function Messenger({
                     </span>
                   </div>
                   <Menu
-                    label="Group options"
+                    label={t("groupOptions")}
                     icon={<MoreIcon />}
                     align="end"
                     items={[
                       {
-                        label: "Leave group",
+                        label: t("leaveGroup"),
                         icon: <LogoutIcon size={18} />,
                         destructive: true,
                         onSelect: onLeaveGroup,
@@ -677,7 +679,7 @@ export function Messenger({
                       {active.other.name}
                     </span>
                     {otherOnline ? (
-                      <span className="text-xs font-medium text-ink">Online</span>
+                      <span className="text-xs font-medium text-ink">{t("online")}</span>
                     ) : formatLastActive(otherLastSeen) !== null ? (
                       <span className="text-xs text-ink-soft">
                         {formatLastActive(otherLastSeen)}
@@ -815,14 +817,14 @@ export function Messenger({
               >
                 <AttachMenu onPickFile={onAttachImage} onPickGifUrl={sendImageUrl} />
                 <Input
-                  aria-label="Message"
+                  aria-label={t("messageAria")}
                   value={draft}
                   onChange={(event) => {
                     setDraft(event.target.value);
                     emitTyping(event.target.value !== "");
                   }}
                   onKeyDown={onComposerKeyDown}
-                  placeholder="Write a message…"
+                  placeholder={t("writeMessage")}
                 />
                 <Button type="submit" className="h-11" disabled={draft.trim() === ""}>
                   Send
