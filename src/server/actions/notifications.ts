@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { errorMessage } from "@/server/error-message";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { AppError } from "@/server/result";
@@ -18,7 +19,7 @@ export async function loadNotifications(): Promise<
 > {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: await errorMessage("signedOut") };
   }
   const notifications = await getNotifications(user.id);
   return { ok: true, notifications };
@@ -34,7 +35,7 @@ export async function loadNotifications(): Promise<
 export async function markRead(notificationId: string): Promise<void> {
   const user = await getCurrentUser();
   if (user === null) {
-    throw new AppError("UNAUTHORIZED", "You must be signed in.");
+    throw new AppError("UNAUTHORIZED", await errorMessage("signedOut"));
   }
   await prisma.notification.updateMany({
     where: { id: notificationId, recipientId: user.id },
@@ -51,7 +52,7 @@ export async function markRead(notificationId: string): Promise<void> {
 export async function markAllRead(): Promise<void> {
   const user = await getCurrentUser();
   if (user === null) {
-    throw new AppError("UNAUTHORIZED", "You must be signed in.");
+    throw new AppError("UNAUTHORIZED", await errorMessage("signedOut"));
   }
   await prisma.notification.updateMany({
     where: { recipientId: user.id, read: false },

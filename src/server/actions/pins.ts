@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { errorMessage } from "@/server/error-message";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
@@ -63,15 +64,15 @@ const createPinSchema = z.object({
 export async function createPin(formData: FormData): Promise<CreatePinResult> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: await errorMessage("signedOut") };
   }
 
   const file = formData.get("image");
   if (!(file instanceof File) || file.size === 0) {
-    return { ok: false, error: "Please choose an image." };
+    return { ok: false, error: await errorMessage("chooseImage") };
   }
   if (!file.type.startsWith("image/")) {
-    return { ok: false, error: "The file must be an image." };
+    return { ok: false, error: await errorMessage("fileNotImage") };
   }
 
   const parsed = createPinSchema.safeParse({
@@ -154,14 +155,14 @@ export async function deletePin(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: await errorMessage("signedOut") };
   }
   const pin = await prisma.pin.findUnique({ where: { id: pinId }, select: { creatorId: true } });
   if (pin === null) {
-    return { ok: false, error: "Pin not found." };
+    return { ok: false, error: await errorMessage("pinNotFound") };
   }
   if (pin.creatorId !== user.id) {
-    return { ok: false, error: "You can only delete your own pins." };
+    return { ok: false, error: await errorMessage("deleteOwnPins") };
   }
   await prisma.pin.delete({ where: { id: pinId } });
   revalidatePath("/");

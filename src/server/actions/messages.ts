@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { errorMessage } from "@/server/error-message";
 import { getCurrentUser } from "@/lib/auth";
 import { getStorage } from "@/lib/storage";
 import {
@@ -35,30 +36,30 @@ export async function sendMessage(
 ): Promise<{ ok: true; message: ChatMessage } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in to send messages." };
+    return { ok: false, error: await errorMessage("signedOutSend") };
   }
   const text = body.trim();
   if (text === "" && pinId === null && imageUrl === null) {
-    return { ok: false, error: "Write a message first." };
+    return { ok: false, error: await errorMessage("writeMessage") };
   }
   if (text.length > 4000) {
-    return { ok: false, error: "Your message is too long." };
+    return { ok: false, error: await errorMessage("messageTooLong") };
   }
   const conversation = await prisma.conversation.findFirst({
     where: { id: conversationId, participants: { some: { userId: user.id } } },
     select: { status: true, requestedById: true },
   });
   if (conversation === null) {
-    return { ok: false, error: "Conversation not found." };
+    return { ok: false, error: await errorMessage("conversationNotFound") };
   }
   if (conversation.status === "PENDING" && conversation.requestedById !== user.id) {
-    return { ok: false, error: "Accept the request to reply." };
+    return { ok: false, error: await errorMessage("acceptToReply") };
   }
   let sharedPinId: string | null = null;
   if (pinId !== null) {
     const pin = await prisma.pin.findUnique({ where: { id: pinId }, select: { id: true } });
     if (pin === null) {
-      return { ok: false, error: "That pin no longer exists." };
+      return { ok: false, error: await errorMessage("pinGone") };
     }
     sharedPinId = pin.id;
   }
@@ -93,17 +94,17 @@ export async function uploadMessageImage(
 ): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: await errorMessage("signedOut") };
   }
   const file = formData.get("image");
   if (!(file instanceof File) || file.size === 0) {
-    return { ok: false, error: "Please choose an image." };
+    return { ok: false, error: await errorMessage("chooseImage") };
   }
   if (!file.type.startsWith("image/")) {
-    return { ok: false, error: "The file must be an image." };
+    return { ok: false, error: await errorMessage("fileNotImage") };
   }
   if (file.size > MAX_MESSAGE_IMAGE_BYTES) {
-    return { ok: false, error: "The image must be under 10 MB." };
+    return { ok: false, error: await errorMessage("imageUnder10") };
   }
   const buffer = Buffer.from(await file.arrayBuffer());
   const stored = await getStorage().put(buffer, { filename: file.name, contentType: file.type });
@@ -180,7 +181,7 @@ export async function loadInbox(): Promise<
 > {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: await errorMessage("signedOut") };
   }
   const [conversations, requests, suggestions] = await Promise.all([
     getConversations(user.id),
@@ -205,7 +206,7 @@ export async function searchRecipients(
 > {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: await errorMessage("signedOut") };
   }
   const users = await searchMentionUsers(query, user.id, 8);
   return { ok: true, users };
@@ -223,11 +224,11 @@ export async function fetchMessages(
 ): Promise<{ ok: true; messages: ChatMessage[] } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: await errorMessage("signedOut") };
   }
   const messages = await getMessages(conversationId, user.id);
   if (messages === null) {
-    return { ok: false, error: "Conversation not found." };
+    return { ok: false, error: await errorMessage("conversationNotFound") };
   }
   return { ok: true, messages };
 }
@@ -245,11 +246,11 @@ export async function createGroup(
 ): Promise<{ ok: true; conversationId: string } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: await errorMessage("signedOut") };
   }
   const conversationId = await createGroupConversation(user.id, memberIds, title);
   if (conversationId === null) {
-    return { ok: false, error: "Pick at least two people to start a group." };
+    return { ok: false, error: await errorMessage("groupMinPeople") };
   }
   return { ok: true, conversationId };
 }
@@ -266,14 +267,14 @@ export async function markConversationRead(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: await errorMessage("signedOut") };
   }
   const result = await prisma.conversationParticipant.updateMany({
     where: { conversationId, userId: user.id },
     data: { lastReadAt: new Date() },
   });
   if (result.count === 0) {
-    return { ok: false, error: "Conversation not found." };
+    return { ok: false, error: await errorMessage("conversationNotFound") };
   }
   return { ok: true };
 }
@@ -291,11 +292,11 @@ export async function startConversation(
 ): Promise<{ ok: true; conversationId: string } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in to message." };
+    return { ok: false, error: await errorMessage("signedOutMessage") };
   }
   const conversationId = await getOrCreateConversation(user.id, otherUserId);
   if (conversationId === null) {
-    return { ok: false, error: "You can't message this user." };
+    return { ok: false, error: await errorMessage("cannotMessageUser") };
   }
   return { ok: true, conversationId };
 }
@@ -313,13 +314,13 @@ export async function deleteConversation(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: await errorMessage("signedOut") };
   }
   const result = await prisma.conversation.deleteMany({
     where: { id: conversationId, participants: { some: { userId: user.id } } },
   });
   if (result.count === 0) {
-    return { ok: false, error: "Conversation not found." };
+    return { ok: false, error: await errorMessage("conversationNotFound") };
   }
   return { ok: true };
 }
@@ -336,13 +337,13 @@ export async function leaveConversation(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: await errorMessage("signedOut") };
   }
   const removed = await prisma.conversationParticipant.deleteMany({
     where: { conversationId, userId: user.id },
   });
   if (removed.count === 0) {
-    return { ok: false, error: "Conversation not found." };
+    return { ok: false, error: await errorMessage("conversationNotFound") };
   }
   const remaining = await prisma.conversationParticipant.count({ where: { conversationId } });
   if (remaining < 2) {
@@ -364,7 +365,7 @@ export async function acceptRequest(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: await errorMessage("signedOut") };
   }
   const result = await prisma.conversation.updateMany({
     where: {
@@ -376,7 +377,7 @@ export async function acceptRequest(
     data: { status: "ACCEPTED", requestedById: null },
   });
   if (result.count === 0) {
-    return { ok: false, error: "Request not found." };
+    return { ok: false, error: await errorMessage("requestNotFound") };
   }
   return { ok: true };
 }
@@ -393,7 +394,7 @@ export async function declineRequest(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: await errorMessage("signedOut") };
   }
   const result = await prisma.conversation.deleteMany({
     where: {
@@ -404,7 +405,7 @@ export async function declineRequest(
     },
   });
   if (result.count === 0) {
-    return { ok: false, error: "Request not found." };
+    return { ok: false, error: await errorMessage("requestNotFound") };
   }
   return { ok: true };
 }
