@@ -189,7 +189,11 @@
     "selectConversation": "Select a conversation to start chatting.",
     "newConversationHint": "This could be the start of something great.",
     "noConversationsProfile": "No conversations yet. Message someone from their profile.",
-    "noConversationsStart": "No conversations yet. Start one below."
+    "noConversationsStart": "No conversations yet. Start one below.",
+    "typing": "{name} is typing…",
+    "wantsToMessage": "<b>{name}</b> wants to send you a message.",
+    "accept": "Accept",
+    "decline": "Decline"
   },
   "detail": {
     "visitSite": "Visit site",

@@ -189,7 +189,11 @@
     "selectConversation": "Sélectionnez une conversation pour commencer à discuter.",
     "newConversationHint": "Ceci pourrait être le début de quelque chose de génial.",
     "noConversationsProfile": "Aucune conversation pour le moment. Écrivez à quelqu’un depuis son profil.",
-    "noConversationsStart": "Aucune conversation pour le moment. Démarrez-en une ci-dessous."
+    "noConversationsStart": "Aucune conversation pour le moment. Démarrez-en une ci-dessous.",
+    "typing": "{name} est en train d’écrire…",
+    "wantsToMessage": "<b>{name}</b> souhaite vous envoyer un message.",
+    "accept": "Accepter",
+    "decline": "Refuser"
   },
   "detail": {
     "visitSite": "Visiter le site",

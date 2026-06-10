@@ -999,7 +999,7 @@ export function MessagesPanel({
             )}
             {otherTyping ? (
               <p className="mt-2 text-[13px] italic text-ink-soft">
-                {active.other.name} is typing…
+                {t("typing", { name: active.other.name })}
               </p>
             ) : null}
             <div ref={endRef} />
@@ -1008,8 +1008,10 @@ export function MessagesPanel({
           {activeIsRequest ? (
             <div className="px-4 py-3">
               <p className="mb-2 text-center text-sm text-ink-soft">
-                <span className="font-semibold text-ink">{active.other.name}</span> wants to send
-                you a message.
+                {t.rich("wantsToMessage", {
+                  name: active.other.name,
+                  b: (chunks) => <span className="font-semibold text-ink">{chunks}</span>,
+                })}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -1018,10 +1020,10 @@ export function MessagesPanel({
                   className="h-11 flex-1"
                   onClick={onDeclineRequest}
                 >
-                  Decline
+                  {t("decline")}
                 </Button>
                 <Button type="button" className="h-11 flex-1" onClick={onAcceptRequest}>
-                  Accept
+                  {t("accept")}
                 </Button>
               </div>
             </div>
