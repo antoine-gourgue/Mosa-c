@@ -1,5 +1,91 @@
 {
   "common": {
-    "language": "Language"
+    "language": "Language",
+    "or": "OR"
+  },
+  "gender": {
+    "female": "Female",
+    "male": "Male",
+    "nonBinary": "Non-binary",
+    "preferNotToSay": "Prefer not to say"
+  },
+  "fields": {
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "age": "Age",
+    "gender": "Gender"
+  },
+  "auth": {
+    "continueWithGoogle": "Continue with Google",
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Log in to pick up where you left off.",
+      "emailPlaceholder": "you@example.com",
+      "passwordPlaceholder": "Your password",
+      "forgotPassword": "Forgot password?",
+      "submit": "Log in",
+      "noAccount": "New to Mosaic?",
+      "signUpLink": "Sign up"
+    },
+    "signUp": {
+      "title": "Find your next idea",
+      "subtitle": "Sign up to discover and save ideas you love.",
+      "usernamePlaceholder": "yourname",
+      "emailPlaceholder": "you@example.com",
+      "passwordPlaceholder": "Create a password",
+      "agePlaceholder": "Your age",
+      "submit": "Create account",
+      "terms": "By continuing, you agree to Mosaic’s Terms of Service and acknowledge our Privacy Policy.",
+      "haveAccount": "Already a member?",
+      "loginLink": "Log in"
+    },
+    "forgotPassword": {
+      "title": "Forgot your password?",
+      "subtitle": "Enter your email and we’ll send you a link to reset it.",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Send reset link",
+      "sent": "If an account exists for that email, a reset link is on its way. Check your inbox.",
+      "remembered": "Remembered it?",
+      "loginLink": "Log in"
+    },
+    "resetPassword": {
+      "invalidTitle": "Invalid link",
+      "invalidBody": "This reset link is missing or invalid.",
+      "requestNew": "Request a new one",
+      "doneTitle": "Password updated",
+      "doneBody": "You can now sign in with your new password.",
+      "goToLogin": "Go to login",
+      "title": "Choose a new password",
+      "subtitle": "Pick a password you don’t use anywhere else.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "mismatch": "The passwords don’t match.",
+      "submit": "Update password",
+      "genericError": "Something went wrong. Please try again."
+    },
+    "confirmEmail": {
+      "loadingTitle": "Confirming your email…",
+      "loadingBody": "Hang tight, this only takes a moment.",
+      "okTitle": "Email confirmed",
+      "okBody": "Your account email has been updated. You can close this tab.",
+      "errorTitle": "Link expired",
+      "tryAgain": "Try again from settings",
+      "genericError": "Something went wrong. Please try again from settings.",
+      "invalidError": "This link is invalid or has expired."
+    },
+    "verifyEmail": {
+      "missingTitle": "Verify your email",
+      "missingBody": "We couldn’t tell which email to verify.",
+      "startSignUp": "Start sign-up",
+      "title": "Check your inbox",
+      "subtitle": "We sent a 6-digit code to <b>{email}</b>. Enter it below to finish creating your account.",
+      "codeLabel": "Verification code",
+      "submit": "Verify",
+      "resend": "Resend code",
+      "wrongEmail": "Wrong email?",
+      "resent": "If your email needs verifying, a new code is on its way.",
+      "invalidCode": "That code is invalid or has expired."
+    }
   }
 }

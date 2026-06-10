@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -13,10 +14,10 @@ import { registerUser, signInWithProvider } from "@/server/actions/auth";
  */
 type GenderValue = "FEMALE" | "MALE" | "NON_BINARY" | "UNDISCLOSED";
 
-const GENDER_OPTIONS: { value: GenderValue; label: string }[] = [
-  { value: "FEMALE", label: "Female" },
-  { value: "MALE", label: "Male" },
-  { value: "NON_BINARY", label: "Non-binary" },
+const GENDER_OPTIONS: { value: GenderValue; key: "female" | "male" | "nonBinary" }[] = [
+  { value: "FEMALE", key: "female" },
+  { value: "MALE", key: "male" },
+  { value: "NON_BINARY", key: "nonBinary" },
 ];
 
 /**
@@ -27,6 +28,10 @@ const GENDER_OPTIONS: { value: GenderValue; label: string }[] = [
  * @returns The sign-up form element.
  */
 export function SignUp(): ReactElement {
+  const t = useTranslations("auth");
+  const tf = useTranslations("fields");
+  const tc = useTranslations("common");
+  const tg = useTranslations("gender");
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -75,14 +80,14 @@ export function SignUp(): ReactElement {
         <span className="text-xl font-bold text-accent">Mosaic</span>
       </div>
 
-      <h1 className="text-2xl font-extrabold text-ink">Find your next idea</h1>
-      <p className="mt-1.5 text-sm text-ink-soft">Sign up to discover and save ideas you love.</p>
+      <h1 className="text-2xl font-extrabold text-ink">{t("signUp.title")}</h1>
+      <p className="mt-1.5 text-sm text-ink-soft">{t("signUp.subtitle")}</p>
 
       <form className="mt-5 flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
         <Input
-          label="Username"
+          label={tf("username")}
           autoComplete="username"
-          placeholder="yourname"
+          placeholder={t("signUp.usernamePlaceholder")}
           value={username}
           onChange={(event) =>
             setUsername(event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
@@ -90,43 +95,43 @@ export function SignUp(): ReactElement {
           error={errors.username}
         />
         <Input
-          label="Email"
+          label={tf("email")}
           type="email"
           autoComplete="email"
-          placeholder="you@example.com"
+          placeholder={t("signUp.emailPlaceholder")}
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           error={errors.email}
         />
         <Input
-          label="Password"
+          label={tf("password")}
           type="password"
           autoComplete="new-password"
-          placeholder="Create a password"
+          placeholder={t("signUp.passwordPlaceholder")}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           error={errors.password}
         />
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Age"
+            label={tf("age")}
             type="number"
-            placeholder="Your age"
+            placeholder={t("signUp.agePlaceholder")}
             value={age}
             onChange={(event) => setAge(event.target.value)}
             error={errors.age}
           />
           <Select
-            label="Gender"
+            label={tf("gender")}
             value={gender ?? ""}
             onChange={(event) =>
               setGender(event.target.value === "" ? null : (event.target.value as GenderValue))
             }
           >
-            <option value="">Prefer not to say</option>
+            <option value="">{tg("preferNotToSay")}</option>
             {GENDER_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {tg(option.key)}
               </option>
             ))}
           </Select>
@@ -138,31 +143,28 @@ export function SignUp(): ReactElement {
           </p>
         ) : null}
         <Button type="submit" fullWidth loading={pending}>
-          Create account
+          {t("signUp.submit")}
         </Button>
       </form>
 
       <div className="my-4 flex items-center gap-3 text-sm text-ink-soft">
         <span className="h-px flex-1 bg-line" />
-        OR
+        {tc("or")}
         <span className="h-px flex-1 bg-line" />
       </div>
 
       <Button variant="social" fullWidth onClick={handleGoogle}>
         <span className="inline-flex items-center gap-2.5">
           <GoogleIcon size={18} />
-          Continue with Google
+          {t("continueWithGoogle")}
         </span>
       </Button>
 
-      <p className="mt-5 text-xs text-ink-soft">
-        By continuing, you agree to Mosaic&rsquo;s Terms of Service and acknowledge our Privacy
-        Policy.
-      </p>
+      <p className="mt-5 text-xs text-ink-soft">{t("signUp.terms")}</p>
       <p className="mt-3 text-sm text-ink-soft">
-        Already a member?{" "}
+        {t("signUp.haveAccount")}{" "}
         <Link href="/login" className="font-semibold text-ink underline">
-          Log in
+          {t("signUp.loginLink")}
         </Link>
       </p>
     </div>

@@ -1,5 +1,91 @@
 {
   "common": {
-    "language": "Langue"
+    "language": "Langue",
+    "or": "OU"
+  },
+  "gender": {
+    "female": "Femme",
+    "male": "Homme",
+    "nonBinary": "Non-binaire",
+    "preferNotToSay": "Préfère ne pas répondre"
+  },
+  "fields": {
+    "username": "Nom d’utilisateur",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "age": "Âge",
+    "gender": "Genre"
+  },
+  "auth": {
+    "continueWithGoogle": "Continuer avec Google",
+    "login": {
+      "title": "Bon retour",
+      "subtitle": "Connectez-vous pour reprendre où vous en étiez.",
+      "emailPlaceholder": "vous@exemple.com",
+      "passwordPlaceholder": "Votre mot de passe",
+      "forgotPassword": "Mot de passe oublié ?",
+      "submit": "Se connecter",
+      "noAccount": "Nouveau sur Mosaic ?",
+      "signUpLink": "S’inscrire"
+    },
+    "signUp": {
+      "title": "Trouvez votre prochaine idée",
+      "subtitle": "Inscrivez-vous pour découvrir et enregistrer les idées que vous aimez.",
+      "usernamePlaceholder": "votrenom",
+      "emailPlaceholder": "vous@exemple.com",
+      "passwordPlaceholder": "Créez un mot de passe",
+      "agePlaceholder": "Votre âge",
+      "submit": "Créer un compte",
+      "terms": "En continuant, vous acceptez les Conditions d’utilisation de Mosaic et reconnaissez notre Politique de confidentialité.",
+      "haveAccount": "Déjà membre ?",
+      "loginLink": "Se connecter"
+    },
+    "forgotPassword": {
+      "title": "Mot de passe oublié ?",
+      "subtitle": "Saisissez votre e-mail et nous vous enverrons un lien pour le réinitialiser.",
+      "emailPlaceholder": "vous@exemple.com",
+      "submit": "Envoyer le lien",
+      "sent": "Si un compte existe pour cet e-mail, un lien de réinitialisation est en route. Vérifiez votre boîte de réception.",
+      "remembered": "Vous vous en souvenez ?",
+      "loginLink": "Se connecter"
+    },
+    "resetPassword": {
+      "invalidTitle": "Lien invalide",
+      "invalidBody": "Ce lien de réinitialisation est manquant ou invalide.",
+      "requestNew": "En demander un nouveau",
+      "doneTitle": "Mot de passe mis à jour",
+      "doneBody": "Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+      "goToLogin": "Aller à la connexion",
+      "title": "Choisissez un nouveau mot de passe",
+      "subtitle": "Choisissez un mot de passe que vous n’utilisez nulle part ailleurs.",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmez le nouveau mot de passe",
+      "mismatch": "Les mots de passe ne correspondent pas.",
+      "submit": "Mettre à jour le mot de passe",
+      "genericError": "Une erreur est survenue. Veuillez réessayer."
+    },
+    "confirmEmail": {
+      "loadingTitle": "Confirmation de votre e-mail…",
+      "loadingBody": "Un instant, cela ne prend qu’un moment.",
+      "okTitle": "E-mail confirmé",
+      "okBody": "L’adresse e-mail de votre compte a été mise à jour. Vous pouvez fermer cet onglet.",
+      "errorTitle": "Lien expiré",
+      "tryAgain": "Réessayer depuis les réglages",
+      "genericError": "Une erreur est survenue. Veuillez réessayer depuis les réglages.",
+      "invalidError": "Ce lien est invalide ou a expiré."
+    },
+    "verifyEmail": {
+      "missingTitle": "Vérifiez votre e-mail",
+      "missingBody": "Nous n’avons pas pu déterminer quel e-mail vérifier.",
+      "startSignUp": "Commencer l’inscription",
+      "title": "Vérifiez votre boîte de réception",
+      "subtitle": "Nous avons envoyé un code à 6 chiffres à <b>{email}</b>. Saisissez-le ci-dessous pour finaliser la création de votre compte.",
+      "codeLabel": "Code de vérification",
+      "submit": "Vérifier",
+      "resend": "Renvoyer le code",
+      "wrongEmail": "Mauvais e-mail ?",
+      "resent": "Si votre e-mail doit être vérifié, un nouveau code est en route.",
+      "invalidCode": "Ce code est invalide ou a expiré."
+    }
   }
 }
