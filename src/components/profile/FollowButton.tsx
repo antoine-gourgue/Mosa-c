@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { ReactElement } from "react";
 import { Button } from "@/components/ui";
 import { useFollow } from "@/components/engagement";
@@ -32,11 +33,12 @@ export function FollowButton({
   size = "md",
   isAuthed = true,
 }: FollowButtonProps): ReactElement {
+  const t = useTranslations("profile");
   const { following, toggle } = useFollow(creatorId, initialFollowing, isAuthed);
 
   return (
     <Button variant={following ? "dark" : "accent"} size={size} onClick={toggle}>
-      {following ? "Following" : "Follow"}
+      {following ? t("following") : t("follow")}
     </Button>
   );
 }

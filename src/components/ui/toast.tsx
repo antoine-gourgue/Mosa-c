@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import type { ReactElement, ReactNode, RefObject } from "react";
@@ -69,6 +70,7 @@ type ToastViewportProps = {
  * @returns The toast element, or null when nothing is shown.
  */
 function ToastViewport({ toast, onDismiss, innerRef }: ToastViewportProps): ReactElement | null {
+  const t = useTranslations("ui");
   if (toast === null) {
     return null;
   }
@@ -111,7 +113,7 @@ function ToastViewport({ toast, onDismiss, innerRef }: ToastViewportProps): Reac
         ) : (
           <button
             type="button"
-            aria-label="Dismiss"
+            aria-label={t("dismiss")}
             onClick={onDismiss}
             className={cn(
               "ml-1 grid size-8 cursor-pointer place-items-center rounded-full text-lg leading-none",

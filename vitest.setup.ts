@@ -2,6 +2,34 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 
+vi.mock("next-intl", async () => {
+  const en = (await import("./messages/en.json")).default as unknown as Record<string, unknown>;
+  const resolve = (namespace: string, key: string): string => {
+    const ns = namespace
+      .split(".")
+      .reduce<unknown>((node, part) => (node as Record<string, unknown>)?.[part], en);
+    const value = (ns as Record<string, unknown>)?.[key];
+    return typeof value === "string" ? value : key;
+  };
+  const useTranslations = (
+    namespace = "",
+  ): ((key: string, values?: Record<string, string>) => string) => {
+    const t = (key: string, values?: Record<string, string>): string => {
+      let message = resolve(namespace, key);
+      for (const [name, value] of Object.entries(values ?? {})) {
+        message = message.replace(`{${name}}`, value);
+      }
+      return message;
+    };
+    return t;
+  };
+  return {
+    useTranslations,
+    useLocale: () => "en",
+    NextIntlClientProvider: ({ children }: { children: unknown }) => children,
+  };
+});
+
 afterEach(() => {
   cleanup();
 });

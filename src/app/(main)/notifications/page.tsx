@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import type { ReactElement } from "react";
 import { NotificationsInbox, SuggestedCreators } from "@/components/notifications";
 import { getCurrentUser } from "@/lib/auth";
@@ -8,10 +9,13 @@ import { getFollowedCreatorIds, getNotifications, getSuggestedCreators } from "@
 /**
  * Metadata for the notifications route.
  */
-export const metadata: Metadata = {
-  title: "Notifications",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("meta");
+  return {
+    title: t("notifications"),
+    robots: { index: false },
+  };
+}
 
 /**
  * Notifications inbox route: the current user's notifications on the left and a

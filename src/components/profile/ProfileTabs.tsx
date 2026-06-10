@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { ReactElement } from "react";
 import { cn } from "@/lib/cn";
@@ -7,11 +10,15 @@ import { cn } from "@/lib/cn";
  */
 export type ProfileTab = "created" | "saved" | "liked" | "boards";
 
-const TABS: { key: ProfileTab; label: string; ownerOnly?: boolean }[] = [
-  { key: "created", label: "Created" },
-  { key: "saved", label: "Saved" },
-  { key: "liked", label: "Liked", ownerOnly: true },
-  { key: "boards", label: "Boards" },
+const TABS: {
+  key: ProfileTab;
+  labelKey: "tabCreated" | "tabSaved" | "tabLiked" | "tabBoards";
+  ownerOnly?: boolean;
+}[] = [
+  { key: "created", labelKey: "tabCreated" },
+  { key: "saved", labelKey: "tabSaved" },
+  { key: "liked", labelKey: "tabLiked", ownerOnly: true },
+  { key: "boards", labelKey: "tabBoards" },
 ];
 
 /**
@@ -32,6 +39,7 @@ export type ProfileTabsProps = {
  * @returns The tab navigation element.
  */
 export function ProfileTabs({ username, active, isOwnProfile }: ProfileTabsProps): ReactElement {
+  const t = useTranslations("profile");
   const tabs = TABS.filter((tab) => isOwnProfile || tab.ownerOnly !== true);
   return (
     <nav className="flex justify-center gap-2 border-b border-line">
@@ -45,7 +53,7 @@ export function ProfileTabs({ username, active, isOwnProfile }: ProfileTabsProps
             active === tab.key ? "text-ink" : "text-ink-soft hover:text-ink",
           )}
         >
-          {tab.label}
+          {t(tab.labelKey)}
           {active === tab.key ? (
             <span className="absolute inset-x-2 -bottom-px h-1 rounded-full bg-ink" />
           ) : null}

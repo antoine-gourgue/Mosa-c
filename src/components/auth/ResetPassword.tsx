@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { FormEvent, ReactElement } from "react";
@@ -22,6 +23,7 @@ export type ResetPasswordProps = {
  * @returns The reset form element.
  */
 export function ResetPassword({ token }: ResetPasswordProps): ReactElement {
+  const t = useTranslations("auth.resetPassword");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -31,11 +33,11 @@ export function ResetPassword({ token }: ResetPasswordProps): ReactElement {
   if (token === "") {
     return (
       <div>
-        <h1 className="text-2xl font-extrabold text-ink">Invalid link</h1>
+        <h1 className="text-2xl font-extrabold text-ink">{t("invalidTitle")}</h1>
         <p className="mt-2 text-ink-soft">
-          This reset link is missing or invalid.{" "}
+          {t("invalidBody")}{" "}
           <Link href="/forgot-password" className="font-semibold text-ink underline">
-            Request a new one
+            {t("requestNew")}
           </Link>
           .
         </p>
@@ -46,10 +48,10 @@ export function ResetPassword({ token }: ResetPasswordProps): ReactElement {
   if (done) {
     return (
       <div>
-        <h1 className="text-2xl font-extrabold text-ink">Password updated</h1>
-        <p className="mt-2 text-ink-soft">You can now sign in with your new password.</p>
+        <h1 className="text-2xl font-extrabold text-ink">{t("doneTitle")}</h1>
+        <p className="mt-2 text-ink-soft">{t("doneBody")}</p>
         <Button href="/login" className="mt-6">
-          Go to login
+          {t("goToLogin")}
         </Button>
       </div>
     );
@@ -59,7 +61,7 @@ export function ResetPassword({ token }: ResetPasswordProps): ReactElement {
     event.preventDefault();
     setError(null);
     if (password !== confirm) {
-      setError("The passwords don't match.");
+      setError(t("mismatch"));
       return;
     }
     startTransition(async () => {
@@ -71,7 +73,7 @@ export function ResetPassword({ token }: ResetPasswordProps): ReactElement {
           setError(result.error);
         }
       } catch {
-        setError("Something went wrong. Please try again.");
+        setError(t("genericError"));
       }
     });
   };
@@ -85,19 +87,19 @@ export function ResetPassword({ token }: ResetPasswordProps): ReactElement {
         <span className="text-xl font-bold text-accent">Mosaic</span>
       </div>
 
-      <h1 className="text-3xl font-extrabold text-ink">Choose a new password</h1>
-      <p className="mt-2 text-ink-soft">Pick a password you don&rsquo;t use anywhere else.</p>
+      <h1 className="text-3xl font-extrabold text-ink">{t("title")}</h1>
+      <p className="mt-2 text-ink-soft">{t("subtitle")}</p>
 
       <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
         <Input
-          label="New password"
+          label={t("newPassword")}
           type="password"
           autoComplete="new-password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
         <Input
-          label="Confirm new password"
+          label={t("confirmPassword")}
           type="password"
           autoComplete="new-password"
           value={confirm}
@@ -109,7 +111,7 @@ export function ResetPassword({ token }: ResetPasswordProps): ReactElement {
           </p>
         ) : null}
         <Button type="submit" fullWidth loading={pending}>
-          Update password
+          {t("submit")}
         </Button>
       </form>
     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, ReactElement } from "react";
 import { CameraIcon, ImageIcon, PlusIcon } from "@/icons";
@@ -24,6 +25,7 @@ export type AttachMenuProps = {
  * @returns The attachment menu element.
  */
 export function AttachMenu({ onPickFile, onPickGifUrl }: AttachMenuProps): ReactElement {
+  const t = useTranslations("messages");
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"menu" | "gif">("menu");
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -83,7 +85,7 @@ export function AttachMenu({ onPickFile, onPickGifUrl }: AttachMenuProps): React
 
       <button
         type="button"
-        aria-label="Add an attachment"
+        aria-label={t("addAttachment")}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
@@ -98,8 +100,8 @@ export function AttachMenu({ onPickFile, onPickGifUrl }: AttachMenuProps): React
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                aria-label="Take a photo"
-                title="Take a photo"
+                aria-label={t("takePhoto")}
+                title={t("takePhoto")}
                 className={iconClass}
                 onClick={() => {
                   close();
@@ -110,8 +112,8 @@ export function AttachMenu({ onPickFile, onPickGifUrl }: AttachMenuProps): React
               </button>
               <button
                 type="button"
-                aria-label="Upload a photo"
-                title="Upload a photo"
+                aria-label={t("uploadPhoto")}
+                title={t("uploadPhoto")}
                 className={iconClass}
                 onClick={() => pick(galleryRef)}
               >
@@ -119,8 +121,8 @@ export function AttachMenu({ onPickFile, onPickGifUrl }: AttachMenuProps): React
               </button>
               <button
                 type="button"
-                aria-label="Send a GIF"
-                title="Send a GIF"
+                aria-label={t("sendGif")}
+                title={t("sendGif")}
                 className={`${iconClass} text-[11px] font-bold`}
                 onClick={() => setMode("gif")}
               >

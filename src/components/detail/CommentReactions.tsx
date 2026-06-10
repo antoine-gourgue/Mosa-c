@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState, useTransition } from "react";
@@ -57,6 +58,7 @@ export function CommentReactions({
   initialReactions,
   isAuthed,
 }: CommentReactionsProps): ReactElement | null {
+  const t = useTranslations("detail");
   const [reactions, setReactions] = useState(initialReactions);
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
@@ -156,7 +158,7 @@ export function CommentReactions({
         <button
           ref={buttonRef}
           type="button"
-          aria-label="Add a reaction"
+          aria-label={t("addReaction")}
           aria-expanded={open}
           onClick={togglePicker}
           className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-line bg-surface text-ink-soft transition-colors hover:bg-surface-2 hover:text-ink"

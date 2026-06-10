@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useTransition } from "react";
 import type { ReactElement } from "react";
 import { Avatar, IconButton, Input, useToast } from "@/components/ui";
@@ -28,6 +29,7 @@ export type SharePinMenuProps = {
  * @returns The share control element.
  */
 export function SharePinMenu({ pinId }: SharePinMenuProps): ReactElement {
+  const t = useTranslations("detail");
   const { show } = useToast();
   const { refreshInbox } = useMessagesUnread();
   const [open, setOpen] = useState(false);
@@ -79,7 +81,7 @@ export function SharePinMenu({ pinId }: SharePinMenuProps): ReactElement {
     startTransition(async () => {
       const conversation = await startConversation(recipient.id);
       if (!conversation.ok) {
-        show({ title: "Couldn't send", description: conversation.error });
+        show({ title: t("couldNotSend"), description: conversation.error });
         setSendingId(null);
         return;
       }
@@ -107,12 +109,12 @@ export function SharePinMenu({ pinId }: SharePinMenuProps): ReactElement {
         delivered = result.ok;
       }
       if (!delivered) {
-        show({ title: "Couldn't send", description: "Please try again." });
+        show({ title: t("couldNotSend"), description: t("tryAgain") });
         setSendingId(null);
         return;
       }
       refreshInbox();
-      show({ title: `Sent to ${recipient.name}` });
+      show({ title: t("sentTo", { name: recipient.name }) });
       setSendingId(null);
       setOpen(false);
     });
@@ -120,22 +122,22 @@ export function SharePinMenu({ pinId }: SharePinMenuProps): ReactElement {
 
   return (
     <div ref={rootRef} className="relative">
-      <IconButton label="Share in a message" onClick={() => setOpen((value) => !value)}>
+      <IconButton label={t("shareInMessage")} onClick={() => setOpen((value) => !value)}>
         <ShareIcon />
       </IconButton>
 
       {open ? (
         <div className="absolute left-0 top-full z-30 mt-2 w-72 rounded-xl border border-line bg-bg p-2 shadow-pop">
           <Input
-            aria-label="Search people"
+            aria-label={t("searchPeople")}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search people"
+            placeholder={t("searchPeople")}
             leadingIcon={<SearchIcon size={18} />}
           />
           <ul className="mt-2 max-h-64 overflow-auto">
             {results.length === 0 ? (
-              <li className="px-2 py-3 text-sm text-ink-soft">No people found.</li>
+              <li className="px-2 py-3 text-sm text-ink-soft">{t("noPeopleFound")}</li>
             ) : (
               results.map((recipient) => (
                 <li key={recipient.id}>

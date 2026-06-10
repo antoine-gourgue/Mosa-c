@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
@@ -54,6 +55,8 @@ export function DetailActions({
   boards,
   isAuthed = true,
 }: DetailActionsProps): ReactElement {
+  const tp = useTranslations("pin");
+  const td = useTranslations("detail");
   const override = usePinOverride(pinId);
   const { setDownloadCount } = useEngagementActions();
   const downloads = override.downloadCount ?? downloadCount;
@@ -65,14 +68,14 @@ export function DetailActions({
 
   const onCopyLink = async (): Promise<void> => {
     await navigator.clipboard.writeText(pinUrl(pinId));
-    show({ title: "Link copied", description: title, img: imageUrl });
+    show({ title: tp("linkCopied"), description: title, img: imageUrl });
   };
 
   const onDownload = async (): Promise<void> => {
     try {
       await downloadPin({ url: imageUrl, title });
     } catch {
-      show({ title: "Download failed", description: "Please try again." });
+      show({ title: tp("downloadFailed"), description: tp("tryAgain") });
       return;
     }
     setDownloadCount(pinId, downloads + 1);
@@ -87,9 +90,9 @@ export function DetailActions({
   const onReport = async (): Promise<void> => {
     try {
       await reportPin(pinId);
-      show({ title: "Report received", description: "Thanks, we will review this Pin." });
+      show({ title: tp("reportReceived"), description: tp("reportThanks") });
     } catch {
-      show({ title: "Could not report", description: "Please try again." });
+      show({ title: tp("reportFailed"), description: tp("tryAgain") });
     }
   };
 
@@ -98,39 +101,39 @@ export function DetailActions({
       const result = await deletePin(pinId);
       if (result.ok) {
         setConfirmDelete(false);
-        show({ title: "Pin deleted" });
+        show({ title: tp("pinDeleted") });
         router.replace("/");
       } else {
         setConfirmDelete(false);
-        show({ title: "Could not delete", description: result.error });
+        show({ title: tp("deleteFailed"), description: result.error });
       }
     });
   };
 
   const menuItems: MenuItem[] = [
-    { label: "Copy link", icon: <LinkIcon size={18} />, onSelect: () => void onCopyLink() },
+    { label: tp("copyLink"), icon: <LinkIcon size={18} />, onSelect: () => void onCopyLink() },
     {
-      label: "Download image",
+      label: tp("downloadImage"),
       icon: <DownloadIcon size={18} />,
       onSelect: () => void onDownload(),
     },
     ...(link !== null
       ? [
           {
-            label: "Visit site",
+            label: td("visitSite"),
             onSelect: () => window.open(link, "_blank", "noopener,noreferrer"),
           },
         ]
       : []),
     isOwner
       ? {
-          label: "Delete Pin",
+          label: tp("deletePin"),
           icon: <TrashIcon size={18} />,
           onSelect: () => setConfirmDelete(true),
           destructive: true,
         }
       : {
-          label: "Report Pin",
+          label: tp("reportPin"),
           icon: <FlagIcon size={18} />,
           onSelect: () => withAuth(() => void onReport()),
           destructive: true,
@@ -141,9 +144,9 @@ export function DetailActions({
     <>
       <ConfirmDialog
         open={confirmDelete}
-        title="Delete Pin?"
-        description="This pin and its likes, comments and saves will be permanently removed."
-        confirmLabel="Delete"
+        title={tp("deleteTitle")}
+        description={tp("deleteBody")}
+        confirmLabel={tp("delete")}
         destructive
         pending={deleting}
         onConfirm={onConfirmDelete}
@@ -159,12 +162,12 @@ export function DetailActions({
             isAuthed={isAuthed}
           />
           {isAuthed ? <SharePinMenu pinId={pinId} /> : null}
-          <Menu label="More options" icon={<MoreIcon />} align="start" items={menuItems} />
+          <Menu label={tp("moreOptions")} icon={<MoreIcon />} align="start" items={menuItems} />
         </div>
         {!isOwner && isAuthed && boards.length > 0 ? (
           <SaveToBoard pinId={pinId} title={title} imageUrl={imageUrl} boards={boards} />
         ) : !isAuthed ? (
-          <Button onClick={() => withAuth(() => undefined)}>Save</Button>
+          <Button onClick={() => withAuth(() => undefined)}>{tp("save")}</Button>
         ) : null}
       </div>
     </>

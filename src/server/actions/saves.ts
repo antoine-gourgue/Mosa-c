@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { errorMessage } from "@/server/error-message";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { AppError } from "@/server/result";
@@ -15,7 +16,7 @@ import { AppError } from "@/server/result";
 export async function toggleSave(pinId: string): Promise<{ saved: boolean }> {
   const user = await getCurrentUser();
   if (user === null) {
-    throw new AppError("UNAUTHORIZED", "You must be signed in to save pins.");
+    throw new AppError("UNAUTHORIZED", await errorMessage("signedOutSave"));
   }
 
   const key = { userId_pinId: { userId: user.id, pinId } };
@@ -47,21 +48,21 @@ export async function savePinToBoard(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in to save pins." };
+    return { ok: false, error: await errorMessage("signedOutSave") };
   }
   const board = await prisma.board.findUnique({
     where: { id: boardId },
     select: { isDefault: true },
   });
   if (board === null) {
-    return { ok: false, error: "Board not found." };
+    return { ok: false, error: await errorMessage("boardNotFound") };
   }
   const member = await prisma.boardMember.findUnique({
     where: { boardId_userId: { boardId, userId: user.id } },
     select: { role: true },
   });
   if (member === null || member.role === "VIEWER") {
-    return { ok: false, error: "You cannot save to this board." };
+    return { ok: false, error: await errorMessage("cannotSaveBoard") };
   }
 
   if (board.isDefault) {

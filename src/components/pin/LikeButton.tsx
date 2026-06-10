@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useTransition } from "react";
 import type { MouseEvent, ReactElement } from "react";
 import { useEngagementActions, usePinOverride } from "@/components/engagement";
@@ -36,6 +37,7 @@ export function LikeButton({
   className,
   isAuthed = true,
 }: LikeButtonProps): ReactElement {
+  const t = useTranslations("pin");
   const override = usePinOverride(pinId);
   const { setLike } = useEngagementActions();
   const liked = override.liked ?? initialLiked;
@@ -66,7 +68,7 @@ export function LikeButton({
       type="button"
       onClick={onClick}
       aria-pressed={liked}
-      aria-label={liked ? "Unlike" : "Like"}
+      aria-label={liked ? t("unlike") : t("like")}
       className={cn(
         "inline-flex cursor-pointer items-center gap-1.5 rounded-xl text-ink transition-colors hover:bg-surface",
         className,

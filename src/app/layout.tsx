@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "next-intl/server";
 import Script from "next/script";
 import type { ReactElement, ReactNode } from "react";
 import { RegisterServiceWorker } from "@/components/pwa/RegisterServiceWorker";
@@ -60,10 +62,13 @@ export const viewport: Viewport = {
  * @param props.children - The route subtree to render inside the document body.
  * @returns The application HTML shell.
  */
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>): ReactElement {
+export default async function RootLayout({
+  children,
+}: Readonly<{ children: ReactNode }>): Promise<ReactElement> {
   const umamiEnabled = env.UMAMI_SRC !== undefined && env.UMAMI_WEBSITE_ID !== undefined;
+  const locale = await getLocale();
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body>
         <JsonLd
           data={{
@@ -74,7 +79,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             description: SITE.description,
           }}
         />
-        {children}
+        <NextIntlClientProvider>{children}</NextIntlClientProvider>
         <RegisterServiceWorker />
       </body>
       {umamiEnabled ? (

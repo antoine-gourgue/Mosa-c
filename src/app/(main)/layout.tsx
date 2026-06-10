@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import type { ReactElement, ReactNode } from "react";
 import { ToastProvider } from "@/components/ui";
@@ -32,6 +33,7 @@ export default async function MainLayout({
   children: ReactNode;
   modal: ReactNode;
 }): Promise<ReactElement> {
+  const t = await getTranslations("common");
   const user = await getCurrentUser();
   const [profile, unreadCount, unreadConversationIds] = await Promise.all([
     user === null ? Promise.resolve(null) : getCreatorById(user.id),
@@ -44,7 +46,7 @@ export default async function MainLayout({
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[200] focus:rounded-lg focus:bg-ink focus:px-4 focus:py-2 focus:font-semibold focus:text-bg"
       >
-        Skip to content
+        {t("skipToContent")}
       </a>
       {user !== null ? <SideNav unreadCount={unreadCount} /> : null}
       <ContentShell offset={user !== null}>

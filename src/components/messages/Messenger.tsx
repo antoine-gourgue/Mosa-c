@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useRef, useState, useTransition } from "react";
@@ -9,13 +10,8 @@ import { BackIcon, LogoutIcon, MoreIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { conversationName } from "@/lib/conversation";
 import { getRealtimeSocket } from "@/lib/realtime";
-import {
-  formatClockTime,
-  formatLastActive,
-  formatMessageSeparator,
-  formatRelativeTime,
-  shouldSeparateMessages,
-} from "@/lib/time";
+import { shouldSeparateMessages } from "@/lib/time";
+import { useTimeFormat } from "@/hooks/use-time-format";
 import {
   acceptRequest,
   declineRequest,
@@ -67,6 +63,8 @@ export function Messenger({
   initialConversationId,
   initialMessages = [],
 }: MessengerProps): ReactElement {
+  const t = useTranslations("messages");
+  const time = useTimeFormat();
   const router = useRouter();
   const { markRead: clearUnreadBadge } = useMessagesUnread();
   const [list, setList] = useState(() =>
@@ -345,7 +343,7 @@ export function Messenger({
       return;
     }
     const conversationId = activeId;
-    const preview = /\.gif($|\?)/i.test(url) ? "Sent a GIF" : "Sent a photo";
+    const preview = /\.gif($|\?)/i.test(url) ? t("sentGif") : t("sentPhoto");
     startTransition(async () => {
       const tempId = `temp-${Date.now()}`;
       const optimistic: ChatMessage = {
@@ -540,13 +538,13 @@ export function Messenger({
             </span>
             {conversation.lastMessage !== null ? (
               <span className="shrink-0 text-xs text-ink-faint">
-                {formatRelativeTime(conversation.lastMessage.createdAt)}
+                {time.relative(conversation.lastMessage.createdAt)}
               </span>
             ) : null}
           </span>
           <span className="flex items-center justify-between gap-2">
             <span className="truncate text-[13px] text-ink-soft">
-              {conversation.lastMessage?.body ?? "No messages yet"}
+              {conversation.lastMessage?.body ?? t("noMessages")}
             </span>
             {conversation.unreadCount > 0 ? (
               <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold text-bg">
@@ -571,16 +569,16 @@ export function Messenger({
           <div className="flex items-center gap-2 px-3 py-4">
             <button
               type="button"
-              aria-label="Back to messages"
+              aria-label={t("backToMessages")}
               onClick={() => setTab("inbox")}
               className="cursor-pointer rounded-lg p-1 text-ink-soft hover:text-ink"
             >
               <BackIcon size={20} />
             </button>
-            <h1 className="text-lg font-bold text-ink">Requests</h1>
+            <h1 className="text-lg font-bold text-ink">{t("requests")}</h1>
           </div>
         ) : (
-          <h1 className="px-4 py-4 text-lg font-bold text-ink">Messages</h1>
+          <h1 className="px-4 py-4 text-lg font-bold text-ink">{t("title")}</h1>
         )}
 
         {tab === "inbox" ? (
@@ -591,7 +589,7 @@ export function Messenger({
                 onClick={() => setTab("requests")}
                 className="flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left transition-colors hover:bg-surface"
               >
-                <span className="text-sm font-semibold text-ink">Requests</span>
+                <span className="text-sm font-semibold text-ink">{t("requests")}</span>
                 <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold text-bg">
                   {requestList.length}
                 </span>
@@ -599,14 +597,14 @@ export function Messenger({
             ) : null}
             {list.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-ink-soft">
-                No conversations yet. Message someone from their profile.
+                {t("noConversationsProfile")}
               </p>
             ) : (
               <ul>{list.map(renderConversationRow)}</ul>
             )}
           </>
         ) : requestList.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-ink-soft">No requests.</p>
+          <p className="px-4 py-8 text-center text-sm text-ink-soft">{t("noRequests")}</p>
         ) : (
           <ul>{requestList.map(renderConversationRow)}</ul>
         )}
@@ -617,14 +615,14 @@ export function Messenger({
       >
         {active === null ? (
           <div className="flex flex-1 items-center justify-center p-8 text-center text-ink-soft">
-            Select a conversation to start chatting.
+            {t("selectConversation")}
           </div>
         ) : (
           <>
             <header className="flex items-center gap-2 border-b border-line px-4 py-3">
               <button
                 type="button"
-                aria-label="Back to conversations"
+                aria-label={t("backToConversations")}
                 onClick={() => setActiveId(null)}
                 className="cursor-pointer rounded-lg p-1 text-ink-soft hover:text-ink md:hidden"
               >
@@ -644,12 +642,12 @@ export function Messenger({
                     </span>
                   </div>
                   <Menu
-                    label="Group options"
+                    label={t("groupOptions")}
                     icon={<MoreIcon />}
                     align="end"
                     items={[
                       {
-                        label: "Leave group",
+                        label: t("leaveGroup"),
                         icon: <LogoutIcon size={18} />,
                         destructive: true,
                         onSelect: onLeaveGroup,
@@ -677,10 +675,10 @@ export function Messenger({
                       {active.other.name}
                     </span>
                     {otherOnline ? (
-                      <span className="text-xs font-medium text-ink">Online</span>
-                    ) : formatLastActive(otherLastSeen) !== null ? (
+                      <span className="text-xs font-medium text-ink">{t("online")}</span>
+                    ) : time.lastActive(otherLastSeen) !== null ? (
                       <span className="text-xs text-ink-soft">
-                        {formatLastActive(otherLastSeen)}
+                        {time.lastActive(otherLastSeen)}
                       </span>
                     ) : null}
                   </span>
@@ -732,7 +730,7 @@ export function Messenger({
                       <Fragment key={message.id}>
                         {shouldSeparateMessages(previous, message.createdAt) ? (
                           <div className="py-2 text-center text-xs font-medium text-ink-faint">
-                            {formatMessageSeparator(message.createdAt)}
+                            {time.separator(message.createdAt)}
                           </div>
                         ) : null}
                         {message.system ? (
@@ -755,7 +753,7 @@ export function Messenger({
                             ) : null}
                             {message.body !== "" ? (
                               <span
-                                title={formatClockTime(message.createdAt)}
+                                title={time.clock(message.createdAt)}
                                 className={cn(
                                   "max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px] sm:max-w-[560px]",
                                   mine ? "bg-accent text-bg" : "bg-surface text-ink",
@@ -768,7 +766,7 @@ export function Messenger({
                               className="pointer-events-none absolute right-[-48px] top-1/2 -translate-y-1/2 text-xs tabular-nums text-ink-faint transition-opacity"
                               style={{ opacity: dragX < 0 ? 1 : 0 }}
                             >
-                              {formatClockTime(message.createdAt)}
+                              {time.clock(message.createdAt)}
                             </span>
                           </div>
                         )}
@@ -779,7 +777,7 @@ export function Messenger({
               )}
               {otherTyping ? (
                 <p className="mt-2 text-[13px] italic text-ink-soft">
-                  {active.other.name} is typing…
+                  {t("typing", { name: active.other.name })}
                 </p>
               ) : null}
               <div ref={endRef} />
@@ -788,8 +786,10 @@ export function Messenger({
             {activeIsRequest ? (
               <div className="border-t border-line px-4 py-3">
                 <p className="mb-2 text-center text-sm text-ink-soft">
-                  <span className="font-semibold text-ink">{active.other.name}</span> wants to send
-                  you a message.
+                  {t.rich("wantsToMessage", {
+                    name: active.other.name,
+                    b: (chunks) => <span className="font-semibold text-ink">{chunks}</span>,
+                  })}
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -798,10 +798,10 @@ export function Messenger({
                     className="h-11 flex-1"
                     onClick={onDeclineRequest}
                   >
-                    Decline
+                    {t("decline")}
                   </Button>
                   <Button type="button" className="h-11 flex-1" onClick={onAcceptRequest}>
-                    Accept
+                    {t("accept")}
                   </Button>
                 </div>
               </div>
@@ -815,14 +815,14 @@ export function Messenger({
               >
                 <AttachMenu onPickFile={onAttachImage} onPickGifUrl={sendImageUrl} />
                 <Input
-                  aria-label="Message"
+                  aria-label={t("messageAria")}
                   value={draft}
                   onChange={(event) => {
                     setDraft(event.target.value);
                     emitTyping(event.target.value !== "");
                   }}
                   onKeyDown={onComposerKeyDown}
-                  placeholder="Write a message…"
+                  placeholder={t("writeMessage")}
                 />
                 <Button type="submit" className="h-11" disabled={draft.trim() === ""}>
                   Send

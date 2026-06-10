@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import type { ReactElement } from "react";
 import { PinFeed } from "@/components/pin";
 import { getCurrentUser } from "@/lib/auth";
@@ -11,6 +12,7 @@ import { TagCloud } from "./TagCloud";
  * @returns The discovery view element.
  */
 export async function SearchDiscovery(): Promise<ReactElement> {
+  const t = await getTranslations("search");
   const user = await getCurrentUser();
   const [tags, pins, savedIds, likedIds] = await Promise.all([
     getPopularTags(),
@@ -20,9 +22,9 @@ export async function SearchDiscovery(): Promise<ReactElement> {
   ]);
   return (
     <div className="mt-10">
-      <h2 className="text-2xl font-extrabold text-ink">Ideas for you</h2>
+      <h2 className="text-2xl font-extrabold text-ink">{t("ideasForYou")}</h2>
       <TagCloud tags={tags} />
-      <h2 className="mt-12 text-2xl font-extrabold text-ink">Today&rsquo;s Inspiration</h2>
+      <h2 className="mt-12 text-2xl font-extrabold text-ink">{t("todaysInspiration")}</h2>
       <div className="mt-5">
         <PinFeed pins={pins} savedIds={savedIds} likedIds={likedIds} viewerId={user?.id ?? null} />
       </div>

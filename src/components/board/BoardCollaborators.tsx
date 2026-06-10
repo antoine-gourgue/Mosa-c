@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { ReactElement } from "react";
 import { Avatar, IconButton } from "@/components/ui";
 import { PlusIcon } from "@/icons";
@@ -26,6 +27,7 @@ export function BoardCollaborators({
   canManage = false,
   onManage,
 }: BoardCollaboratorsProps): ReactElement {
+  const t = useTranslations("board");
   return (
     <div className="flex items-center">
       {members.map((member, index) => (
@@ -41,7 +43,7 @@ export function BoardCollaborators({
       {canManage ? (
         <span className="ml-2">
           <IconButton
-            label="Manage collaborators"
+            label={t("manageCollaborators")}
             tone="ghost"
             className="bg-surface"
             onClick={onManage}

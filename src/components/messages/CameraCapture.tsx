@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ReactElement } from "react";
@@ -24,6 +25,7 @@ export type CameraCaptureProps = {
  * @returns The camera modal, or null on the server.
  */
 export function CameraCapture({ onCapture, onClose }: CameraCaptureProps): ReactElement | null {
+  const t = useTranslations("messages");
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +44,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps): React
           videoRef.current.srcObject = stream;
         }
       })
-      .catch(() => setError("Couldn't access the camera. Check the browser permissions."));
+      .catch(() => setError(t("cameraError")));
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === "Escape") {
         onClose();
@@ -54,7 +56,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps): React
       document.removeEventListener("keydown", onKeyDown);
       streamRef.current?.getTracks().forEach((track) => track.stop());
     };
-  }, [onClose]);
+  }, [onClose, t]);
 
   const capture = (): void => {
     const video = videoRef.current;
@@ -89,12 +91,12 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps): React
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Take a photo"
+        aria-label={t("takePhoto")}
         onClick={(event) => event.stopPropagation()}
         className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-bg shadow-pop"
       >
         <IconButton
-          label="Close camera"
+          label={t("closeCamera")}
           tone="solid"
           className="absolute right-3 top-3 z-10"
           onClick={onClose}
@@ -115,7 +117,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps): React
             <div className="flex justify-center py-4">
               <button
                 type="button"
-                aria-label="Capture photo"
+                aria-label={t("capturePhoto")}
                 onClick={capture}
                 className="grid size-14 cursor-pointer place-items-center rounded-full bg-accent text-bg transition-colors hover:bg-accent-press"
               >

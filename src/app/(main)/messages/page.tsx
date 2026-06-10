@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import type { ReactElement } from "react";
 import { Messenger } from "@/components/messages";
 import { getCurrentUser } from "@/lib/auth";
@@ -8,10 +9,13 @@ import { getConversations, getMessageRequests, getMessages } from "@/server/serv
 /**
  * Metadata for the messages route.
  */
-export const metadata: Metadata = {
-  title: "Messages",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("meta");
+  return {
+    title: t("messages"),
+    robots: { index: false },
+  };
+}
 
 /**
  * Direct messages route: the current user's conversations and the active chat.

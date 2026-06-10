@@ -1,6 +1,15 @@
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("next-intl/server", () => ({
+  getTranslations: async (ns: string) => {
+    const en = (await import("../../../messages/en.json")).default as unknown as Record<
+      string,
+      Record<string, string>
+    >;
+    return (key: string) => en[ns]?.[key] ?? key;
+  },
+}));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ getCurrentUser: vi.fn() }));
 vi.mock("@/server/notifications", () => ({ createNotification: vi.fn() }));

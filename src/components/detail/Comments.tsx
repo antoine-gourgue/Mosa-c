@@ -1,12 +1,13 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { FormEvent, ReactElement, ReactNode } from "react";
 import { Avatar, ConfirmDialog, IconButton } from "@/components/ui";
 import { CloseIcon, SendIcon, TrashIcon } from "@/icons";
-import { formatRelativeTime } from "@/lib/time";
+import { useTimeFormat } from "@/hooks/use-time-format";
 import { useEngagementActions } from "@/components/engagement";
 import { addComment, addReply, deleteComment } from "@/server/actions/comments";
 import type { PinComment } from "@/types/domain";
@@ -76,6 +77,8 @@ export function Comments({
   isPinOwner,
   header,
 }: CommentsProps): ReactElement {
+  const t = useTranslations("detail");
+  const time = useTimeFormat();
   const [comments, setComments] = useState(initialComments);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -204,14 +207,14 @@ export function Comments({
         <p className="text-[14px] font-semibold text-ink">{comment.author.name}</p>
         <p className="break-words text-[15px] leading-snug text-ink">{renderBody(comment.body)}</p>
         <div className="mt-1 flex items-center gap-3 text-xs text-ink-soft">
-          <span>{formatRelativeTime(comment.createdAt)}</span>
+          <span>{time.relative(comment.createdAt)}</span>
           {isAuthed ? (
             <button
               type="button"
               onClick={() => startReply(comment)}
               className="cursor-pointer py-0.5 font-semibold transition-colors hover:text-ink"
             >
-              Reply
+              {t("reply")}
             </button>
           ) : null}
         </div>
@@ -223,7 +226,7 @@ export function Comments({
       </div>
       {canDelete(comment) ? (
         <IconButton
-          label="Delete comment"
+          label={t("deleteComment")}
           size="sm"
           className="shrink-0 text-ink-soft opacity-0 transition-opacity hover:text-accent group-hover/comment:opacity-100"
           onClick={() => setConfirmId(comment.id)}
@@ -239,12 +242,10 @@ export function Comments({
       <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-3 md:px-8">
         {header}
 
-        <h2 className="pb-3 pt-5 font-bold text-ink">
-          {total} {total === 1 ? "comment" : "comments"}
-        </h2>
+        <h2 className="pb-3 pt-5 font-bold text-ink">{t("commentCount", { count: total })}</h2>
 
         {comments.length === 0 ? (
-          <p className="pb-2 text-ink-soft">No comments yet. Start the conversation.</p>
+          <p className="pb-2 text-ink-soft">{t("noComments")}</p>
         ) : (
           <ul className="flex flex-col gap-5 pb-2">
             {comments.map((root) => (
@@ -259,8 +260,8 @@ export function Comments({
                   >
                     <span className="h-px w-6 bg-line" />
                     {expanded.has(root.id)
-                      ? "Hide replies"
-                      : `View ${root.replies.length} ${root.replies.length === 1 ? "reply" : "replies"}`}
+                      ? t("hideReplies")
+                      : t("viewReplies", { count: root.replies.length })}
                   </button>
                 ) : null}
 
@@ -281,11 +282,12 @@ export function Comments({
         {replyTarget !== null ? (
           <div className="mb-2 flex items-center justify-between gap-2 rounded-lg bg-surface px-3 py-1.5">
             <span className="truncate text-xs text-ink-soft">
-              Replying to <span className="font-semibold text-ink">{replyTarget.author.name}</span>
+              {t("replyingTo")}{" "}
+              <span className="font-semibold text-ink">{replyTarget.author.name}</span>
             </span>
             <button
               type="button"
-              aria-label="Cancel reply"
+              aria-label={t("cancelReply")}
               onClick={() => setReplyTarget(null)}
               className="grid size-5 shrink-0 cursor-pointer place-items-center rounded-full text-ink-soft transition-colors hover:bg-surface-2 hover:text-ink"
             >
@@ -305,18 +307,18 @@ export function Comments({
           >
             <MentionTextarea
               key={replyTarget?.id ?? "root"}
-              ariaLabel={replyTarget !== null ? "Write a reply" : "Add a comment"}
+              ariaLabel={replyTarget !== null ? t("writeReply") : t("addComment")}
               value={body}
               onChange={setBody}
               onSubmit={submit}
-              placeholder={replyTarget !== null ? "Write a reply…" : "Add a comment"}
+              placeholder={replyTarget !== null ? t("writeReplyPlaceholder") : t("addComment")}
               rows={1}
               autoFocus={replyTarget !== null}
               className="min-h-[36px] w-full resize-none bg-transparent py-2 text-[15px] text-ink outline-none placeholder:text-ink-faint"
             />
             <button
               type="submit"
-              aria-label={replyTarget !== null ? "Post reply" : "Post comment"}
+              aria-label={replyTarget !== null ? t("postReply") : t("postComment")}
               disabled={body.trim() === ""}
               className="mb-1 grid size-8 shrink-0 cursor-pointer place-items-center rounded-xl bg-accent text-bg transition-opacity hover:bg-accent-press disabled:cursor-not-allowed disabled:opacity-40"
             >
@@ -328,16 +330,16 @@ export function Comments({
             href="/login"
             className="inline-flex text-sm font-semibold text-accent hover:underline"
           >
-            Log in to comment
+            {t("logInToComment")}
           </Link>
         )}
       </div>
 
       <ConfirmDialog
         open={confirmId !== null}
-        title="Delete comment?"
-        description="This comment will be permanently removed."
-        confirmLabel="Delete"
+        title={t("deleteCommentTitle")}
+        description={t("deleteCommentBody")}
+        confirmLabel={t("delete")}
         destructive
         onConfirm={() => {
           if (confirmId !== null) {

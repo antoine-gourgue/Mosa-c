@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,7 +10,7 @@ import { Avatar, Button } from "@/components/ui";
 import { AtIcon, BellIcon, CommentIcon, HeartFilledIcon, PlusIcon, SmileIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { DURATION, REDUCED_MOTION, gsap, useGSAP } from "@/lib/gsap";
-import { formatRelativeTime } from "@/lib/time";
+import { useTimeFormat } from "@/hooks/use-time-format";
 import { markAllRead } from "@/server/actions/notifications";
 import type { AppNotification, NotificationKind } from "@/types/domain";
 
@@ -71,6 +72,8 @@ function typeBadge(kind: NotificationKind): { icon: ReactElement; className: str
  * @returns The inbox element.
  */
 export function NotificationsInbox({ items }: NotificationsInboxProps): ReactElement {
+  const t = useTranslations("notifications");
+  const time = useTimeFormat();
   const router = useRouter();
   const listRef = useRef<HTMLUListElement>(null);
   const cleared = useRef(false);
@@ -119,10 +122,10 @@ export function NotificationsInbox({ items }: NotificationsInboxProps): ReactEle
   return (
     <section className="w-full">
       <header className="mb-5 flex items-center justify-between">
-        <h1 className="text-[28px] font-extrabold text-ink">Notifications</h1>
+        <h1 className="text-[28px] font-extrabold text-ink">{t("title")}</h1>
         {items.length > 0 ? (
           <Button variant="ghost" size="sm" onClick={onMarkAll} disabled={pending || !hasUnread}>
-            Mark all as read
+            {t("markAll")}
           </Button>
         ) : null}
       </header>
@@ -132,10 +135,8 @@ export function NotificationsInbox({ items }: NotificationsInboxProps): ReactEle
           <span className="grid size-14 place-items-center rounded-full bg-surface-2 text-ink-soft">
             <BellIcon size={26} />
           </span>
-          <p className="text-lg font-semibold text-ink">No notifications yet</p>
-          <p className="max-w-sm text-sm text-ink-soft">
-            When people follow you or react to your pins, you will see it here.
-          </p>
+          <p className="text-lg font-semibold text-ink">{t("empty")}</p>
+          <p className="max-w-sm text-sm text-ink-soft">{t("emptyHint")}</p>
         </div>
       ) : (
         <ul ref={listRef} className="flex flex-col gap-0.5">
@@ -169,9 +170,7 @@ export function NotificationsInbox({ items }: NotificationsInboxProps): ReactEle
 
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px] leading-snug text-ink">{item.message}</p>
-                    <p className="text-[13px] text-ink-soft">
-                      {formatRelativeTime(item.createdAt)}
-                    </p>
+                    <p className="text-[13px] text-ink-soft">{time.relative(item.createdAt)}</p>
                   </div>
 
                   <span className="relative size-14 shrink-0 overflow-hidden rounded-xl">

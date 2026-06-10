@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { errorMessage } from "@/server/error-message";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
@@ -91,7 +92,7 @@ export async function addComment(
 ): Promise<{ ok: true; comment: PinComment } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in to comment." };
+    return { ok: false, error: await errorMessage("signedOutComment") };
   }
   const parsed = commentSchema.safeParse({ body });
   if (!parsed.success) {
@@ -135,7 +136,7 @@ export async function addReply(
 ): Promise<{ ok: true; comment: PinComment } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in to reply." };
+    return { ok: false, error: await errorMessage("signedOutReply") };
   }
   const parsed = commentSchema.safeParse({ body });
   if (!parsed.success) {
@@ -146,7 +147,7 @@ export async function addReply(
     select: { id: true, authorId: true, parentId: true, pinId: true },
   });
   if (target === null || target.pinId !== pinId) {
-    return { ok: false, error: "Comment not found." };
+    return { ok: false, error: await errorMessage("commentNotFound") };
   }
   const rootId = target.parentId ?? target.id;
   const row = await prisma.comment.create({
@@ -181,17 +182,17 @@ export async function deleteComment(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: await errorMessage("signedOut") };
   }
   const comment = await prisma.comment.findUnique({
     where: { id: commentId },
     select: { authorId: true, pinId: true, pin: { select: { creatorId: true } } },
   });
   if (comment === null) {
-    return { ok: false, error: "Comment not found." };
+    return { ok: false, error: await errorMessage("commentNotFound") };
   }
   if (comment.authorId !== user.id && comment.pin.creatorId !== user.id) {
-    return { ok: false, error: "You cannot delete this comment." };
+    return { ok: false, error: await errorMessage("cannotDeleteComment") };
   }
   await prisma.comment.delete({ where: { id: commentId } });
   revalidatePath(`/pin/${comment.pinId}`);
@@ -214,18 +215,18 @@ export async function toggleReaction(
 ): Promise<{ ok: true; reactions: CommentReaction[] } | { ok: false; error: string }> {
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in to react." };
+    return { ok: false, error: await errorMessage("signedOutReact") };
   }
   const parsed = reactionSchema.safeParse({ emoji });
   if (!parsed.success) {
-    return { ok: false, error: "Invalid reaction." };
+    return { ok: false, error: await errorMessage("invalidReaction") };
   }
   const comment = await prisma.comment.findUnique({
     where: { id: commentId },
     select: { authorId: true, pinId: true },
   });
   if (comment === null) {
-    return { ok: false, error: "Comment not found." };
+    return { ok: false, error: await errorMessage("commentNotFound") };
   }
   const where = {
     commentId_userId_emoji: { commentId, userId: user.id, emoji: parsed.data.emoji },

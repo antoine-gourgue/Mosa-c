@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useEffect, useRef, useState, useTransition } from "react";
 import type { ReactElement } from "react";
@@ -63,6 +64,9 @@ export function SaveToBoard({
   imageUrl,
   boards: initialBoards,
 }: SaveToBoardProps): ReactElement {
+  const tc = useTranslations("create");
+  const tp = useTranslations("pin");
+  const td = useTranslations("detail");
   const { show } = useToast();
   const [pending, startTransition] = useTransition();
   const [boards, setBoards] = useState(initialBoards);
@@ -104,9 +108,13 @@ export function SaveToBoard({
     startTransition(async () => {
       const result = await savePinToBoard(pinId, id);
       if (result.ok) {
-        show({ title: `Saved to ${boardName}`, description: title, img: imageUrl });
+        show({
+          title: tp("savedToBoard", { board: boardName }),
+          description: title,
+          img: imageUrl,
+        });
       } else {
-        show({ title: "Could not save", description: result.error });
+        show({ title: td("couldNotSave"), description: result.error });
       }
     });
   };
@@ -122,13 +130,13 @@ export function SaveToBoard({
         disabled={pending || boardId === ""}
         className="rounded-r-none"
       >
-        Save
+        {tp("save")}
       </Button>
       <button
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label="Choose a board"
+        aria-label={tc("chooseBoard")}
         onClick={() => setOpen((value) => !value)}
         className="flex h-11 cursor-pointer items-center rounded-r-xl border-l border-bg/30 bg-accent px-2.5 text-bg transition-colors duration-150 hover:bg-accent-press"
       >
@@ -138,16 +146,16 @@ export function SaveToBoard({
       {open ? (
         <div className="absolute right-0 top-full z-30 mt-2 w-72 rounded-xl border border-line bg-bg p-2 shadow-pop">
           <Input
-            aria-label="Search boards"
+            aria-label={tc("searchBoards")}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search"
+            placeholder={tc("search")}
             leadingIcon={<SearchIcon size={18} />}
           />
-          <p className="px-2 pb-1 pt-3 text-xs font-semibold text-ink-soft">All boards</p>
+          <p className="px-2 pb-1 pt-3 text-xs font-semibold text-ink-soft">{tc("allBoards")}</p>
           <ul className="max-h-60 overflow-auto">
             {filtered.length === 0 ? (
-              <li className="px-2 py-3 text-sm text-ink-soft">No boards found.</li>
+              <li className="px-2 py-3 text-sm text-ink-soft">{tc("noBoardsFound")}</li>
             ) : (
               filtered.map((board) => (
                 <li key={board.id}>
@@ -183,7 +191,7 @@ export function SaveToBoard({
             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-bg">
               <PlusIcon size={20} />
             </span>
-            <span className="text-[15px] font-semibold text-ink">Create board</span>
+            <span className="text-[15px] font-semibold text-ink">{tc("createBoard")}</span>
           </button>
         </div>
       ) : null}

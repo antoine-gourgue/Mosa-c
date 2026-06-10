@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 import type { MouseEvent, ReactElement, ReactNode } from "react";
@@ -22,6 +23,7 @@ import { DURATION, REDUCED_MOTION, gsap, useGSAP } from "@/lib/gsap";
  * @returns The modal overlay element, or null once the route is no longer a pin.
  */
 export function DetailModal({ children }: { children: ReactNode }): ReactElement | null {
+  const t = useTranslations("detail");
   const router = useRouter();
   const pathname = usePathname();
   const scrimRef = useRef<HTMLDivElement>(null);
@@ -99,7 +101,7 @@ export function DetailModal({ children }: { children: ReactNode }): ReactElement
     >
       <div className="fixed right-6 top-6 z-10 flex items-center gap-2">
         <IconButton
-          label="Open full page"
+          label={t("openFullPage")}
           tone="solid"
           size="lg"
           onClick={(event) => {
@@ -109,7 +111,7 @@ export function DetailModal({ children }: { children: ReactNode }): ReactElement
         >
           <ExpandIcon />
         </IconButton>
-        <IconButton ref={closeRef} label="Close" tone="solid" size="lg" onClick={close}>
+        <IconButton ref={closeRef} label={t("close")} tone="solid" size="lg" onClick={close}>
           <CloseIcon />
         </IconButton>
       </div>
@@ -117,7 +119,7 @@ export function DetailModal({ children }: { children: ReactNode }): ReactElement
         ref={cardRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Pin detail"
+        aria-label={t("pinDetail")}
         onClick={stop}
         className="mx-auto my-4 max-w-[1016px] overflow-hidden rounded-3xl bg-bg shadow-pop"
       >

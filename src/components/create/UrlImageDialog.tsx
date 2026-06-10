@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ReactElement } from "react";
@@ -34,6 +35,7 @@ export function UrlImageDialog({
   onClose,
   onPicked,
 }: UrlImageDialogProps): ReactElement | null {
+  const t = useTranslations("create");
   const [url, setUrl] = useState("");
   const [preview, setPreview] = useState("");
   const [status, setStatus] = useState<PreviewStatus>("idle");
@@ -102,7 +104,7 @@ export function UrlImageDialog({
       onPicked(new File([blob], result.name, { type: blob.type }));
       reset();
     } catch {
-      setAddError("Couldn't import this image. Try another link.");
+      setAddError(t("urlImportFailed"));
     } finally {
       setAdding(false);
     }
@@ -121,13 +123,13 @@ export function UrlImageDialog({
         className="w-full max-w-md rounded-2xl bg-bg p-6 shadow-pop"
       >
         <h2 id="url-dialog-title" className="text-xl font-bold text-ink">
-          Save from URL
+          {t("saveFromUrl")}
         </h2>
-        <p className="mt-1 text-sm text-ink-soft">Paste a link to an image from the web.</p>
+        <p className="mt-1 text-sm text-ink-soft">{t("urlDialogHint")}</p>
 
         <div className="mt-4">
           <Input
-            aria-label="Image URL"
+            aria-label={t("imageUrl")}
             value={url}
             onChange={(event) => onUrlChange(event.target.value)}
             placeholder="https://…"
@@ -139,7 +141,7 @@ export function UrlImageDialog({
         <div className="mt-4">
           {preview === "" ? (
             <div className="grid aspect-[4/3] place-items-center rounded-xl bg-surface px-6 text-center text-sm text-ink-soft">
-              A preview will appear here.
+              {t("previewHint")}
             </div>
           ) : (
             <div
@@ -151,7 +153,7 @@ export function UrlImageDialog({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={preview}
-                alt="Preview"
+                alt={t("preview")}
                 onLoad={() => setStatus("ok")}
                 onError={() => setStatus("error")}
                 className={
@@ -161,11 +163,11 @@ export function UrlImageDialog({
                 }
               />
               {status === "loading" ? (
-                <span className="text-sm text-ink-soft">Loading…</span>
+                <span className="text-sm text-ink-soft">{t("loading")}</span>
               ) : null}
               {status === "error" ? (
                 <span className="px-6 text-center text-sm text-ink-soft">
-                  Couldn&apos;t load an image from that link.
+                  {t("previewLoadFailed")}
                 </span>
               ) : null}
             </div>
@@ -180,10 +182,10 @@ export function UrlImageDialog({
 
         <div className="mt-5 flex justify-end gap-2">
           <Button variant="ghost" onClick={close} disabled={adding}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={() => void onAdd()} disabled={status !== "ok"} loading={adding}>
-            Add
+            {t("add")}
           </Button>
         </div>
       </div>

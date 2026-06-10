@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import type { ReactElement } from "react";
 import { getCurrentUser } from "@/lib/auth";
@@ -59,11 +60,10 @@ async function FeedContent({
   ]);
 
   if (page.pins.length === 0) {
+    const t = await getTranslations("feed");
     return (
       <p className="py-24 text-center text-ink-soft">
-        {feed === "following"
-          ? "No pins from people you follow yet — follow some creators to fill this feed."
-          : "No pins to show here yet."}
+        {feed === "following" ? t("followingEmpty") : t("forYouEmpty")}
       </p>
     );
   }

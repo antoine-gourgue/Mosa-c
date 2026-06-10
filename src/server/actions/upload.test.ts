@@ -1,5 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("next-intl/server", () => ({
+  getTranslations: async (ns: string) => {
+    const en = (await import("../../../messages/en.json")).default as unknown as Record<
+      string,
+      Record<string, string>
+    >;
+    return (key: string) => en[ns]?.[key] ?? key;
+  },
+}));
 vi.mock("@/lib/auth", () => ({ getCurrentUser: vi.fn() }));
 
 import { getCurrentUser } from "@/lib/auth";

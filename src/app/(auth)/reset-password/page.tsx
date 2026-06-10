@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import type { ReactElement } from "react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { ResetPassword } from "@/components/auth/ResetPassword";
@@ -6,10 +7,13 @@ import { ResetPassword } from "@/components/auth/ResetPassword";
 /**
  * Metadata for the reset-password route.
  */
-export const metadata: Metadata = {
-  title: "Reset your password",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("meta");
+  return {
+    title: t("resetPassword"),
+    robots: { index: false },
+  };
+}
 
 /**
  * Reset-password route reached from the emailed link.

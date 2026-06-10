@@ -1,6 +1,25 @@
+import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import type { AppNotification, NotificationKind } from "@/types/domain";
 import { type CreatorRow, toCreator } from "./mappers";
+
+/**
+ * Translator for the `notifications` namespace, used to build localized
+ * notification messages from their kind and actor.
+ */
+type NotificationTranslator = (key: string, values: { name: string }) => string;
+
+/**
+ * Maps each notification kind to its message key in the `notifications` catalogue.
+ */
+const MESSAGE_KEY: Record<NotificationKind, string> = {
+  FOLLOW: "follow",
+  LIKE: "like",
+  COMMENT: "comment",
+  REPLY: "reply",
+  REACTION: "reaction",
+  MENTION: "mention",
+};
 
 type NotificationRow = {
   id: string;
@@ -19,30 +38,22 @@ type NotificationRow = {
  * @param actorName - The display name of the user who triggered it.
  * @returns The message text.
  */
-function buildMessage(kind: NotificationKind, actorName: string): string {
-  switch (kind) {
-    case "FOLLOW":
-      return `${actorName} started following you`;
-    case "LIKE":
-      return `${actorName} liked your pin`;
-    case "COMMENT":
-      return `${actorName} commented on your pin`;
-    case "REPLY":
-      return `${actorName} replied to your comment`;
-    case "REACTION":
-      return `${actorName} reacted to your comment`;
-    case "MENTION":
-      return `${actorName} mentioned you in a comment`;
-  }
+function buildMessage(
+  kind: NotificationKind,
+  actorName: string,
+  t: NotificationTranslator,
+): string {
+  return t(MESSAGE_KEY[kind], { name: actorName });
 }
 
 /**
  * Maps a notification row to the UI notification type.
  *
  * @param row - The notification row with its actor and optional pin.
+ * @param t - Translator for the notification message.
  * @returns The mapped notification.
  */
-function toNotification(row: NotificationRow): AppNotification {
+function toNotification(row: NotificationRow, t: NotificationTranslator): AppNotification {
   const actor = toCreator(row.actor);
   return {
     id: row.id,
@@ -52,7 +63,7 @@ function toNotification(row: NotificationRow): AppNotification {
     actor,
     pinId: row.pinId,
     pinImageUrl: row.pin?.imageUrl ?? null,
-    message: buildMessage(row.type, actor.name),
+    message: buildMessage(row.type, actor.name, t),
   };
 }
 
@@ -71,7 +82,8 @@ export async function getNotifications(userId: string, limit = 50): Promise<AppN
     orderBy: { createdAt: "desc" },
     take: limit,
   });
-  return rows.map(toNotification);
+  const t = (await getTranslations("notifications")) as unknown as NotificationTranslator;
+  return rows.map((row) => toNotification(row, t));
 }
 
 /**

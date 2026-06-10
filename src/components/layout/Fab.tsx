@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactElement } from "react";
@@ -22,6 +23,7 @@ function isVisible(pathname: string): boolean {
  * @returns The FAB element, or null when hidden.
  */
 export function Fab(): ReactElement | null {
+  const t = useTranslations("nav");
   const pathname = usePathname();
   if (!isVisible(pathname)) {
     return null;
@@ -29,7 +31,7 @@ export function Fab(): ReactElement | null {
   return (
     <Link
       href="/create"
-      aria-label="Create Pin"
+      aria-label={t("createPin")}
       className="fixed bottom-6 right-6 z-40 hidden size-16 place-items-center rounded-full bg-bg text-ink shadow-pop transition duration-150 hover:bg-surface active:scale-95 sm:grid"
     >
       <PlusIcon size={28} />

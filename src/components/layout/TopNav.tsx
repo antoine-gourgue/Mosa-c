@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactElement } from "react";
@@ -26,6 +27,7 @@ export type TopNavProps = {
  * @returns The top bar element.
  */
 export function TopNav({ user, isAuthed }: TopNavProps): ReactElement {
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const router = useRouter();
   const { unreadCount: unreadMessages } = useMessagesUnread();
@@ -47,7 +49,9 @@ export function TopNav({ user, isAuthed }: TopNavProps): ReactElement {
         {isAuthed ? (
           <>
             <IconButton
-              label={unreadMessages > 0 ? `Messages, ${unreadMessages} unread` : "Messages"}
+              label={
+                unreadMessages > 0 ? t("messagesUnread", { count: unreadMessages }) : t("messages")
+              }
               active={pathname.startsWith("/messages")}
               onClick={() => router.push("/messages")}
               className="relative sm:hidden"
@@ -59,26 +63,26 @@ export function TopNav({ user, isAuthed }: TopNavProps): ReactElement {
             </IconButton>
             <div className="ml-1 shrink-0">
               <Menu
-                label="Account menu"
+                label={t("accountMenu")}
                 align="end"
                 trigger={<Avatar name={user.name} src={user.image ?? undefined} size={44} />}
                 items={[
                   ...(user.username !== null
                     ? [
                         {
-                          label: "Your profile",
+                          label: t("yourProfile"),
                           icon: <UserIcon size={18} />,
                           onSelect: () => router.push(`/u/${user.username ?? ""}`),
                         },
                       ]
                     : []),
                   {
-                    label: "Edit profile",
+                    label: t("editProfile"),
                     icon: <ComposeIcon size={18} />,
                     onSelect: () => router.push("/settings/profile"),
                   },
                   {
-                    label: "Log out",
+                    label: t("logOut"),
                     icon: <LogoutIcon size={18} />,
                     onSelect: () => void logout(),
                     destructive: true,
@@ -92,7 +96,7 @@ export function TopNav({ user, isAuthed }: TopNavProps): ReactElement {
             href="/login"
             className="rounded-xl bg-accent px-5 py-2.5 text-[15px] font-semibold text-bg transition-colors hover:bg-accent-press"
           >
-            Log in
+            {t("logIn")}
           </Link>
         )}
       </div>

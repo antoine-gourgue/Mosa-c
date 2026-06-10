@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import type { ReactElement } from "react";
@@ -34,13 +35,14 @@ export function ConfirmDialog({
   open,
   title,
   description,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   destructive = false,
   pending = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps): ReactElement | null {
+  const t = useTranslations("ui");
   const cardRef = useRef<HTMLDivElement>(null);
   const confirmRef = useRef<HTMLButtonElement>(null);
 
@@ -101,7 +103,7 @@ export function ConfirmDialog({
         ) : null}
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="ghost" onClick={onCancel} disabled={pending}>
-            {cancelLabel}
+            {cancelLabel ?? t("cancel")}
           </Button>
           <Button
             ref={confirmRef}
@@ -109,7 +111,7 @@ export function ConfirmDialog({
             onClick={onConfirm}
             disabled={pending}
           >
-            {confirmLabel}
+            {confirmLabel ?? t("confirm")}
           </Button>
         </div>
       </div>

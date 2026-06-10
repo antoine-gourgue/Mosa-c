@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { ReactElement } from "react";
 import { cn } from "@/lib/cn";
@@ -11,9 +12,9 @@ export type FeedTabsProps = {
   sort: FeedSort;
 };
 
-const TABS: { value: FeedSource; label: string }[] = [
-  { value: "foryou", label: "For you" },
-  { value: "following", label: "Following" },
+const TABS: { value: FeedSource; labelKey: "forYou" | "following" }[] = [
+  { value: "foryou", labelKey: "forYou" },
+  { value: "following", labelKey: "following" },
 ];
 
 /**
@@ -44,7 +45,8 @@ function hrefFor(feed: FeedSource, sort: FeedSort): string {
  * @param props - The active feed source and sort.
  * @returns The feed tabs element.
  */
-export function FeedTabs({ active, sort }: FeedTabsProps): ReactElement {
+export async function FeedTabs({ active, sort }: FeedTabsProps): Promise<ReactElement> {
+  const t = await getTranslations("feed");
   return (
     <nav className="flex gap-5">
       {TABS.map((tab) => {
@@ -59,7 +61,7 @@ export function FeedTabs({ active, sort }: FeedTabsProps): ReactElement {
               isActive ? "text-ink" : "text-ink-soft hover:text-ink",
             )}
           >
-            {tab.label}
+            {t(tab.labelKey)}
             {isActive ? (
               <span className="absolute inset-x-0 -bottom-px h-[3px] rounded-full bg-ink" />
             ) : null}

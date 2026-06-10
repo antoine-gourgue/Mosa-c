@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -16,6 +17,9 @@ import { loginUser, signInWithProvider } from "@/server/actions/auth";
  * @returns The login form element.
  */
 export function Login(): ReactElement {
+  const t = useTranslations("auth");
+  const tf = useTranslations("fields");
+  const tc = useTranslations("common");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -55,24 +59,24 @@ export function Login(): ReactElement {
         <span className="text-xl font-bold text-accent">Mosaic</span>
       </div>
 
-      <h1 className="text-3xl font-extrabold text-ink">Welcome back</h1>
-      <p className="mt-2 text-ink-soft">Log in to pick up where you left off.</p>
+      <h1 className="text-3xl font-extrabold text-ink">{t("login.title")}</h1>
+      <p className="mt-2 text-ink-soft">{t("login.subtitle")}</p>
 
       <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
         <Input
-          label="Email"
+          label={tf("email")}
           type="email"
           autoComplete="email"
-          placeholder="you@example.com"
+          placeholder={t("login.emailPlaceholder")}
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           error={errors.email}
         />
         <Input
-          label="Password"
+          label={tf("password")}
           type="password"
           autoComplete="current-password"
-          placeholder="Your password"
+          placeholder={t("login.passwordPlaceholder")}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           error={errors.password}
@@ -82,7 +86,7 @@ export function Login(): ReactElement {
             href="/forgot-password"
             className="text-sm font-semibold text-ink-soft hover:text-ink"
           >
-            Forgot password?
+            {t("login.forgotPassword")}
           </Link>
         </div>
         {formError !== null ? (
@@ -91,27 +95,27 @@ export function Login(): ReactElement {
           </p>
         ) : null}
         <Button type="submit" fullWidth loading={pending}>
-          Log in
+          {t("login.submit")}
         </Button>
       </form>
 
       <div className="my-5 flex items-center gap-3 text-sm text-ink-soft">
         <span className="h-px flex-1 bg-line" />
-        OR
+        {tc("or")}
         <span className="h-px flex-1 bg-line" />
       </div>
 
       <Button variant="social" fullWidth onClick={handleGoogle}>
         <span className="inline-flex items-center gap-2.5">
           <GoogleIcon size={18} />
-          Continue with Google
+          {t("continueWithGoogle")}
         </span>
       </Button>
 
       <p className="mt-6 text-sm text-ink-soft">
-        New to Mosaic?{" "}
+        {t("login.noAccount")}{" "}
         <Link href="/sign-up" className="font-semibold text-ink underline">
-          Sign up
+          {t("login.signUpLink")}
         </Link>
       </p>
     </div>

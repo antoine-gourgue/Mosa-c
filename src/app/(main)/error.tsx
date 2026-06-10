@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect } from "react";
 import type { ReactElement } from "react";
@@ -21,23 +22,22 @@ export default function AppError({
   error: Error & { digest?: string };
   reset: () => void;
 }): ReactElement {
+  const t = useTranslations("errorPage");
   useEffect(() => {
     void error;
   }, [error]);
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-6 text-center">
-      <h1 className="text-3xl font-extrabold text-ink">Something went wrong</h1>
-      <p className="max-w-md text-ink-soft">
-        An unexpected error occurred. Try again, or head back to the feed.
-      </p>
+      <h1 className="text-3xl font-extrabold text-ink">{t("title")}</h1>
+      <p className="max-w-md text-ink-soft">{t("body")}</p>
       <div className="flex gap-3">
-        <Button onClick={reset}>Try again</Button>
+        <Button onClick={reset}>{t("tryAgain")}</Button>
         <Link
           href="/"
           className="h-11 rounded-xl bg-surface px-5 text-[15px] font-semibold leading-[44px] text-ink transition-colors hover:bg-surface-2"
         >
-          Go home
+          {t("goHome")}
         </Link>
       </div>
     </div>

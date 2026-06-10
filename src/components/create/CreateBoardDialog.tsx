@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import type { ReactElement } from "react";
@@ -30,6 +31,7 @@ export function CreateBoardDialog({
   onClose,
   onCreated,
 }: CreateBoardDialogProps): ReactElement | null {
+  const t = useTranslations("create");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -63,7 +65,7 @@ export function CreateBoardDialog({
         onCreated({ id: board.id, name: board.name, coverUrl: null });
         setName("");
       } catch {
-        setError("Couldn't create this board. Try a different name.");
+        setError(t("createBoardFailed"));
       }
     });
   };
@@ -81,12 +83,12 @@ export function CreateBoardDialog({
         className="w-full max-w-md rounded-2xl bg-bg p-6 shadow-pop"
       >
         <h2 id="create-board-title" className="text-center text-2xl font-bold text-ink">
-          Create board
+          {t("createBoard")}
         </h2>
 
         <div className="mt-6">
           <Input
-            label="Name"
+            label={t("name")}
             value={name}
             onChange={(event) => setName(event.target.value)}
             onKeyDown={(event) => {
@@ -95,7 +97,7 @@ export function CreateBoardDialog({
                 onCreate();
               }
             }}
-            placeholder='Like "Places to Go" or "Recipes to Try"'
+            placeholder={t("boardNamePlaceholder")}
             autoFocus
           />
         </div>
@@ -108,10 +110,10 @@ export function CreateBoardDialog({
 
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose} disabled={pending}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={onCreate} disabled={name.trim() === ""} loading={pending}>
-            Create
+            {t("createAction")}
           </Button>
         </div>
       </div>

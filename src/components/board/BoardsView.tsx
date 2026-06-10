@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import type { ReactElement } from "react";
 import { Input } from "@/components/ui";
@@ -24,6 +25,7 @@ export type BoardsViewProps = {
  * @returns The boards view element.
  */
 export function BoardsView({ boards }: BoardsViewProps): ReactElement {
+  const t = useTranslations("board");
   const [query, setQuery] = useState("");
   const trimmed = query.trim().toLowerCase();
   const filtered =
@@ -34,18 +36,18 @@ export function BoardsView({ boards }: BoardsViewProps): ReactElement {
       <header className="-mx-6 mb-8 border-y border-line px-6 py-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-ink">Your boards</h1>
+            <h1 className="text-2xl font-bold text-ink">{t("yourBoards")}</h1>
             <p className="mt-0.5 text-sm text-ink-soft">
-              {boards.length} {boards.length === 1 ? "board" : "boards"}
+              {t("boardCount", { count: boards.length })}
             </p>
           </div>
           <div className="flex w-full items-center gap-3 sm:w-auto">
             <div className="w-full sm:w-64">
               <Input
-                aria-label="Search your boards"
+                aria-label={t("searchYourBoards")}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search your boards"
+                placeholder={t("searchYourBoards")}
                 leadingIcon={<SearchIcon size={18} />}
               />
             </div>
@@ -55,12 +57,9 @@ export function BoardsView({ boards }: BoardsViewProps): ReactElement {
       </header>
 
       {trimmed !== "" && filtered.length === 0 ? (
-        <p className="py-16 text-center text-ink-soft">No boards match “{query}”.</p>
+        <p className="py-16 text-center text-ink-soft">{t("noBoardsMatch", { query })}</p>
       ) : (
-        <BoardsGrid
-          boards={filtered}
-          emptyMessage="No boards yet — save a pin or create one to start."
-        />
+        <BoardsGrid boards={filtered} emptyMessage={t("noBoardsHint")} />
       )}
     </div>
   );

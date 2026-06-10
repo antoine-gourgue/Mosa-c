@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useTransition } from "react";
@@ -59,6 +60,7 @@ export function PinCard({
   canDelete = false,
   onDeleted,
 }: PinCardProps): ReactElement {
+  const t = useTranslations("pin");
   const override = usePinOverride(pin.id);
   const { setDownloadCount } = useEngagementActions();
   const likes = override.likeCount ?? pin.likeCount;
@@ -75,7 +77,7 @@ export function PinCard({
 
   const onCopyLink = async (): Promise<void> => {
     await navigator.clipboard.writeText(pinUrl(pin.id));
-    show({ title: "Link copied", description: pin.title, img: pin.imageUrl });
+    show({ title: t("linkCopied"), description: pin.title, img: pin.imageUrl });
   };
 
   const onDownload = async (): Promise<void> => {
@@ -85,16 +87,16 @@ export function PinCard({
       const result = await recordDownload(pin.id);
       setDownloadCount(pin.id, result.count);
     } catch {
-      show({ title: "Download failed", description: "Please try again." });
+      show({ title: t("downloadFailed"), description: t("tryAgain") });
     }
   };
 
   const onReport = async (): Promise<void> => {
     try {
       await reportPin(pin.id);
-      show({ title: "Report received", description: "Thanks, we will review this Pin." });
+      show({ title: t("reportReceived"), description: t("reportThanks") });
     } catch {
-      show({ title: "Could not report", description: "Please try again." });
+      show({ title: t("reportFailed"), description: t("tryAgain") });
     }
   };
 
@@ -103,31 +105,31 @@ export function PinCard({
       const result = await deletePin(pin.id);
       if (result.ok) {
         setConfirmDelete(false);
-        show({ title: "Pin deleted" });
+        show({ title: t("pinDeleted") });
         onDeleted?.();
       } else {
         setConfirmDelete(false);
-        show({ title: "Could not delete", description: result.error });
+        show({ title: t("deleteFailed"), description: result.error });
       }
     });
   };
 
   const menuItems: MenuItem[] = [
-    { label: "Copy link", icon: <LinkIcon size={18} />, onSelect: () => void onCopyLink() },
+    { label: t("copyLink"), icon: <LinkIcon size={18} />, onSelect: () => void onCopyLink() },
     {
-      label: "Download image",
+      label: t("downloadImage"),
       icon: <DownloadIcon size={18} />,
       onSelect: () => void onDownload(),
     },
     canDelete
       ? {
-          label: "Delete Pin",
+          label: t("deletePin"),
           icon: <TrashIcon size={18} />,
           onSelect: () => setConfirmDelete(true),
           destructive: true,
         }
       : {
-          label: "Report Pin",
+          label: t("reportPin"),
           icon: <FlagIcon size={18} />,
           onSelect: () => void onReport(),
           destructive: true,
@@ -157,7 +159,7 @@ export function PinCard({
         <div className="absolute inset-0 flex flex-col justify-between p-2 opacity-0 transition duration-150 group-hover:bg-ink/[0.28] group-hover:opacity-100 group-focus-within:opacity-100 max-md:hidden pointer-coarse:hidden">
           <div className="flex justify-end">
             <Menu
-              label="More options"
+              label={t("moreOptions")}
               icon={<MoreIcon size={18} />}
               tone="solid"
               align="end"
@@ -166,7 +168,7 @@ export function PinCard({
           </div>
           <div className="flex items-center justify-between">
             <IconButton
-              label={liked ? "Unlike" : "Like"}
+              label={liked ? t("unlike") : t("like")}
               tone="solid"
               onClick={(event) => {
                 stop(event);
@@ -192,7 +194,7 @@ export function PinCard({
                   onToggleSave();
                 }}
               >
-                {saved ? "Saved" : "Save"}
+                {saved ? t("saved") : t("save")}
               </Button>
             )}
           </div>
@@ -241,9 +243,9 @@ export function PinCard({
 
       <ConfirmDialog
         open={confirmDelete}
-        title="Delete Pin?"
-        description="This pin and its likes, comments and saves will be permanently removed."
-        confirmLabel="Delete"
+        title={t("deleteTitle")}
+        description={t("deleteBody")}
+        confirmLabel={t("delete")}
         destructive
         pending={deleting}
         onConfirm={onConfirmDelete}

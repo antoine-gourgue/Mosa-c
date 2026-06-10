@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import type { ReactElement } from "react";
 import { BoardHeader } from "@/components/board";
 import { PinFeed } from "@/components/pin";
@@ -20,7 +21,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const board = await getBoardWithPins(id);
-  return { title: board?.name ?? "Board" };
+  return { title: board?.name ?? (await getTranslations("meta"))("board") };
 }
 
 /**
@@ -41,6 +42,7 @@ export default async function BoardPage({
   if (board === null) {
     notFound();
   }
+  const tp = await getTranslations("page");
   const [savedIds, likedIds] =
     viewer === null
       ? [[], []]
@@ -51,7 +53,7 @@ export default async function BoardPage({
     <div className="mx-auto max-w-[1180px]">
       <BoardHeader board={board} />
       {count === 0 ? (
-        <p className="py-16 text-center text-ink-soft">This board is empty.</p>
+        <p className="py-16 text-center text-ink-soft">{tp("boardEmpty")}</p>
       ) : (
         <PinFeed
           pins={board.pins}

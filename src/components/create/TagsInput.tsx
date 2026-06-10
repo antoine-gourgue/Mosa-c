@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import type { KeyboardEvent, ReactElement } from "react";
 import { Tag } from "@/components/ui";
@@ -23,6 +24,7 @@ export type TagsInputProps = {
  * @returns The tags input element.
  */
 export function TagsInput({ value, onChange, max = 8 }: TagsInputProps): ReactElement {
+  const t = useTranslations("create");
   const [draft, setDraft] = useState("");
 
   const add = (raw: string): void => {
@@ -54,13 +56,13 @@ export function TagsInput({ value, onChange, max = 8 }: TagsInputProps): ReactEl
 
   return (
     <label className="block cursor-text rounded-xl bg-surface px-4 pb-2.5 pt-2 transition-colors focus-within:bg-surface-2">
-      <span className="block text-[13px] font-medium text-ink-soft">Tags</span>
+      <span className="block text-[13px] font-medium text-ink-soft">{t("tags")}</span>
       <div className="mt-1 flex flex-wrap items-center gap-1.5">
         {value.map((tag) => (
           <Tag
             key={tag}
             onRemove={() => remove(tag)}
-            removeLabel={`Remove ${tag}`}
+            removeLabel={t("removeTag", { tag })}
             className="bg-bg"
           >
             #{tag}
@@ -72,7 +74,7 @@ export function TagsInput({ value, onChange, max = 8 }: TagsInputProps): ReactEl
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={onKeyDown}
             onBlur={() => add(draft)}
-            placeholder={value.length === 0 ? "Add tags (press Enter)" : ""}
+            placeholder={value.length === 0 ? t("tagsPlaceholder") : ""}
             className="min-w-[10ch] flex-1 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-faint"
           />
         ) : null}

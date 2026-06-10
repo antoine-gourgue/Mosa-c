@@ -1,6 +1,7 @@
 "use server";
 
 import { AuthError } from "next-auth";
+import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { signIn, signOut } from "@/lib/auth";
 import { sendOtpEmail } from "@/lib/email";
@@ -70,7 +71,8 @@ function toFieldErrors(issues: { path: PropertyKey[]; message: string }[]): Reco
  * @returns The action result; on success the caller goes to the verify step.
  */
 export async function registerUser(input: RegisterInput): Promise<ActionResult> {
-  const parsed = registerSchema.safeParse(input);
+  const t = await getTranslations("errors");
+  const parsed = registerSchema(t as (key: string) => string).safeParse(input);
   if (!parsed.success) {
     return { ok: false, fieldErrors: toFieldErrors(parsed.error.issues) };
   }
@@ -82,10 +84,10 @@ export async function registerUser(input: RegisterInput): Promise<ActionResult> 
     prisma.user.findUnique({ where: { username: handle }, select: { id: true } }),
   ]);
   if (existingEmail !== null) {
-    return { ok: false, fieldErrors: { email: "An account with this email already exists." } };
+    return { ok: false, fieldErrors: { email: t("emailExists") } };
   }
   if (existingUsername !== null) {
-    return { ok: false, fieldErrors: { username: "That username is already taken." } };
+    return { ok: false, fieldErrors: { username: t("usernameTaken") } };
   }
 
   const passwordHash = await hashPassword(password);
@@ -118,7 +120,7 @@ export async function verifyOtp(email: string, code: string): Promise<ActionResu
     return { ok: true };
   } catch (error) {
     if (error instanceof AuthError) {
-      return { ok: false, formError: "That code is invalid or has expired." };
+      return { ok: false, formError: (await getTranslations("errors"))("invalidCode") };
     }
     throw error;
   }
@@ -193,7 +195,7 @@ export async function loginUser(input: SignInInput): Promise<ActionResult> {
     return { ok: true };
   } catch (error) {
     if (error instanceof AuthError) {
-      return { ok: false, formError: "Invalid email or password." };
+      return { ok: false, formError: (await getTranslations("errors"))("invalidCredentials") };
     }
     throw error;
   }

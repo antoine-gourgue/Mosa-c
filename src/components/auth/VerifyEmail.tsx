@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { FormEvent, ReactElement } from "react";
@@ -24,6 +25,7 @@ export type VerifyEmailProps = {
  * @returns The verification form element.
  */
 export function VerifyEmail({ email, initialCode = "" }: VerifyEmailProps): ReactElement {
+  const t = useTranslations("auth.verifyEmail");
   const [code, setCode] = useState(initialCode);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -32,11 +34,11 @@ export function VerifyEmail({ email, initialCode = "" }: VerifyEmailProps): Reac
   if (email === "") {
     return (
       <div>
-        <h1 className="text-2xl font-extrabold text-ink">Verify your email</h1>
+        <h1 className="text-2xl font-extrabold text-ink">{t("missingTitle")}</h1>
         <p className="mt-2 text-ink-soft">
-          We couldn&apos;t tell which email to verify.{" "}
+          {t("missingBody")}{" "}
           <Link href="/sign-up" className="font-semibold text-ink underline">
-            Start sign-up
+            {t("startSignUp")}
           </Link>
           .
         </p>
@@ -51,7 +53,7 @@ export function VerifyEmail({ email, initialCode = "" }: VerifyEmailProps): Reac
     startTransition(async () => {
       const result = await verifyOtp(email, code);
       if (!result.ok) {
-        setError(result.formError ?? "That code is invalid or has expired.");
+        setError(result.formError ?? t("invalidCode"));
       }
     });
   };
@@ -60,7 +62,7 @@ export function VerifyEmail({ email, initialCode = "" }: VerifyEmailProps): Reac
     setError(null);
     startTransition(async () => {
       await resendOtp(email);
-      setNotice("If your email needs verifying, a new code is on its way.");
+      setNotice(t("resent"));
     });
   };
 
@@ -73,15 +75,17 @@ export function VerifyEmail({ email, initialCode = "" }: VerifyEmailProps): Reac
         <span className="text-xl font-bold text-accent">Mosaic</span>
       </div>
 
-      <h1 className="text-3xl font-extrabold text-ink">Check your inbox</h1>
+      <h1 className="text-3xl font-extrabold text-ink">{t("title")}</h1>
       <p className="mt-2 text-ink-soft">
-        We sent a 6-digit code to <span className="font-semibold text-ink">{email}</span>. Enter it
-        below to finish creating your account.
+        {t.rich("subtitle", {
+          email,
+          b: (chunks) => <span className="font-semibold text-ink">{chunks}</span>,
+        })}
       </p>
 
       <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
         <Input
-          label="Verification code"
+          label={t("codeLabel")}
           inputMode="numeric"
           autoComplete="one-time-code"
           maxLength={6}
@@ -92,16 +96,16 @@ export function VerifyEmail({ email, initialCode = "" }: VerifyEmailProps): Reac
         />
         {notice !== null ? <p className="text-sm text-ink-soft">{notice}</p> : null}
         <Button type="submit" fullWidth loading={pending} disabled={code.length !== 6}>
-          Verify
+          {t("submit")}
         </Button>
       </form>
 
       <div className="mt-6 flex items-center justify-between text-sm text-ink-soft">
         <button type="button" onClick={handleResend} className="font-semibold text-ink underline">
-          Resend code
+          {t("resend")}
         </button>
         <Link href="/sign-up" className="underline">
-          Wrong email?
+          {t("wrongEmail")}
         </Link>
       </div>
     </div>

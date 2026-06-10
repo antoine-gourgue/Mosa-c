@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactElement } from "react";
@@ -84,7 +85,8 @@ async function CreatedView({
 }): Promise<ReactElement> {
   const pins = await getCreatedPins(userId);
   if (pins.length === 0) {
-    return <p className="py-16 text-center text-ink-soft">No published pins yet.</p>;
+    const t = await getTranslations("page");
+    return <p className="py-16 text-center text-ink-soft">{t("noPublishedPins")}</p>;
   }
   return <PinFeed pins={pins} savedIds={savedIds} likedIds={likedIds} viewerId={viewerId} />;
 }
@@ -110,7 +112,8 @@ async function SavedView({
 }): Promise<ReactElement> {
   const pins = await getSavedPins(userId);
   if (pins.length === 0) {
-    return <p className="py-16 text-center text-ink-soft">No saved ideas yet.</p>;
+    const t = await getTranslations("page");
+    return <p className="py-16 text-center text-ink-soft">{t("noSavedIdeas")}</p>;
   }
   return <PinFeed pins={pins} savedIds={savedIds} likedIds={likedIds} viewerId={viewerId} />;
 }
@@ -139,7 +142,8 @@ async function LikedView({
 }): Promise<ReactElement> {
   const pins = await getLikedPins(userId);
   if (pins.length === 0) {
-    return <p className="py-16 text-center text-ink-soft">No liked pins yet.</p>;
+    const t = await getTranslations("page");
+    return <p className="py-16 text-center text-ink-soft">{t("noLikedPins")}</p>;
   }
   return <PinFeed pins={pins} savedIds={savedIds} likedIds={likedIds} viewerId={viewerId} />;
 }

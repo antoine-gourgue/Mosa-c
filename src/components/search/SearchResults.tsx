@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import type { ReactElement } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { getLikedPinIds, getSavedPinIds, searchPins } from "@/server/services";
@@ -21,6 +22,7 @@ export type SearchResultsProps = {
  * @returns The results view element.
  */
 export async function SearchResults({ query, sort }: SearchResultsProps): Promise<ReactElement> {
+  const t = await getTranslations("search");
   const user = await getCurrentUser();
   const [results, savedIds, likedIds] = await Promise.all([
     searchPins(query, sort),
@@ -34,9 +36,7 @@ export async function SearchResults({ query, sort }: SearchResultsProps): Promis
         <FeedFilter active={sort} />
       </div>
       {results.length === 0 ? (
-        <div className="mt-16 text-center text-ink-soft">
-          No ideas matched &ldquo;{query}&rdquo;.
-        </div>
+        <div className="mt-16 text-center text-ink-soft">{t("noResults", { query })}</div>
       ) : (
         <PinFeed
           key={sort}
