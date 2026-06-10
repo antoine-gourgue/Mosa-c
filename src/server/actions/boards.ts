@@ -61,12 +61,32 @@ async function assertCanEdit(boardId: string, userId: string): Promise<void> {
 }
 
 /**
+ * Options accepted when creating or updating a board.
+ */
+export type BoardOptions = {
+  secret?: boolean;
+  description?: string | null;
+};
+
+/**
+ * Trims and normalizes a board description (max 300 chars), or null when empty.
+ *
+ * @param description - The raw description.
+ * @returns The cleaned description, or null.
+ */
+function cleanDescription(description: string | null | undefined): string | null {
+  const trimmed = (description ?? "").trim();
+  return trimmed === "" ? null : trimmed.slice(0, 300);
+}
+
+/**
  * Creates a new board owned by the current user, with an OWNER membership.
  *
  * @param name - The board name.
+ * @param options - Optional secret flag and description.
  * @returns The created board.
  */
-export async function createBoard(name: string): Promise<Board> {
+export async function createBoard(name: string, options: BoardOptions = {}): Promise<Board> {
   const user = await requireUser();
   const parsed = boardNameSchema.safeParse(name);
   if (!parsed.success) {
@@ -75,6 +95,8 @@ export async function createBoard(name: string): Promise<Board> {
   const board = await prisma.board.create({
     data: {
       name: parsed.data,
+      description: cleanDescription(options.description),
+      visibility: options.secret === true ? "SECRET" : "PUBLIC",
       ownerId: user.id,
       members: { create: { userId: user.id, role: "OWNER" } },
     },
@@ -84,26 +106,39 @@ export async function createBoard(name: string): Promise<Board> {
   return {
     id: board.id,
     name: board.name,
+    description: board.description,
+    visibility: board.visibility,
     isDefault: board.isDefault,
     pinCount: board._count.pins,
   };
 }
 
 /**
- * Renames a board. Allowed for the owner or an editor.
+ * Updates a board's name, description and visibility. Allowed for the owner or
+ * an editor.
  *
  * @param boardId - The board id.
- * @param name - The new board name.
- * @returns A promise that resolves once the board is renamed.
+ * @param data - The new name and optional description / secret flag.
+ * @returns A promise that resolves once the board is updated.
  */
-export async function renameBoard(boardId: string, name: string): Promise<void> {
+export async function updateBoard(
+  boardId: string,
+  data: { name: string } & BoardOptions,
+): Promise<void> {
   const user = await requireUser();
   await assertCanEdit(boardId, user.id);
-  const parsed = boardNameSchema.safeParse(name);
+  const parsed = boardNameSchema.safeParse(data.name);
   if (!parsed.success) {
     throw new AppError("VALIDATION", "Please enter a board name.");
   }
-  await prisma.board.update({ where: { id: boardId }, data: { name: parsed.data } });
+  await prisma.board.update({
+    where: { id: boardId },
+    data: {
+      name: parsed.data,
+      description: cleanDescription(data.description),
+      ...(data.secret === undefined ? {} : { visibility: data.secret ? "SECRET" : "PUBLIC" }),
+    },
+  });
   revalidatePath("/boards");
   revalidatePath(`/boards/${boardId}`);
 }

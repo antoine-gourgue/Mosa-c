@@ -29,6 +29,11 @@ enum BoardRole {
   VIEWER
 }
 
+enum BoardVisibility {
+  PUBLIC
+  SECRET
+}
+
 enum Role {
   USER
   ADMIN
@@ -257,10 +262,12 @@ model Report {
 }
 
 model Board {
-  id        String   @id @default(cuid())
-  name      String
-  isDefault Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  visibility  BoardVisibility @default(PUBLIC)
+  isDefault   Boolean         @default(false)
+  createdAt   DateTime        @default(now())
 
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)

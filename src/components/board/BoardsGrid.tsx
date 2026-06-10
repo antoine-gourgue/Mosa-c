@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 import type { ReactElement } from "react";
-import { StackIcon } from "@/icons";
+import { LockIcon, StackIcon } from "@/icons";
 import { DURATION, REDUCED_MOTION, gsap, useGSAP } from "@/lib/gsap";
 import type { BoardSummary } from "@/types/domain";
 
@@ -120,8 +120,16 @@ export function BoardsGrid({ boards, emptyMessage }: BoardsGridProps): ReactElem
           <div className="relative overflow-hidden rounded-pin">
             <BoardCover covers={board.coverUrls} />
             <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-150 group-hover:bg-ink/[0.06]" />
+            {board.visibility === "SECRET" ? (
+              <span className="absolute left-2 top-2 grid size-7 place-items-center rounded-lg bg-ink/60 text-bg backdrop-blur">
+                <LockIcon size={15} />
+              </span>
+            ) : null}
           </div>
-          <p className="mt-2 truncate font-semibold text-ink group-hover:underline">{board.name}</p>
+          <p className="mt-2 flex items-center gap-1.5 truncate font-semibold text-ink group-hover:underline">
+            {board.visibility === "SECRET" ? <LockIcon size={14} className="shrink-0" /> : null}
+            {board.name}
+          </p>
           <p className="text-sm text-ink-soft">{t("pinCount", { count: board.pinCount })}</p>
         </Link>
       ))}

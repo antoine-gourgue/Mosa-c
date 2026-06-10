@@ -156,8 +156,14 @@ async function LikedView({
  * @param props.username - The profile username, for links.
  * @returns The boards grid.
  */
-async function BoardsView({ userId }: { userId: string }): Promise<ReactElement> {
-  const boards = await getUserBoardsWithCovers(userId);
+async function BoardsView({
+  userId,
+  viewerId,
+}: {
+  userId: string;
+  viewerId: string | null;
+}): Promise<ReactElement> {
+  const boards = await getUserBoardsWithCovers(userId, viewerId);
   return <BoardsGrid boards={boards} />;
 }
 
@@ -240,7 +246,7 @@ export default async function ProfilePage({
             viewerId={viewer?.id ?? null}
           />
         ) : null}
-        {active === "boards" ? <BoardsView userId={user.id} /> : null}
+        {active === "boards" ? <BoardsView userId={user.id} viewerId={viewer?.id ?? null} /> : null}
       </div>
     </div>
   );

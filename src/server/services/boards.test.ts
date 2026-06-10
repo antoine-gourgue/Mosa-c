@@ -153,6 +153,33 @@ describe("getBoardWithPins", () => {
     expect(detail?.viewerRole).toBeNull();
     expect(detail?.pins.map((p) => p.id)).toEqual(["p2"]);
   });
+
+  it("hides a secret board from a non-member viewer", async () => {
+    db.board.findUnique.mockResolvedValue({
+      id: "b1",
+      name: "Secret",
+      isDefault: false,
+      visibility: "SECRET",
+      ownerId: "owner",
+      owner: creator("owner"),
+    });
+    db.boardMember.findMany.mockResolvedValue([{ user: creator("owner"), role: "OWNER" }]);
+    expect(await getBoardWithPins("b1", "stranger")).toBeNull();
+  });
+
+  it("shows a secret board to its owner", async () => {
+    db.board.findUnique.mockResolvedValue({
+      id: "b1",
+      name: "Secret",
+      isDefault: false,
+      visibility: "SECRET",
+      ownerId: "owner",
+      owner: creator("owner"),
+    });
+    db.boardMember.findMany.mockResolvedValue([{ user: creator("owner"), role: "OWNER" }]);
+    db.boardPin.findMany.mockResolvedValue([{ pin: pinRow("p2") }]);
+    expect(await getBoardWithPins("b1", "owner")).not.toBeNull();
+  });
 });
 
 describe("getUserBoardsWithCovers", () => {
@@ -181,5 +208,16 @@ describe("getUserBoardsWithCovers", () => {
     const boards = await getUserBoardsWithCovers("owner");
     expect(boards[0]).toMatchObject({ pinCount: 7, coverUrls: ["/a.png"], ownerUsername: "ada" });
     expect(boards[1]).toMatchObject({ pinCount: 5, coverUrls: ["/b.png"] });
+  });
+
+  it("filters out secret boards for a different viewer", async () => {
+    db.board.findMany.mockResolvedValue([]);
+    await getUserBoardsWithCovers("owner", "stranger");
+    const where = db.board.findMany.mock.calls[0]?.[0].where;
+    expect(where.AND[1].OR).toEqual([
+      { visibility: "PUBLIC" },
+      { ownerId: "stranger" },
+      { members: { some: { userId: "stranger" } } },
+    ]);
   });
 });

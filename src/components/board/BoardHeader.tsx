@@ -7,11 +7,11 @@ import { useState, useTransition } from "react";
 import type { MenuItem } from "@/components/ui";
 import type { ReactElement } from "react";
 import { Avatar, ConfirmDialog, Menu } from "@/components/ui";
-import { MoreIcon } from "@/icons";
-import { deleteBoard, leaveBoard, renameBoard } from "@/server/actions/boards";
+import { LockIcon, MoreIcon } from "@/icons";
+import { deleteBoard, leaveBoard, updateBoard } from "@/server/actions/boards";
 import type { BoardDetail } from "@/types/domain";
 import { BoardCollaborators } from "./BoardCollaborators";
-import { BoardFormDialog } from "./BoardFormDialog";
+import { BoardFormDialog, type BoardFormValues } from "./BoardFormDialog";
 import { ManageCollaborators } from "./ManageCollaborators";
 
 /**
@@ -45,11 +45,15 @@ export function BoardHeader({ board }: BoardHeaderProps): ReactElement {
   const manageable = !board.isDefault && (canEdit || isOwner || canLeave);
   const pinCount = board.pins.length;
 
-  const onRename = (name: string): void => {
+  const onEdit = (values: BoardFormValues): void => {
     setError(null);
     startTransition(async () => {
       try {
-        await renameBoard(board.id, name);
+        await updateBoard(board.id, {
+          name: values.name,
+          description: values.description,
+          secret: values.secret,
+        });
         setRenameOpen(false);
         router.refresh();
       } catch (cause) {
@@ -74,7 +78,7 @@ export function BoardHeader({ board }: BoardHeaderProps): ReactElement {
 
   const menuItems: MenuItem[] = [];
   if (canEdit) {
-    menuItems.push({ label: t("renameBoard"), onSelect: () => setRenameOpen(true) });
+    menuItems.push({ label: t("editBoard"), onSelect: () => setRenameOpen(true) });
   }
   if (isOwner) {
     menuItems.push({ label: t("manageCollaborators"), onSelect: () => setManageOpen(true) });
@@ -95,11 +99,20 @@ export function BoardHeader({ board }: BoardHeaderProps): ReactElement {
   return (
     <header className="flex flex-col items-center gap-3 py-8 text-center">
       <div className="flex items-center gap-2">
+        {board.visibility === "SECRET" ? (
+          <span className="text-ink-soft" title={t("secret")} aria-label={t("secret")}>
+            <LockIcon size={26} />
+          </span>
+        ) : null}
         <h1 className="text-4xl font-extrabold text-ink sm:text-5xl">{board.name}</h1>
         {manageable ? (
           <Menu label={t("boardOptions")} icon={<MoreIcon />} align="end" items={menuItems} />
         ) : null}
       </div>
+
+      {board.description !== null ? (
+        <p className="max-w-md text-ink-soft">{board.description}</p>
+      ) : null}
 
       <Link
         href={board.owner.username !== null ? `/u/${board.owner.username}` : "#"}
@@ -121,13 +134,15 @@ export function BoardHeader({ board }: BoardHeaderProps): ReactElement {
 
       {renameOpen ? (
         <BoardFormDialog
-          title={t("renameBoard")}
+          title={t("editBoard")}
           label={t("boardName")}
           submitLabel={t("save")}
           initialValue={board.name}
+          initialDescription={board.description ?? ""}
+          initialSecret={board.visibility === "SECRET"}
           pending={pending}
           error={error}
-          onSubmit={onRename}
+          onSubmit={onEdit}
           onCancel={() => setRenameOpen(false)}
         />
       ) : null}

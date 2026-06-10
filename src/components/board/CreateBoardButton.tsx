@@ -7,7 +7,7 @@ import type { ReactElement } from "react";
 import { Button } from "@/components/ui";
 import { PlusIcon } from "@/icons";
 import { createBoard } from "@/server/actions/boards";
-import { BoardFormDialog } from "./BoardFormDialog";
+import { BoardFormDialog, type BoardFormValues } from "./BoardFormDialog";
 
 /**
  * Button that opens a dialog to create a new board and navigates to it on
@@ -22,11 +22,14 @@ export function CreateBoardButton(): ReactElement {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const onSubmit = (name: string): void => {
+  const onSubmit = (values: BoardFormValues): void => {
     setError(null);
     startTransition(async () => {
       try {
-        const board = await createBoard(name);
+        const board = await createBoard(values.name, {
+          secret: values.secret,
+          description: values.description,
+        });
         setOpen(false);
         router.push(`/boards/${board.id}`);
       } catch (cause) {

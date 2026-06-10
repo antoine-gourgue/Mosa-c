@@ -45,6 +45,8 @@ export type PinRow = {
 export type BoardRow = {
   id: string;
   name: string;
+  description: string | null;
+  visibility: "PUBLIC" | "SECRET";
   isDefault: boolean;
   _count: { pins: number };
 };
@@ -116,5 +118,12 @@ export function toPin(row: PinRow): Pin {
  * @returns The mapped board.
  */
 export function toBoard(row: BoardRow): Board {
-  return { id: row.id, name: row.name, isDefault: row.isDefault, pinCount: row._count.pins };
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    visibility: row.visibility,
+    isDefault: row.isDefault,
+    pinCount: row._count.pins,
+  };
 }

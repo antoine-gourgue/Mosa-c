@@ -37,5 +37,6 @@ export {
   UserIcon,
   FlagIcon,
   LogoutIcon,
+  LockIcon,
 } from "./glyphs";
 export { Logo } from "./Logo";

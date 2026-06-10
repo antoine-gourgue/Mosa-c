@@ -622,3 +622,18 @@ export function LogoutIcon(props: IconProps): ReactElement {
     </SvgIcon>
   );
 }
+
+/**
+ * A closed padlock, used to mark secret/private boards.
+ *
+ * @param props - Icon size and style props.
+ * @returns The lock glyph.
+ */
+export function LockIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon strokeWidth={1.6} {...props}>
+      <path d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75" />
+      <path d="M6.75 10.5h10.5a1.5 1.5 0 0 1 1.5 1.5v6.75a1.5 1.5 0 0 1-1.5 1.5H6.75a1.5 1.5 0 0 1-1.5-1.5V12a1.5 1.5 0 0 1 1.5-1.5Z" />
+    </SvgIcon>
+  );
+}

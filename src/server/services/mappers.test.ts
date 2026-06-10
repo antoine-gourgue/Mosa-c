@@ -79,7 +79,21 @@ describe("toPin", () => {
 
 describe("toBoard", () => {
   it("projects the pin count", () => {
-    const row: BoardRow = { id: "b1", name: "Ideas", isDefault: true, _count: { pins: 9 } };
-    expect(toBoard(row)).toEqual({ id: "b1", name: "Ideas", isDefault: true, pinCount: 9 });
+    const row: BoardRow = {
+      id: "b1",
+      name: "Ideas",
+      description: null,
+      visibility: "PUBLIC",
+      isDefault: true,
+      _count: { pins: 9 },
+    };
+    expect(toBoard(row)).toEqual({
+      id: "b1",
+      name: "Ideas",
+      description: null,
+      visibility: "PUBLIC",
+      isDefault: true,
+      pinCount: 9,
+    });
   });
 });
