@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
 import { sendEmailChangeEmail, sendPasswordResetEmail } from "@/lib/email";
@@ -61,13 +62,14 @@ export async function requestEmailChange(
   newEmail: string,
   currentPassword = "",
 ): Promise<AccountActionResult> {
+  const t = await getTranslations("errors");
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: t("signedOut") };
   }
   const parsed = z.email().safeParse(newEmail.trim().toLowerCase());
   if (!parsed.success) {
-    return { ok: false, error: "Enter a valid email address." };
+    return { ok: false, error: t("invalidEmail") };
   }
   const account = await prisma.user.findUnique({
     where: { id: user.id },
@@ -77,7 +79,7 @@ export async function requestEmailChange(
     account?.passwordHash != null &&
     !(await verifyPassword(currentPassword, account.passwordHash))
   ) {
-    return { ok: false, error: "Your current password is incorrect." };
+    return { ok: false, error: t("wrongPassword") };
   }
   const email = parsed.data;
   const existing = await prisma.user.findFirst({
@@ -85,15 +87,15 @@ export async function requestEmailChange(
     select: { id: true },
   });
   if (existing !== null) {
-    return { ok: false, error: "That email is already in use." };
+    return { ok: false, error: t("emailTaken") };
   }
   if (await isAccountTokenOnCooldown(user.id, "EMAIL_CHANGE")) {
-    return { ok: false, error: "Please wait a minute before requesting another email." };
+    return { ok: false, error: t("emailCooldown") };
   }
   const token = await issueAccountToken(user.id, "EMAIL_CHANGE", email);
   const sent = await sendEmailChangeEmail(email, `${appBase()}/confirm-email?token=${token}`);
   if (!sent) {
-    return { ok: false, error: "We couldn't send the confirmation email. Please try again." };
+    return { ok: false, error: t("emailSendFailed") };
   }
   return { ok: true };
 }
@@ -106,16 +108,17 @@ export async function requestEmailChange(
  * @returns Whether the change was applied.
  */
 export async function confirmEmailChange(token: string): Promise<AccountActionResult> {
+  const t = await getTranslations("errors");
   const consumed = await consumeAccountToken(token, "EMAIL_CHANGE");
   if (consumed === null || consumed.newEmail === null) {
-    return { ok: false, error: "This link is invalid or has expired." };
+    return { ok: false, error: t("invalidLink") };
   }
   const taken = await prisma.user.findFirst({
     where: { email: consumed.newEmail, NOT: { id: consumed.userId } },
     select: { id: true },
   });
   if (taken !== null) {
-    return { ok: false, error: "That email is already in use." };
+    return { ok: false, error: t("emailTaken") };
   }
   try {
     await prisma.user.update({
@@ -124,7 +127,7 @@ export async function confirmEmailChange(token: string): Promise<AccountActionRe
     });
   } catch (error) {
     if (isUniqueConstraintError(error)) {
-      return { ok: false, error: "That email is already in use." };
+      return { ok: false, error: t("emailTaken") };
     }
     throw error;
   }
@@ -149,23 +152,24 @@ async function sendReset(userId: string, email: string): Promise<boolean> {
  * @returns Whether the email was sent.
  */
 export async function requestPasswordReset(): Promise<AccountActionResult> {
+  const t = await getTranslations("errors");
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: t("signedOut") };
   }
   const record = await prisma.user.findUnique({
     where: { id: user.id },
     select: { email: true, passwordHash: true },
   });
   if (record === null || record.passwordHash === null) {
-    return { ok: false, error: "Your account has no password to reset." };
+    return { ok: false, error: t("noPassword") };
   }
   if (await isAccountTokenOnCooldown(user.id, "PASSWORD_RESET")) {
-    return { ok: false, error: "Please wait a minute before requesting another email." };
+    return { ok: false, error: t("emailCooldown") };
   }
   const sent = await sendReset(user.id, record.email);
   if (!sent) {
-    return { ok: false, error: "We couldn't send the reset email. Please try again." };
+    return { ok: false, error: t("resetSendFailed") };
   }
   return { ok: true };
 }
@@ -219,16 +223,14 @@ export async function resetPassword(
   token: string,
   newPassword: string,
 ): Promise<AccountActionResult> {
-  const parsed = z
-    .string()
-    .min(8, "Password must be at least 8 characters.")
-    .safeParse(newPassword);
+  const t = await getTranslations("errors");
+  const parsed = z.string().min(8, t("passwordTooShort")).safeParse(newPassword);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Please check the form." };
+    return { ok: false, error: parsed.error.issues[0]?.message ?? t("checkForm") };
   }
   const consumed = await consumeAccountToken(token, "PASSWORD_RESET");
   if (consumed === null) {
-    return { ok: false, error: "This link is invalid or has expired." };
+    return { ok: false, error: t("invalidLink") };
   }
   await prisma.user.update({
     where: { id: consumed.userId },

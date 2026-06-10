@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -19,12 +20,19 @@ export type UpdateProfileResult = { ok: false; error: string };
  */
 const MAX_AVATAR_BYTES = 10 * 1024 * 1024;
 
-const profileSchema = z.object({
-  username: usernameSchema,
-  name: z.string().trim().min(1, "A name is required.").max(60),
-  bio: z.string().trim().max(300).optional(),
-  gender: z.enum(["FEMALE", "MALE", "NON_BINARY", "UNDISCLOSED"]).optional(),
-});
+/**
+ * Builds the profile validation schema with localized messages.
+ *
+ * @param nameRequired - The localized "name required" message.
+ * @returns The zod schema for the edit-profile form.
+ */
+const profileSchema = (nameRequired: string) =>
+  z.object({
+    username: usernameSchema,
+    name: z.string().trim().min(1, nameRequired).max(60),
+    bio: z.string().trim().max(300).optional(),
+    gender: z.enum(["FEMALE", "MALE", "NON_BINARY", "UNDISCLOSED"]).optional(),
+  });
 
 /**
  * Updates the current user's profile — username, display name, bio, gender and
@@ -35,19 +43,20 @@ const profileSchema = z.object({
  * @returns A failure result, or never on success (it redirects).
  */
 export async function updateProfile(formData: FormData): Promise<UpdateProfileResult> {
+  const t = await getTranslations("errors");
   const user = await getCurrentUser();
   if (user === null) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: t("signedOut") };
   }
 
-  const parsed = profileSchema.safeParse({
+  const parsed = profileSchema(t("nameRequired")).safeParse({
     username: formData.get("username"),
     name: formData.get("name"),
     bio: formData.get("bio") ?? undefined,
     gender: formData.get("gender") || undefined,
   });
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Please check the form." };
+    return { ok: false, error: parsed.error.issues[0]?.message ?? t("checkForm") };
   }
   const handle = parsed.data.username.toLowerCase();
 
@@ -56,17 +65,17 @@ export async function updateProfile(formData: FormData): Promise<UpdateProfileRe
     select: { id: true },
   });
   if (taken !== null) {
-    return { ok: false, error: "That username is already taken." };
+    return { ok: false, error: t("usernameTaken") };
   }
 
   let avatar: { avatarUrl: string | null; image: string | null } | undefined;
   const file = formData.get("avatar");
   if (file instanceof File && file.size > 0) {
     if (!file.type.startsWith("image/")) {
-      return { ok: false, error: "The avatar must be an image." };
+      return { ok: false, error: t("avatarNotImage") };
     }
     if (file.size > MAX_AVATAR_BYTES) {
-      return { ok: false, error: "The avatar is too large." };
+      return { ok: false, error: t("avatarTooLarge") };
     }
     const buffer = Buffer.from(await file.arrayBuffer());
     const stored = await getStorage().put(buffer, { filename: file.name, contentType: file.type });
@@ -88,7 +97,7 @@ export async function updateProfile(formData: FormData): Promise<UpdateProfileRe
     });
   } catch (error) {
     if (isUniqueConstraintError(error)) {
-      return { ok: false, error: "That username is already taken." };
+      return { ok: false, error: t("usernameTaken") };
     }
     throw error;
   }

@@ -3,6 +3,23 @@
     "language": "Language",
     "or": "OR"
   },
+  "errors": {
+    "signedOut": "You must be signed in.",
+    "checkForm": "Please check the form.",
+    "invalidEmail": "Enter a valid email address.",
+    "emailTaken": "That email is already in use.",
+    "usernameTaken": "That username is already taken.",
+    "emailCooldown": "Please wait a minute before requesting another email.",
+    "emailSendFailed": "We couldn’t send the confirmation email. Please try again.",
+    "resetSendFailed": "We couldn’t send the reset email. Please try again.",
+    "wrongPassword": "Your current password is incorrect.",
+    "invalidLink": "This link is invalid or has expired.",
+    "noPassword": "Your account has no password to reset.",
+    "passwordTooShort": "Password must be at least 8 characters.",
+    "avatarTooLarge": "The avatar is too large.",
+    "avatarNotImage": "The avatar must be an image.",
+    "nameRequired": "A name is required."
+  },
   "gender": {
     "female": "Female",
     "male": "Male",

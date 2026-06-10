@@ -3,6 +3,23 @@
     "language": "Langue",
     "or": "OU"
   },
+  "errors": {
+    "signedOut": "Vous devez être connecté.",
+    "checkForm": "Veuillez vérifier le formulaire.",
+    "invalidEmail": "Saisissez une adresse e-mail valide.",
+    "emailTaken": "Cet e-mail est déjà utilisé.",
+    "usernameTaken": "Ce nom d’utilisateur est déjà pris.",
+    "emailCooldown": "Veuillez patienter une minute avant de demander un autre e-mail.",
+    "emailSendFailed": "Nous n’avons pas pu envoyer l’e-mail de confirmation. Veuillez réessayer.",
+    "resetSendFailed": "Nous n’avons pas pu envoyer l’e-mail de réinitialisation. Veuillez réessayer.",
+    "wrongPassword": "Votre mot de passe actuel est incorrect.",
+    "invalidLink": "Ce lien est invalide ou a expiré.",
+    "noPassword": "Votre compte n’a pas de mot de passe à réinitialiser.",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères.",
+    "avatarTooLarge": "L’avatar est trop volumineux.",
+    "avatarNotImage": "L’avatar doit être une image.",
+    "nameRequired": "Un nom est requis."
+  },
   "gender": {
     "female": "Femme",
     "male": "Homme",
