@@ -3,6 +3,14 @@
     "language": "Langue",
     "or": "OU"
   },
+  "ui": {
+    "verified": "Vérifié",
+    "confirm": "Confirmer",
+    "cancel": "Annuler",
+    "dismiss": "Fermer",
+    "loading": "Chargement",
+    "removeTag": "Retirer le tag"
+  },
   "errors": {
     "signedOut": "Vous devez être connecté.",
     "checkForm": "Veuillez vérifier le formulaire.",

@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { ReactElement, ReactNode } from "react";
 import { cn } from "@/lib/cn";
@@ -24,13 +27,8 @@ export type TagProps = {
  * @param props - The chip content and optional link / remove behaviour.
  * @returns The tag chip element.
  */
-export function Tag({
-  children,
-  href,
-  onRemove,
-  removeLabel = "Remove tag",
-  className,
-}: TagProps): ReactElement {
+export function Tag({ children, href, onRemove, removeLabel, className }: TagProps): ReactElement {
+  const t = useTranslations("ui");
   const classes = cn(
     "inline-flex items-center gap-1 rounded-xl bg-surface px-2.5 py-1 text-[13px] font-semibold text-ink-soft",
     href !== undefined && "transition-colors hover:bg-surface-2 hover:text-ink",
@@ -49,7 +47,7 @@ export function Tag({
       {onRemove ? (
         <button
           type="button"
-          aria-label={removeLabel}
+          aria-label={removeLabel ?? t("removeTag")}
           onClick={onRemove}
           className="grid size-4 place-items-center rounded text-ink-soft transition-colors hover:text-ink"
         >

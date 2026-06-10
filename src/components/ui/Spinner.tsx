@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import type { ReactElement } from "react";
 import { cn } from "@/lib/cn";
 
@@ -17,11 +20,12 @@ export type SpinnerProps = {
  * @param props - Spinner configuration.
  * @returns The rendered spinner element.
  */
-export function Spinner({ size = 24, label = "Loading", className }: SpinnerProps): ReactElement {
+export function Spinner({ size = 24, label, className }: SpinnerProps): ReactElement {
+  const t = useTranslations("ui");
   return (
     <svg
       role="status"
-      aria-label={label}
+      aria-label={label ?? t("loading")}
       width={size}
       height={size}
       viewBox="0 0 24 24"

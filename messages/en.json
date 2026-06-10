@@ -3,6 +3,14 @@
     "language": "Language",
     "or": "OR"
   },
+  "ui": {
+    "verified": "Verified",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "dismiss": "Dismiss",
+    "loading": "Loading",
+    "removeTag": "Remove tag"
+  },
   "errors": {
     "signedOut": "You must be signed in.",
     "checkForm": "Please check the form.",

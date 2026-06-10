@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useState } from "react";
 import type { ReactElement } from "react";
@@ -49,6 +50,7 @@ export function Avatar({
   badgeSize,
   className,
 }: AvatarProps): ReactElement {
+  const t = useTranslations("ui");
   const [errored, setErrored] = useState(false);
   const showImage = src !== undefined && src !== "" && !errored;
   const badge = badgeSize ?? Math.round(size * 0.42);
@@ -78,7 +80,7 @@ export function Avatar({
       </span>
       {verified ? (
         <span
-          aria-label="Verified"
+          aria-label={t("verified")}
           className="absolute -bottom-0.5 -right-0.5 grid place-items-center rounded-full bg-accent text-bg ring-2 ring-bg"
           style={{ width: badge, height: badge }}
         >
