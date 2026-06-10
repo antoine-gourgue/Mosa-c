@@ -307,7 +307,12 @@
     "add": "Add",
     "done": "Done",
     "addCollabFailed": "Could not add the collaborator.",
-    "removeCollabFailed": "Could not remove the collaborator."
+    "removeCollabFailed": "Could not remove the collaborator.",
+    "editBoard": "Edit board",
+    "description": "Description",
+    "descriptionPlaceholder": "What is this board about? (optional)",
+    "secret": "Secret board",
+    "secretHint": "Only you and collaborators can see it."
   },
   "pin": {
     "linkCopied": "Link copied",

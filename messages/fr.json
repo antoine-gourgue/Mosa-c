@@ -307,7 +307,12 @@
     "add": "Ajouter",
     "done": "Terminé",
     "addCollabFailed": "Impossible d’ajouter le collaborateur.",
-    "removeCollabFailed": "Impossible de retirer le collaborateur."
+    "removeCollabFailed": "Impossible de retirer le collaborateur.",
+    "editBoard": "Modifier le tableau",
+    "description": "Description",
+    "descriptionPlaceholder": "De quoi parle ce tableau ? (facultatif)",
+    "secret": "Tableau secret",
+    "secretHint": "Seuls vous et les collaborateurs peuvent le voir."
   },
   "pin": {
     "linkCopied": "Lien copié",

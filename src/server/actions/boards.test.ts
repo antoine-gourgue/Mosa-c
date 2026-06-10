@@ -22,7 +22,7 @@ import {
   leaveBoard,
   removeBoardMember,
   removePinFromBoard,
-  renameBoard,
+  updateBoard,
 } from "./boards";
 
 const db = prisma as unknown as {
@@ -58,14 +58,34 @@ describe("board actions", () => {
       db.board.create.mockResolvedValue({
         id: "b1",
         name: "Ideas",
+        description: null,
+        visibility: "PUBLIC",
         isDefault: false,
         _count: { pins: 0 },
       });
       expect(await createBoard("Ideas")).toEqual({
         id: "b1",
         name: "Ideas",
+        description: null,
+        visibility: "PUBLIC",
         isDefault: false,
         pinCount: 0,
+      });
+    });
+
+    it("creates a secret board with a description", async () => {
+      db.board.create.mockResolvedValue({
+        id: "b2",
+        name: "Gifts",
+        description: "x",
+        visibility: "SECRET",
+        isDefault: false,
+        _count: { pins: 0 },
+      });
+      await createBoard("Gifts", { secret: true, description: " Surprises " });
+      expect(db.board.create.mock.calls[0]?.[0].data).toMatchObject({
+        visibility: "SECRET",
+        description: "Surprises",
       });
     });
   });
@@ -95,19 +115,19 @@ describe("board actions", () => {
     });
   });
 
-  describe("renameBoard", () => {
-    it("renames when the user is an editor", async () => {
+  describe("updateBoard", () => {
+    it("updates when the user is an editor", async () => {
       db.boardMember.findUnique.mockResolvedValue({ role: "EDITOR" });
-      await renameBoard("b1", "New name");
+      await updateBoard("b1", { name: "New name", secret: true });
       expect(db.board.update).toHaveBeenCalledWith({
         where: { id: "b1" },
-        data: { name: "New name" },
+        data: { name: "New name", description: null, visibility: "SECRET" },
       });
     });
 
     it("refuses when the user is only a viewer", async () => {
       db.boardMember.findUnique.mockResolvedValue({ role: "VIEWER" });
-      await expect(renameBoard("b1", "New name")).rejects.toThrow();
+      await expect(updateBoard("b1", { name: "New name" })).rejects.toThrow();
       expect(db.board.update).not.toHaveBeenCalled();
     });
   });

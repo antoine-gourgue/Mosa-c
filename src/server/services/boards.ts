@@ -128,9 +128,14 @@ export async function getBoardWithPins(
   const members = await getBoardMembers(boardId);
   const viewerRole =
     viewerId === null ? null : (members.find((m) => m.user.id === viewerId)?.role ?? null);
+  if (board.visibility === "SECRET" && board.ownerId !== viewerId && viewerRole === null) {
+    return null;
+  }
   const base = {
     id: board.id,
     name: board.name,
+    description: board.description,
+    visibility: board.visibility,
     owner: toCreator(board.owner),
     members,
     viewerRole,
@@ -187,14 +192,32 @@ async function boardCovers(
 
 /**
  * Fetches the boards a user owns or collaborates on with a cover image and pin
- * count, for listings.
+ * count, for listings. Secret boards are hidden from viewers who are neither the
+ * owner nor a collaborator.
  *
- * @param userId - The user id.
- * @returns The user's board summaries.
+ * @param userId - The user whose boards to list.
+ * @param viewerId - The viewer, used to filter out secret boards (defaults to
+ *   the owner, i.e. no filtering).
+ * @returns The user's board summaries visible to the viewer.
  */
-export async function getUserBoardsWithCovers(userId: string): Promise<BoardSummary[]> {
+export async function getUserBoardsWithCovers(
+  userId: string,
+  viewerId: string | null = userId,
+): Promise<BoardSummary[]> {
   const rows = await prisma.board.findMany({
-    where: ownedOrMember(userId),
+    where: {
+      AND: [
+        ownedOrMember(userId),
+        {
+          OR: [
+            { visibility: "PUBLIC" },
+            ...(viewerId === null
+              ? []
+              : [{ ownerId: viewerId }, { members: { some: { userId: viewerId } } }]),
+          ],
+        },
+      ],
+    },
     include: { _count: { select: { pins: true } }, owner: { select: { username: true } } },
     orderBy: { createdAt: "asc" },
   });
@@ -207,6 +230,8 @@ export async function getUserBoardsWithCovers(userId: string): Promise<BoardSumm
       return {
         id: row.id,
         name: row.name,
+        description: row.description,
+        visibility: row.visibility,
         isDefault: row.isDefault,
         pinCount: count,
         coverUrls,

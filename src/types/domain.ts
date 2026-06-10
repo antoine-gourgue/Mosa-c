@@ -132,9 +132,13 @@ export type ConversationSummary = {
 /**
  * A board with its pin count, as surfaced to the UI.
  */
+export type BoardVisibility = "PUBLIC" | "SECRET";
+
 export type Board = {
   id: string;
   name: string;
+  description: string | null;
+  visibility: BoardVisibility;
   isDefault: boolean;
   pinCount: number;
 };
@@ -166,6 +170,8 @@ export type BoardMemberSummary = {
 export type BoardDetail = {
   id: string;
   name: string;
+  description: string | null;
+  visibility: BoardVisibility;
   isDefault: boolean;
   owner: Creator;
   members: BoardMemberSummary[];
