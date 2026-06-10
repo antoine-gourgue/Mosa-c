@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useTransition } from "react";
 import type { ChangeEvent, FormEvent, ReactElement } from "react";
 import { Avatar, Button, Input, Select, Textarea } from "@/components/ui";
@@ -23,10 +24,10 @@ const MAX_AVATAR_BYTES = 10 * 1024 * 1024;
  */
 type GenderValue = "FEMALE" | "MALE" | "NON_BINARY" | "UNDISCLOSED";
 
-const GENDER_OPTIONS: { value: GenderValue; label: string }[] = [
-  { value: "FEMALE", label: "Female" },
-  { value: "MALE", label: "Male" },
-  { value: "NON_BINARY", label: "Non-binary" },
+const GENDER_OPTIONS: { value: GenderValue; key: "female" | "male" | "nonBinary" }[] = [
+  { value: "FEMALE", key: "female" },
+  { value: "MALE", key: "male" },
+  { value: "NON_BINARY", key: "nonBinary" },
 ];
 
 /**
@@ -61,6 +62,9 @@ export function EditProfile({
   gender,
   hasPassword,
 }: EditProfileProps): ReactElement {
+  const t = useTranslations("settings");
+  const tf = useTranslations("fields");
+  const tg = useTranslations("gender");
   const [displayName, setDisplayName] = useState(name);
   const [handle, setHandle] = useState(username);
   const [bioText, setBioText] = useState(bio);
@@ -108,7 +112,7 @@ export function EditProfile({
           file = fileRef.current;
         }
         if (file.size > MAX_AVATAR_BYTES) {
-          setError("Image is too large, even after compression.");
+          setError(t("avatarTooLarge"));
           return;
         }
         formData.set("avatar", file);
@@ -121,19 +125,19 @@ export function EditProfile({
   return (
     <div>
       <header className="-mx-6 mb-8 border-y border-line px-6 py-4">
-        <h1 className="text-2xl font-bold text-ink">Edit profile</h1>
-        <p className="mt-0.5 text-sm text-ink-soft">Manage your profile and account.</p>
+        <h1 className="text-2xl font-bold text-ink">{t("title")}</h1>
+        <p className="mt-0.5 text-sm text-ink-soft">{t("subtitle")}</p>
       </header>
 
       <div className="grid gap-10 lg:grid-cols-2 lg:gap-12">
         <form onSubmit={onSubmit}>
-          <h2 className="text-lg font-bold text-ink">Profile</h2>
+          <h2 className="text-lg font-bold text-ink">{t("profile")}</h2>
 
           <div className="mt-5 flex items-center gap-4">
             <Avatar src={preview ?? undefined} name={displayName || handle} size={72} />
             <div className="flex flex-col items-start gap-2">
               <label className="cursor-pointer rounded-xl border border-line px-3.5 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface">
-                Change photo
+                {t("changePhoto")}
                 <input type="file" accept="image/*" className="hidden" onChange={onFile} />
               </label>
               {preview !== null ? (
@@ -142,7 +146,7 @@ export function EditProfile({
                   onClick={onRemovePhoto}
                   className="text-sm font-medium text-ink-soft underline"
                 >
-                  Remove photo
+                  {t("removePhoto")}
                 </button>
               ) : null}
             </div>
@@ -150,29 +154,29 @@ export function EditProfile({
 
           <div className="mt-5 flex flex-col gap-4">
             <Input
-              label="Username"
+              label={tf("username")}
               autoComplete="username"
-              placeholder="yourname"
+              placeholder={t("usernamePlaceholder")}
               value={handle}
               onChange={(event) =>
                 setHandle(event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
               }
             />
             <Input
-              label="Name"
+              label={tf("name")}
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
-              placeholder="Your name"
+              placeholder={t("namePlaceholder")}
             />
             <Textarea
-              label="Bio"
+              label={tf("bio")}
               value={bioText}
               onChange={(event) => setBioText(event.target.value)}
-              placeholder="Tell people about yourself"
+              placeholder={t("bioPlaceholder")}
               rows={3}
             />
             <Select
-              label="Gender"
+              label={tf("gender")}
               value={genderValue ?? ""}
               onChange={(event) =>
                 setGenderValue(
@@ -180,10 +184,10 @@ export function EditProfile({
                 )
               }
             >
-              <option value="">Prefer not to say</option>
+              <option value="">{tg("preferNotToSay")}</option>
               {GENDER_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
-                  {option.label}
+                  {tg(option.key)}
                 </option>
               ))}
             </Select>
@@ -196,7 +200,7 @@ export function EditProfile({
           ) : null}
 
           <Button type="submit" className="mt-5" loading={pending}>
-            Save changes
+            {t("save")}
           </Button>
         </form>
 
@@ -235,6 +239,8 @@ function AccountSection({
   emailVerified: boolean;
   hasPassword: boolean;
 }): ReactElement {
+  const t = useTranslations("settings.account");
+  const tf = useTranslations("fields");
   const [currentEmail, setCurrentEmail] = useState(email);
   const [verified, setVerified] = useState(emailVerified);
   const [emailValue, setEmailValue] = useState(email);
@@ -255,7 +261,7 @@ function AccountSection({
     const id = setInterval(async () => {
       if (Date.now() > deadline) {
         setPendingEmail(null);
-        setEmailError("The confirmation link expired. Please try changing your email again.");
+        setEmailError(t("linkExpired"));
         return;
       }
       const status = await getAccountStatus();
@@ -267,7 +273,7 @@ function AccountSection({
       }
     }, STATUS_POLL_MS);
     return () => clearInterval(id);
-  }, [pendingEmail]);
+  }, [pendingEmail, t]);
 
   const onVerifyEmail = (): void => {
     setEmailError(null);
@@ -287,20 +293,18 @@ function AccountSection({
     startPwd(async () => {
       const result = await requestPasswordReset();
       setPwdMsg(
-        result.ok
-          ? { ok: true, text: "We emailed you a link to set a new password." }
-          : { ok: false, text: result.error },
+        result.ok ? { ok: true, text: t("passwordSent") } : { ok: false, text: result.error },
       );
     });
   };
 
   return (
     <section className="border-t border-line pt-8 lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0">
-      <h2 className="text-lg font-bold text-ink">Account</h2>
+      <h2 className="text-lg font-bold text-ink">{t("title")}</h2>
 
       <div className="mt-5">
         <Input
-          label="Email"
+          label={tf("email")}
           type="email"
           autoComplete="email"
           value={emailValue}
@@ -323,19 +327,19 @@ function AccountSection({
           />
           <span>
             {pendingEmail !== null
-              ? `Waiting for confirmation — open the link sent to ${pendingEmail}.`
+              ? t("pending", { email: pendingEmail })
               : verified
-                ? "Your email is verified."
-                : "Your email is not verified yet."}
+                ? t("verified")
+                : t("notVerified")}
           </span>
         </div>
         {hasPassword && emailChanged ? (
           <div className="mt-3">
             <Input
-              label="Current password"
+              label={t("currentPassword")}
               type="password"
               autoComplete="current-password"
-              placeholder="Confirm with your password"
+              placeholder={t("currentPasswordPlaceholder")}
               value={currentPassword}
               onChange={(event) => setCurrentPassword(event.target.value)}
             />
@@ -351,17 +355,15 @@ function AccountSection({
           }
           onClick={onVerifyEmail}
         >
-          Change email
+          {t("changeEmail")}
         </Button>
         {emailError !== null ? <p className="mt-2 text-sm text-accent">{emailError}</p> : null}
       </div>
 
       {hasPassword ? (
         <div className="mt-6 border-t border-line pt-6">
-          <h3 className="text-sm font-bold text-ink">Password</h3>
-          <p className="mt-1 text-sm text-ink-soft">
-            We&rsquo;ll email you a secure link to choose a new password.
-          </p>
+          <h3 className="text-sm font-bold text-ink">{t("passwordHeading")}</h3>
+          <p className="mt-1 text-sm text-ink-soft">{t("passwordHint")}</p>
           <Button
             type="button"
             variant="ghost"
@@ -369,7 +371,7 @@ function AccountSection({
             loading={pwdPending}
             onClick={onResetPassword}
           >
-            Change password
+            {t("changePassword")}
           </Button>
           {pwdMsg !== null ? (
             <p className={cn("mt-2 text-sm", pwdMsg.ok ? "text-ink-soft" : "text-accent")}>

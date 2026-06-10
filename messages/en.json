@@ -14,7 +14,35 @@
     "email": "Email",
     "password": "Password",
     "age": "Age",
-    "gender": "Gender"
+    "gender": "Gender",
+    "name": "Name",
+    "bio": "Bio"
+  },
+  "settings": {
+    "title": "Edit profile",
+    "subtitle": "Manage your profile and account.",
+    "profile": "Profile",
+    "changePhoto": "Change photo",
+    "removePhoto": "Remove photo",
+    "namePlaceholder": "Your name",
+    "usernamePlaceholder": "yourname",
+    "bioPlaceholder": "Tell people about yourself",
+    "avatarTooLarge": "Image is too large, even after compression.",
+    "save": "Save changes",
+    "account": {
+      "title": "Account",
+      "verified": "Your email is verified.",
+      "notVerified": "Your email is not verified yet.",
+      "pending": "Waiting for confirmation — open the link sent to {email}.",
+      "currentPassword": "Current password",
+      "currentPasswordPlaceholder": "Confirm with your password",
+      "changeEmail": "Change email",
+      "linkExpired": "The confirmation link expired. Please try changing your email again.",
+      "passwordHeading": "Password",
+      "passwordHint": "We’ll email you a secure link to choose a new password.",
+      "changePassword": "Change password",
+      "passwordSent": "We emailed you a link to set a new password."
+    }
   },
   "auth": {
     "continueWithGoogle": "Continue with Google",

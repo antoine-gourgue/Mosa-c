@@ -14,7 +14,35 @@
     "email": "E-mail",
     "password": "Mot de passe",
     "age": "Âge",
-    "gender": "Genre"
+    "gender": "Genre",
+    "name": "Nom",
+    "bio": "Bio"
+  },
+  "settings": {
+    "title": "Modifier le profil",
+    "subtitle": "Gérez votre profil et votre compte.",
+    "profile": "Profil",
+    "changePhoto": "Changer la photo",
+    "removePhoto": "Supprimer la photo",
+    "namePlaceholder": "Votre nom",
+    "usernamePlaceholder": "votrenom",
+    "bioPlaceholder": "Parlez de vous",
+    "avatarTooLarge": "L’image est trop grande, même après compression.",
+    "save": "Enregistrer",
+    "account": {
+      "title": "Compte",
+      "verified": "Votre e-mail est vérifié.",
+      "notVerified": "Votre e-mail n’est pas encore vérifié.",
+      "pending": "En attente de confirmation — ouvrez le lien envoyé à {email}.",
+      "currentPassword": "Mot de passe actuel",
+      "currentPasswordPlaceholder": "Confirmez avec votre mot de passe",
+      "changeEmail": "Changer l’e-mail",
+      "linkExpired": "Le lien de confirmation a expiré. Veuillez réessayer de changer votre e-mail.",
+      "passwordHeading": "Mot de passe",
+      "passwordHint": "Nous vous enverrons un lien sécurisé par e-mail pour choisir un nouveau mot de passe.",
+      "changePassword": "Changer le mot de passe",
+      "passwordSent": "Nous vous avons envoyé un lien par e-mail pour définir un nouveau mot de passe."
+    }
   },
   "auth": {
     "continueWithGoogle": "Continuer avec Google",
