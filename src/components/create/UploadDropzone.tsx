@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent, ReactElement } from "react";
 import { Button } from "@/components/ui";
@@ -61,6 +62,7 @@ function readImage(file: File): Promise<SelectedImage> {
  * @returns The upload area element.
  */
 export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactElement {
+  const t = useTranslations("create");
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -72,11 +74,11 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
       return;
     }
     if (!file.type.startsWith("image/") && !isHeicFile(file)) {
-      setError("Please choose an image file.");
+      setError(t("chooseImageFile"));
       return;
     }
     if (file.size > MAX_BYTES) {
-      setError("Images must be 10 MB or smaller.");
+      setError(t("imagesMax10"));
       return;
     }
     setError(null);
@@ -89,7 +91,7 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
       }
       onChange(selected);
     } catch {
-      setError("That image could not be read.");
+      setError(t("imageUnreadable"));
     } finally {
       setProcessing(false);
     }
@@ -133,7 +135,7 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
         />
         {processing ? (
           <div className="grid min-h-[460px] place-items-center rounded-xl bg-surface text-[15px] font-semibold text-ink">
-            Processing photo…
+            {t("processing")}
           </div>
         ) : value === null ? (
           <div
@@ -146,18 +148,18 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
               <SendIcon size={24} />
             </span>
             <p className="mt-4 text-[15px] font-semibold leading-snug text-ink">
-              Choose a file or
+              {t("dropLine1")}
               <br />
-              drag it here
+              {t("dropLine2")}
             </p>
             <p className="absolute inset-x-6 bottom-8 mx-auto max-w-[280px] text-sm text-ink-soft">
-              We recommend high-quality .jpg, .png or .heic files, up to 10 MB.
+              {t("fileHint")}
             </p>
           </div>
         ) : (
           <div
             role="img"
-            aria-label="Selected preview"
+            aria-label={t("selectedPreview")}
             className={cn(
               "rounded-xl transition-shadow",
               dragActive ? "ring-2 ring-accent ring-offset-2 ring-offset-bg" : "",
@@ -181,7 +183,7 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
 
       <div className="my-4 border-t border-line" />
       <Button variant="ghost" fullWidth onClick={() => setUrlOpen(true)}>
-        Save from URL
+        {t("saveFromUrl")}
       </Button>
 
       <UrlImageDialog

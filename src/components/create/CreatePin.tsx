@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import type { ReactElement, ReactNode } from "react";
 import { Button } from "@/components/ui";
@@ -53,6 +54,7 @@ const CONTROL_CLASS =
  * @returns The create pin form element.
  */
 export function CreatePin({ boards }: CreatePinProps): ReactElement {
+  const t = useTranslations("create");
   const [image, setImage] = useState<SelectedImage | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -65,7 +67,7 @@ export function CreatePin({ boards }: CreatePinProps): ReactElement {
 
   const onPublish = (): void => {
     if (image === null) {
-      setError("Please add an image.");
+      setError(t("addImage"));
       return;
     }
     setError(null);
@@ -79,7 +81,7 @@ export function CreatePin({ boards }: CreatePinProps): ReactElement {
           upload = { file: selected.file, width: selected.width, height: selected.height };
         }
         if (upload.file.size > MAX_IMAGE_BYTES) {
-          setError("Image must be under 10 MB, even after compression.");
+          setError(t("imageTooLargeCompressed"));
           return;
         }
         const formData = new FormData();
@@ -96,7 +98,7 @@ export function CreatePin({ boards }: CreatePinProps): ReactElement {
           setError(result.error);
         }
       } catch {
-        setError("Could not publish this image. Please try another photo.");
+        setError(t("publishFailed"));
       }
     });
   };
@@ -106,37 +108,37 @@ export function CreatePin({ boards }: CreatePinProps): ReactElement {
   return (
     <div>
       <header className="-mx-6 mb-8 border-y border-line px-6 py-4">
-        <h1 className="text-2xl font-bold text-ink">Create Pin</h1>
+        <h1 className="text-2xl font-bold text-ink">{t("createPin")}</h1>
       </header>
 
       <div className="mx-auto grid max-w-[1000px] grid-cols-1 gap-8 lg:grid-cols-[minmax(0,420px)_1fr]">
         <UploadDropzone value={image} onChange={setImage} />
 
         <div className="flex flex-col gap-3">
-          <Field label="Title">
+          <Field label={t("title")}>
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder="Tell everyone what your Pin is about"
+              placeholder={t("titlePlaceholder")}
               className={CONTROL_CLASS}
             />
           </Field>
 
-          <Field label="Description">
+          <Field label={t("description")}>
             <textarea
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              placeholder="Add a detailed description"
+              placeholder={t("descriptionPlaceholder")}
               rows={4}
               className={`${CONTROL_CLASS} resize-none`}
             />
           </Field>
 
-          <Field label="Link">
+          <Field label={t("link")}>
             <input
               value={link}
               onChange={(event) => setLink(event.target.value)}
-              placeholder="Add a destination link"
+              placeholder={t("linkPlaceholder")}
               className={CONTROL_CLASS}
             />
           </Field>
@@ -163,7 +165,7 @@ export function CreatePin({ boards }: CreatePinProps): ReactElement {
             disabled={!canPublish}
             onClick={onPublish}
           >
-            Publish
+            {t("publish")}
           </Button>
         </div>
       </div>

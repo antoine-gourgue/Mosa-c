@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
@@ -61,6 +62,7 @@ export function BoardPicker({
   onChange,
   onCreated,
 }: BoardPickerProps): ReactElement {
+  const t = useTranslations("create");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
@@ -104,7 +106,7 @@ export function BoardPicker({
       >
         <Cover url={selected?.coverUrl ?? null} size={36} />
         <span className="flex-1 truncate text-[15px] font-semibold text-ink">
-          {selected?.name ?? "Choose a board"}
+          {selected?.name ?? t("chooseBoard")}
         </span>
         <ChevronDownIcon size={18} className="shrink-0 text-ink-soft" />
       </button>
@@ -112,16 +114,16 @@ export function BoardPicker({
       {open ? (
         <div className="absolute inset-x-0 top-full z-30 mt-1 rounded-xl border border-line bg-bg p-2 shadow-pop">
           <Input
-            aria-label="Search boards"
+            aria-label={t("searchBoards")}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search"
+            placeholder={t("search")}
             leadingIcon={<SearchIcon size={18} />}
           />
-          <p className="px-2 pb-1 pt-3 text-xs font-semibold text-ink-soft">All boards</p>
+          <p className="px-2 pb-1 pt-3 text-xs font-semibold text-ink-soft">{t("allBoards")}</p>
           <ul className="max-h-60 overflow-auto">
             {filtered.length === 0 ? (
-              <li className="px-2 py-3 text-sm text-ink-soft">No boards found.</li>
+              <li className="px-2 py-3 text-sm text-ink-soft">{t("noBoardsFound")}</li>
             ) : (
               filtered.map((board) => (
                 <li key={board.id}>
@@ -154,7 +156,7 @@ export function BoardPicker({
             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-bg">
               <PlusIcon size={20} />
             </span>
-            <span className="text-[15px] font-semibold text-ink">Create board</span>
+            <span className="text-[15px] font-semibold text-ink">{t("createBoard")}</span>
           </button>
         </div>
       ) : null}
