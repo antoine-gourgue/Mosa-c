@@ -31,8 +31,10 @@ export function hashToken(token: string): string {
 }
 
 /**
- * Issues a single-use token for an account action, replacing any existing token
- * of the same kind for the user.
+ * Issues a single-use token for an account action, atomically replacing any
+ * existing token of the same kind for the user. The `(userId, kind)` unique
+ * constraint and upsert guarantee a single active token survives even under
+ * concurrent requests.
  *
  * @param userId - The user the token belongs to.
  * @param kind - The action the token authorises.
@@ -45,15 +47,15 @@ export async function issueAccountToken(
   newEmail: string | null = null,
 ): Promise<string> {
   const token = generateToken();
-  await prisma.accountToken.deleteMany({ where: { userId, kind } });
-  await prisma.accountToken.create({
-    data: {
-      userId,
-      kind,
-      newEmail,
-      tokenHash: hashToken(token),
-      expiresAt: new Date(Date.now() + ACCOUNT_TOKEN_TTL_MS),
-    },
+  const data = {
+    newEmail,
+    tokenHash: hashToken(token),
+    expiresAt: new Date(Date.now() + ACCOUNT_TOKEN_TTL_MS),
+  };
+  await prisma.accountToken.upsert({
+    where: { userId_kind: { userId, kind } },
+    create: { userId, kind, ...data },
+    update: data,
   });
   return token;
 }

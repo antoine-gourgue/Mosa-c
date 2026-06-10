@@ -142,7 +142,7 @@ model AccountToken {
   expiresAt DateTime
   createdAt DateTime         @default(now())
 
-  @@index([userId, kind])
+  @@unique([userId, kind])
 }
 
 model Tag {

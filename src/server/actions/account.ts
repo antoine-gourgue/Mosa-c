@@ -146,13 +146,21 @@ export async function requestPasswordReset(): Promise<AccountActionResult> {
 }
 
 /**
+ * The minimum time {@link requestPasswordResetForEmail} takes to respond, so the
+ * presence of an account can't be inferred from how long the request runs.
+ */
+const RESET_MIN_DURATION_MS = 400;
+
+/**
  * Sends a password-reset link for a typed email (the "forgot password" flow).
- * Always reports success so it never reveals whether an account exists.
+ * Always reports success so it never reveals whether an account exists, and pads
+ * the response to a constant minimum duration so timing can't reveal it either.
  *
  * @param email - The email entered on the forgot-password page.
  * @returns Always a success result.
  */
 export async function requestPasswordResetForEmail(email: string): Promise<AccountActionResult> {
+  const startedAt = Date.now();
   const parsed = z.email().safeParse(email.trim().toLowerCase());
   if (parsed.success) {
     const user = await prisma.user.findUnique({
@@ -162,6 +170,10 @@ export async function requestPasswordResetForEmail(email: string): Promise<Accou
     if (user !== null && user.passwordHash !== null) {
       await sendReset(user.id, user.email);
     }
+  }
+  const remaining = RESET_MIN_DURATION_MS - (Date.now() - startedAt);
+  if (remaining > 0) {
+    await new Promise((resolve) => setTimeout(resolve, remaining));
   }
   return { ok: true };
 }

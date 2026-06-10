@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    accountToken: { deleteMany: vi.fn(), create: vi.fn(), findUnique: vi.fn() },
+    accountToken: { deleteMany: vi.fn(), upsert: vi.fn(), findUnique: vi.fn() },
   },
 }));
 
@@ -12,7 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { consumeAccountToken, generateToken, hashToken, issueAccountToken } from "./account-token";
 
 const db = prisma as unknown as {
-  accountToken: { deleteMany: Mock; create: Mock; findUnique: Mock };
+  accountToken: { deleteMany: Mock; upsert: Mock; findUnique: Mock };
 };
 
 const sha = (s: string): string => createHash("sha256").update(s).digest("hex");
@@ -20,7 +20,7 @@ const sha = (s: string): string => createHash("sha256").update(s).digest("hex");
 beforeEach(() => {
   vi.clearAllMocks();
   db.accountToken.deleteMany.mockResolvedValue({ count: 0 });
-  db.accountToken.create.mockResolvedValue({});
+  db.accountToken.upsert.mockResolvedValue({});
 });
 
 describe("generateToken / hashToken", () => {
@@ -34,19 +34,18 @@ describe("generateToken / hashToken", () => {
 });
 
 describe("issueAccountToken", () => {
-  it("clears existing tokens of the kind and stores the hash", async () => {
+  it("atomically replaces any existing token of the kind and stores the hash", async () => {
     const token = await issueAccountToken("u1", "PASSWORD_RESET");
-    expect(db.accountToken.deleteMany).toHaveBeenCalledWith({
-      where: { userId: "u1", kind: "PASSWORD_RESET" },
-    });
-    const args = db.accountToken.create.mock.calls[0]?.[0];
-    expect(args.data.tokenHash).toBe(hashToken(token));
-    expect(args.data.kind).toBe("PASSWORD_RESET");
+    const args = db.accountToken.upsert.mock.calls[0]?.[0];
+    expect(args.where).toEqual({ userId_kind: { userId: "u1", kind: "PASSWORD_RESET" } });
+    expect(args.create.tokenHash).toBe(hashToken(token));
+    expect(args.create.kind).toBe("PASSWORD_RESET");
+    expect(args.update.tokenHash).toBe(hashToken(token));
   });
 
   it("stores the pending email for an email change", async () => {
     await issueAccountToken("u1", "EMAIL_CHANGE", "new@x.com");
-    expect(db.accountToken.create.mock.calls[0]?.[0].data.newEmail).toBe("new@x.com");
+    expect(db.accountToken.upsert.mock.calls[0]?.[0].create.newEmail).toBe("new@x.com");
   });
 });
 
