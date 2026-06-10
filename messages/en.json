@@ -18,7 +18,14 @@
     "passwordTooShort": "Password must be at least 8 characters.",
     "avatarTooLarge": "The avatar is too large.",
     "avatarNotImage": "The avatar must be an image.",
-    "nameRequired": "A name is required."
+    "nameRequired": "A name is required.",
+    "usernameMin": "Username must be at least 3 characters.",
+    "usernameMax": "Keep your username under 20 characters.",
+    "usernameChars": "Use letters, numbers and underscores only.",
+    "ageMin": "You must be at least 13.",
+    "emailExists": "An account with this email already exists.",
+    "invalidCode": "That code is invalid or has expired.",
+    "invalidCredentials": "Invalid email or password."
   },
   "gender": {
     "female": "Female",

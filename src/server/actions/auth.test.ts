@@ -1,6 +1,9 @@
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("next-intl/server", () => ({
+  getTranslations: async () => (key: string) => key,
+}));
 vi.mock("next-auth", () => ({ AuthError: class AuthError extends Error {} }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {

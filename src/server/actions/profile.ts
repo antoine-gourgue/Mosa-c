@@ -23,13 +23,13 @@ const MAX_AVATAR_BYTES = 10 * 1024 * 1024;
 /**
  * Builds the profile validation schema with localized messages.
  *
- * @param nameRequired - The localized "name required" message.
+ * @param t - Translator for the `errors` namespace.
  * @returns The zod schema for the edit-profile form.
  */
-const profileSchema = (nameRequired: string) =>
+const profileSchema = (t: (key: string) => string) =>
   z.object({
-    username: usernameSchema,
-    name: z.string().trim().min(1, nameRequired).max(60),
+    username: usernameSchema(t),
+    name: z.string().trim().min(1, t("nameRequired")).max(60),
     bio: z.string().trim().max(300).optional(),
     gender: z.enum(["FEMALE", "MALE", "NON_BINARY", "UNDISCLOSED"]).optional(),
   });
@@ -49,7 +49,7 @@ export async function updateProfile(formData: FormData): Promise<UpdateProfileRe
     return { ok: false, error: t("signedOut") };
   }
 
-  const parsed = profileSchema(t("nameRequired")).safeParse({
+  const parsed = profileSchema(t as (key: string) => string).safeParse({
     username: formData.get("username"),
     name: formData.get("name"),
     bio: formData.get("bio") ?? undefined,

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { registerSchema, signInSchema } from "./auth";
 
+/**
+ * Identity translator: schema validity doesn't depend on message text.
+ */
+const t = (key: string): string => key;
+
 describe("signInSchema", () => {
   it("accepts a valid email and password", () => {
     expect(signInSchema.safeParse({ email: "a@b.com", password: "password123" }).success).toBe(
@@ -19,7 +24,7 @@ describe("signInSchema", () => {
 
 describe("registerSchema", () => {
   it("coerces the age and accepts valid input", () => {
-    const result = registerSchema.safeParse({
+    const result = registerSchema(t).safeParse({
       username: "ada_99",
       email: "a@b.com",
       password: "password123",
@@ -33,7 +38,7 @@ describe("registerSchema", () => {
 
   it("rejects an age below 13", () => {
     expect(
-      registerSchema.safeParse({
+      registerSchema(t).safeParse({
         username: "ada",
         email: "a@b.com",
         password: "password123",
@@ -44,8 +49,8 @@ describe("registerSchema", () => {
 
   it("rejects an invalid username", () => {
     const base = { email: "a@b.com", password: "password123", age: 20 };
-    expect(registerSchema.safeParse({ ...base, username: "ab" }).success).toBe(false);
-    expect(registerSchema.safeParse({ ...base, username: "bad name!" }).success).toBe(false);
-    expect(registerSchema.safeParse({ ...base, username: "good_one" }).success).toBe(true);
+    expect(registerSchema(t).safeParse({ ...base, username: "ab" }).success).toBe(false);
+    expect(registerSchema(t).safeParse({ ...base, username: "bad name!" }).success).toBe(false);
+    expect(registerSchema(t).safeParse({ ...base, username: "good_one" }).success).toBe(true);
   });
 });

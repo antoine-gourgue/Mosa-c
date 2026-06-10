@@ -1,7 +1,13 @@
 import { z } from "zod";
 
 /**
- * Validates email/password credentials submitted for sign-in.
+ * Translator for the `errors` namespace, used to build localized schemas.
+ */
+type ErrorTranslator = (key: string) => string;
+
+/**
+ * Validates email/password credentials submitted for sign-in. No custom
+ * messages, so it needs no translations.
  */
 export const signInSchema = z.object({
   email: z.email(),
@@ -14,28 +20,36 @@ export const signInSchema = z.object({
 export type SignInInput = z.infer<typeof signInSchema>;
 
 /**
- * Validates a username handle: 3–20 chars, letters, numbers and underscores.
- * Shared between sign-up and profile editing.
+ * Builds the username validator (3–20 chars, letters, numbers, underscores)
+ * with localized messages. Shared between sign-up and profile editing.
+ *
+ * @param t - Translator for the `errors` namespace.
+ * @returns The username zod schema.
  */
-export const usernameSchema = z
-  .string()
-  .trim()
-  .min(3, "Username must be at least 3 characters.")
-  .max(20, "Keep your username under 20 characters.")
-  .regex(/^[a-zA-Z0-9_]+$/, "Use letters, numbers and underscores only.");
+export const usernameSchema = (t: ErrorTranslator) =>
+  z
+    .string()
+    .trim()
+    .min(3, t("usernameMin"))
+    .max(20, t("usernameMax"))
+    .regex(/^[a-zA-Z0-9_]+$/, t("usernameChars"));
 
 /**
- * Validates the data submitted when registering a new account.
+ * Builds the registration validator with localized messages.
+ *
+ * @param t - Translator for the `errors` namespace.
+ * @returns The registration zod schema.
  */
-export const registerSchema = z.object({
-  username: usernameSchema,
-  email: z.email(),
-  password: z.string().min(8, "Password must be at least 8 characters."),
-  age: z.coerce.number().int().min(13, "You must be at least 13.").max(120),
-  gender: z.enum(["FEMALE", "MALE", "NON_BINARY", "UNDISCLOSED"]).optional(),
-});
+export const registerSchema = (t: ErrorTranslator) =>
+  z.object({
+    username: usernameSchema(t),
+    email: z.email(),
+    password: z.string().min(8, t("passwordTooShort")),
+    age: z.coerce.number().int().min(13, t("ageMin")).max(120),
+    gender: z.enum(["FEMALE", "MALE", "NON_BINARY", "UNDISCLOSED"]).optional(),
+  });
 
 /**
  * The validated registration input.
  */
-export type RegisterInput = z.infer<typeof registerSchema>;
+export type RegisterInput = z.infer<ReturnType<typeof registerSchema>>;
