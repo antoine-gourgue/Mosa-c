@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.15.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.14.0...v1.15.0) (2026-06-10)
+
+
+### Features
+
+* **account:** live email verification status and consistent success styling ([0fbf524](https://github.com/antoine-gourgue/Mosa-c/commit/0fbf52404fc256833ecc5fc71f0109a913227fe1))
+* **profile:** account settings with username, gender and email-verified email/password changes ([9d2ba6c](https://github.com/antoine-gourgue/Mosa-c/commit/9d2ba6ca5edb2bbc3c8fe7b252adf2855dcd78a9))
+* **profile:** account settings with verified email & password changes ([f797da1](https://github.com/antoine-gourgue/Mosa-c/commit/f797da1c5b6d4d0ad62a5adbea92e48e35079ba8))
+
+
+### Bug Fixes
+
+* **account:** atomic token issuance and constant-time reset response ([7b5ebf4](https://github.com/antoine-gourgue/Mosa-c/commit/7b5ebf42e66180701f3405f3b7ba259291ace96a))
+* **account:** harden email/password flows against CodeRabbit findings ([4c4d1d4](https://github.com/antoine-gourgue/Mosa-c/commit/4c4d1d4c8ed089f3ba674221035041dc20e94d40))
+
 ## [1.14.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.13.0...v1.14.0) (2026-06-09)
 
 
