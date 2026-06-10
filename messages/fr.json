@@ -1,7 +1,48 @@
 {
   "common": {
     "language": "Langue",
-    "or": "OU"
+    "or": "OU",
+    "skipToContent": "Aller au contenu"
+  },
+  "feed": {
+    "forYou": "Pour vous",
+    "following": "Abonnements",
+    "sortPins": "Trier les épingles",
+    "mostRecent": "Plus récentes",
+    "mostLiked": "Plus aimées",
+    "mostDownloaded": "Plus téléchargées",
+    "mostCommented": "Plus commentées",
+    "backToFeed": "Retour au fil"
+  },
+  "errorPage": {
+    "title": "Une erreur est survenue",
+    "body": "Une erreur inattendue s’est produite. Réessayez, ou revenez au fil.",
+    "tryAgain": "Réessayer",
+    "goHome": "Accueil",
+    "notFoundTitle": "Cette idée s’est égarée",
+    "notFoundBody": "La page que vous cherchez n’existe pas ou a été déplacée.",
+    "backHome": "Retour à l’accueil",
+    "pageNotFound": "Page introuvable",
+    "offlineTitle": "Vous êtes hors ligne",
+    "offlineBody": "Mosaic a besoin d’une connexion pour charger de nouvelles idées. Vérifiez votre réseau et réessayez."
+  },
+  "meta": {
+    "settings": "Réglages",
+    "messages": "Messages",
+    "search": "Rechercher",
+    "boards": "Vos tableaux",
+    "create": "Créer une épingle",
+    "notifications": "Notifications",
+    "signUp": "S’inscrire",
+    "verify": "Vérifiez votre e-mail",
+    "forgotPassword": "Mot de passe oublié",
+    "resetPassword": "Réinitialiser votre mot de passe",
+    "confirmEmail": "Confirmez votre e-mail",
+    "login": "Se connecter",
+    "offline": "Vous êtes hors ligne",
+    "pinNotFound": "Épingle introuvable",
+    "board": "Tableau",
+    "tagNotFound": "Tag introuvable"
   },
   "ui": {
     "verified": "Vérifié",
@@ -141,7 +182,9 @@
     "loading": "Chargement…",
     "sharedImage": "Image partagée",
     "deleteConversation": "Supprimer la conversation avec {name}",
-    "removeMember": "Retirer {name}"
+    "removeMember": "Retirer {name}",
+    "selectConversation": "Sélectionnez une conversation pour commencer à discuter.",
+    "newConversationHint": "Ceci pourrait être le début de quelque chose de génial."
   },
   "detail": {
     "visitSite": "Visiter le site",
@@ -170,7 +213,8 @@
     "postComment": "Publier le commentaire",
     "deleteCommentTitle": "Supprimer le commentaire ?",
     "deleteCommentBody": "Ce commentaire sera définitivement supprimé.",
-    "delete": "Supprimer"
+    "delete": "Supprimer",
+    "logInToComment": "Connectez-vous pour commenter"
   },
   "create": {
     "createPin": "Créer une épingle",
@@ -412,5 +456,13 @@
       "resent": "Si votre e-mail doit être vérifié, un nouveau code est en route.",
       "invalidCode": "Ce code est invalide ou a expiré."
     }
+  },
+  "page": {
+    "moreLikeThis": "Plus comme ça",
+    "noPublishedPins": "Aucune épingle publiée pour le moment.",
+    "noSavedIdeas": "Aucune idée enregistrée pour le moment.",
+    "noLikedPins": "Aucune épingle aimée pour le moment.",
+    "boardEmpty": "Ce tableau est vide.",
+    "noPinsForTag": "Aucune épingle avec ce tag pour le moment."
   }
 }

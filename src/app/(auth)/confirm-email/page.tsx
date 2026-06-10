@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import type { ReactElement } from "react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { ConfirmEmail } from "@/components/auth/ConfirmEmail";
@@ -6,10 +7,13 @@ import { ConfirmEmail } from "@/components/auth/ConfirmEmail";
 /**
  * Metadata for the email-confirmation route.
  */
-export const metadata: Metadata = {
-  title: "Confirm your email",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("meta");
+  return {
+    title: t("confirmEmail"),
+    robots: { index: false },
+  };
+}
 
 /**
  * Email-change confirmation route. Applies the change from the link token.

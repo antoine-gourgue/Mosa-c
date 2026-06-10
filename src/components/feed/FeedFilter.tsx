@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ReactElement } from "react";
 import { Menu } from "@/components/ui";
@@ -13,11 +14,14 @@ export type FeedFilterProps = {
   active: FeedSort;
 };
 
-const OPTIONS: { value: FeedSort; label: string }[] = [
-  { value: "recent", label: "Most recent" },
-  { value: "likes", label: "Most liked" },
-  { value: "downloads", label: "Most downloaded" },
-  { value: "comments", label: "Most commented" },
+const OPTIONS: {
+  value: FeedSort;
+  labelKey: "mostRecent" | "mostLiked" | "mostDownloaded" | "mostCommented";
+}[] = [
+  { value: "recent", labelKey: "mostRecent" },
+  { value: "likes", labelKey: "mostLiked" },
+  { value: "downloads", labelKey: "mostDownloaded" },
+  { value: "comments", labelKey: "mostCommented" },
 ];
 
 /**
@@ -30,6 +34,7 @@ const OPTIONS: { value: FeedSort; label: string }[] = [
  * @returns The feed sort control.
  */
 export function FeedFilter({ active }: FeedFilterProps): ReactElement {
+  const t = useTranslations("feed");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -47,11 +52,11 @@ export function FeedFilter({ active }: FeedFilterProps): ReactElement {
 
   return (
     <Menu
-      label="Sort pins"
+      label={t("sortPins")}
       icon={<SlidersIcon size={20} />}
       align="end"
       items={OPTIONS.map((option) => ({
-        label: option.label,
+        label: t(option.labelKey),
         icon: option.value === active ? <CheckIcon size={18} /> : undefined,
         onSelect: () => router.push(hrefFor(option.value)),
       }))}

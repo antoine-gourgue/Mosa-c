@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import type { ReactElement } from "react";
 import { SearchDiscovery, SearchField, SearchResults } from "@/components/search";
@@ -17,9 +18,12 @@ function resolveSort(value: string | undefined): FeedSort {
 /**
  * Metadata for the search route.
  */
-export const metadata: Metadata = {
-  title: "Search",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("meta");
+  return {
+    title: t("search"),
+  };
+}
 
 /**
  * Search route: either the discovery view (no query) or the results view

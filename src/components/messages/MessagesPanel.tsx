@@ -948,9 +948,7 @@ export function MessagesPanel({
                   </span>
                 </div>
                 <p className="mt-3 font-semibold text-ink">{active.other.name}</p>
-                <p className="mt-1 text-sm text-ink-soft">
-                  This could be the start of something great.
-                </p>
+                <p className="mt-1 text-sm text-ink-soft">{t("newConversationHint")}</p>
               </div>
             ) : (
               <div className="space-y-2">

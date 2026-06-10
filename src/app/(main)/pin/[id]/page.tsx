@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { ReactElement } from "react";
 import { PinDetail } from "@/components/detail";
@@ -23,7 +24,7 @@ export async function generateMetadata({
   const { id } = await params;
   const pin = await getPinById(id);
   if (pin === null) {
-    return { title: "Pin not found" };
+    return { title: (await getTranslations("meta"))("pinNotFound") };
   }
   const description = pin.description ?? `A pin by ${pin.creator.name} on Mosaic.`;
   const image = { url: pin.imageUrl, width: pin.width, height: pin.height, alt: pin.title };
@@ -49,6 +50,8 @@ export default async function PinPage({
   params: Promise<{ id: string }>;
 }): Promise<ReactElement> {
   const { id } = await params;
+  const t = await getTranslations("feed");
+  const tg = await getTranslations("page");
   const user = await getCurrentUser();
   const [related, savedIds, likedIds] = await Promise.all([
     getRelatedPins(id),
@@ -61,7 +64,7 @@ export default async function PinPage({
       <div className="mx-auto max-w-[1016px]">
         <Link
           href="/"
-          aria-label="Back to feed"
+          aria-label={t("backToFeed")}
           className="mb-2 -ml-1 inline-flex size-10 items-center justify-center rounded-xl text-ink-soft transition-colors hover:bg-surface hover:text-ink"
         >
           <BackIcon size={20} />
@@ -71,7 +74,7 @@ export default async function PinPage({
 
       {related.length > 0 ? (
         <section className="mx-auto mt-12 max-w-[1280px]">
-          <h2 className="mb-6 text-center text-xl font-bold text-ink">More like this</h2>
+          <h2 className="mb-6 text-center text-xl font-bold text-ink">{tg("moreLikeThis")}</h2>
           <PinFeed
             pins={related}
             savedIds={savedIds}

@@ -619,7 +619,7 @@ export function Messenger({
       >
         {active === null ? (
           <div className="flex flex-1 items-center justify-center p-8 text-center text-ink-soft">
-            Select a conversation to start chatting.
+            {t("selectConversation")}
           </div>
         ) : (
           <>

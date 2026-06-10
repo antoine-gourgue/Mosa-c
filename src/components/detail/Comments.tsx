@@ -331,7 +331,7 @@ export function Comments({
             href="/login"
             className="inline-flex text-sm font-semibold text-accent hover:underline"
           >
-            Log in to comment
+            {t("logInToComment")}
           </Link>
         )}
       </div>

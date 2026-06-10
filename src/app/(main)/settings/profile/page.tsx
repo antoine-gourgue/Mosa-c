@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import type { ReactElement } from "react";
 import { EditProfile } from "@/components/profile/EditProfile";
 import { getCurrentUser } from "@/lib/auth";
@@ -8,10 +9,13 @@ import { prisma } from "@/lib/prisma";
 /**
  * Metadata for the account settings route.
  */
-export const metadata: Metadata = {
-  title: "Settings",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("meta");
+  return {
+    title: t("settings"),
+    robots: { index: false },
+  };
+}
 
 /**
  * Account settings route, pre-filled with the current user's details.

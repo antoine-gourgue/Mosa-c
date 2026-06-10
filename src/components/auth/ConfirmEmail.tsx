@@ -47,7 +47,7 @@ export function ConfirmEmail({ token }: ConfirmEmailProps): ReactElement {
         setError(t("genericError"));
         setState("error");
       });
-  }, [token]);
+  }, [token, t]);
 
   return (
     <div>

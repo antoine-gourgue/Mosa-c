@@ -1,7 +1,48 @@
 {
   "common": {
     "language": "Language",
-    "or": "OR"
+    "or": "OR",
+    "skipToContent": "Skip to content"
+  },
+  "feed": {
+    "forYou": "For you",
+    "following": "Following",
+    "sortPins": "Sort pins",
+    "mostRecent": "Most recent",
+    "mostLiked": "Most liked",
+    "mostDownloaded": "Most downloaded",
+    "mostCommented": "Most commented",
+    "backToFeed": "Back to feed"
+  },
+  "errorPage": {
+    "title": "Something went wrong",
+    "body": "An unexpected error occurred. Try again, or head back to the feed.",
+    "tryAgain": "Try again",
+    "goHome": "Go home",
+    "notFoundTitle": "This idea wandered off",
+    "notFoundBody": "The page you are looking for does not exist or has been moved.",
+    "backHome": "Back to home",
+    "pageNotFound": "Page not found",
+    "offlineTitle": "You’re offline",
+    "offlineBody": "Mosaic needs a connection to load fresh ideas. Check your network and try again."
+  },
+  "meta": {
+    "settings": "Settings",
+    "messages": "Messages",
+    "search": "Search",
+    "boards": "Your boards",
+    "create": "Create Pin",
+    "notifications": "Notifications",
+    "signUp": "Sign up",
+    "verify": "Verify your email",
+    "forgotPassword": "Forgot password",
+    "resetPassword": "Reset your password",
+    "confirmEmail": "Confirm your email",
+    "login": "Log in",
+    "offline": "You’re offline",
+    "pinNotFound": "Pin not found",
+    "board": "Board",
+    "tagNotFound": "Tag not found"
   },
   "ui": {
     "verified": "Verified",
@@ -141,7 +182,9 @@
     "loading": "Loading…",
     "sharedImage": "Shared image",
     "deleteConversation": "Delete conversation with {name}",
-    "removeMember": "Remove {name}"
+    "removeMember": "Remove {name}",
+    "selectConversation": "Select a conversation to start chatting.",
+    "newConversationHint": "This could be the start of something great."
   },
   "detail": {
     "visitSite": "Visit site",
@@ -170,7 +213,8 @@
     "postComment": "Post comment",
     "deleteCommentTitle": "Delete comment?",
     "deleteCommentBody": "This comment will be permanently removed.",
-    "delete": "Delete"
+    "delete": "Delete",
+    "logInToComment": "Log in to comment"
   },
   "create": {
     "createPin": "Create Pin",
@@ -412,5 +456,13 @@
       "resent": "If your email needs verifying, a new code is on its way.",
       "invalidCode": "That code is invalid or has expired."
     }
+  },
+  "page": {
+    "moreLikeThis": "More like this",
+    "noPublishedPins": "No published pins yet.",
+    "noSavedIdeas": "No saved ideas yet.",
+    "noLikedPins": "No liked pins yet.",
+    "boardEmpty": "This board is empty.",
+    "noPinsForTag": "No pins with this tag yet."
   }
 }

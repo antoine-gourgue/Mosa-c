@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import type { ReactElement } from "react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { SignUp } from "@/components/auth/SignUp";
@@ -6,9 +7,12 @@ import { SignUp } from "@/components/auth/SignUp";
 /**
  * Metadata for the sign-up route.
  */
-export const metadata: Metadata = {
-  title: "Sign up",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("meta");
+  return {
+    title: t("signUp"),
+  };
+}
 
 /**
  * Sign-up route rendering the auth layout and the sign-up form.

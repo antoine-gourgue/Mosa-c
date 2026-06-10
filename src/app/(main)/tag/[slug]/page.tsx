@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 import { PinFeed } from "@/components/pin";
@@ -20,7 +21,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const tag = await getTagBySlug(slug);
   if (tag === null) {
-    return { title: "Tag not found" };
+    return { title: (await getTranslations("meta"))("tagNotFound") };
   }
   return {
     title: `#${tag.name}`,
@@ -47,6 +48,8 @@ export default async function TagPage({
   if (tag === null) {
     notFound();
   }
+  const tp = await getTranslations("page");
+  const tb = await getTranslations("board");
   const user = await getCurrentUser();
   const [pins, savedIds, likedIds] = await Promise.all([
     getPinsByTag(slug),
@@ -58,12 +61,10 @@ export default async function TagPage({
     <div className="mx-auto max-w-[1180px]">
       <header className="flex flex-col items-center gap-3 py-8 text-center">
         <h1 className="text-4xl font-extrabold text-ink sm:text-5xl">#{tag.name}</h1>
-        <p className="text-sm text-ink-soft">
-          {pins.length} {pins.length === 1 ? "Pin" : "Pins"}
-        </p>
+        <p className="text-sm text-ink-soft">{tb("pinCount", { count: pins.length })}</p>
       </header>
       {pins.length === 0 ? (
-        <p className="py-16 text-center text-ink-soft">No pins with this tag yet.</p>
+        <p className="py-16 text-center text-ink-soft">{tp("noPinsForTag")}</p>
       ) : (
         <PinFeed pins={pins} savedIds={savedIds} likedIds={likedIds} viewerId={user?.id ?? null} />
       )}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import type { ReactElement } from "react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { VerifyEmail } from "@/components/auth/VerifyEmail";
@@ -6,9 +7,12 @@ import { VerifyEmail } from "@/components/auth/VerifyEmail";
 /**
  * Metadata for the email verification route.
  */
-export const metadata: Metadata = {
-  title: "Verify your email",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("meta");
+  return {
+    title: t("verify"),
+  };
+}
 
 /**
  * Email verification route. Reads the pending email from the query string and
