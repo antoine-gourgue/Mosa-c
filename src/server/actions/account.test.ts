@@ -13,6 +13,8 @@ vi.mock("@/server/services/account-token", () => ({
 }));
 vi.mock("@/lib/prisma", () => ({
   prisma: { user: { findFirst: vi.fn(), findUnique: vi.fn(), update: vi.fn() } },
+  isUniqueConstraintError: (error: unknown) =>
+    typeof error === "object" && error !== null && (error as { code?: unknown }).code === "P2002",
 }));
 
 import { getCurrentUser } from "@/lib/auth";
@@ -60,6 +62,12 @@ describe("requestEmailChange", () => {
     expect(issueAccountToken).toHaveBeenCalledWith("u1", "EMAIL_CHANGE", "new@x.com");
     expect(sendEmailChangeEmail).toHaveBeenCalledWith("new@x.com", expect.stringContaining("tok"));
   });
+
+  it("reports failure when the confirmation email cannot be sent", async () => {
+    db.user.findFirst.mockResolvedValue(null);
+    vi.mocked(sendEmailChangeEmail).mockResolvedValueOnce(false);
+    expect((await requestEmailChange("new@x.com")).ok).toBe(false);
+  });
 });
 
 describe("confirmEmailChange", () => {
@@ -86,6 +94,13 @@ describe("confirmEmailChange", () => {
       }),
     );
   });
+
+  it("reports a conflict when the email is taken at write time", async () => {
+    vi.mocked(consumeAccountToken).mockResolvedValue({ userId: "u1", newEmail: "new@x.com" });
+    db.user.findFirst.mockResolvedValue(null);
+    db.user.update.mockRejectedValue(Object.assign(new Error("conflict"), { code: "P2002" }));
+    expect((await confirmEmailChange("tok")).ok).toBe(false);
+  });
 });
 
 describe("requestPasswordReset", () => {
@@ -103,6 +118,12 @@ describe("requestPasswordReset", () => {
     db.user.findUnique.mockResolvedValue({ email: "a@x.com", passwordHash: "h" });
     expect(await requestPasswordReset()).toEqual({ ok: true });
     expect(sendPasswordResetEmail).toHaveBeenCalledWith("a@x.com", expect.stringContaining("tok"));
+  });
+
+  it("reports failure when the reset email cannot be sent", async () => {
+    db.user.findUnique.mockResolvedValue({ email: "a@x.com", passwordHash: "h" });
+    vi.mocked(sendPasswordResetEmail).mockResolvedValueOnce(false);
+    expect((await requestPasswordReset()).ok).toBe(false);
   });
 });
 

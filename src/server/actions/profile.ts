@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
+import { isUniqueConstraintError, prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { getStorage } from "@/lib/storage";
 import { usernameSchema } from "@/lib/validation/auth";
@@ -12,6 +12,12 @@ import { usernameSchema } from "@/lib/validation/auth";
  * Failure outcome of {@link updateProfile}; a successful call redirects.
  */
 export type UpdateProfileResult = { ok: false; error: string };
+
+/**
+ * Maximum accepted avatar size, matching the client-side compression limit, so
+ * oversized uploads are rejected before being buffered into memory.
+ */
+const MAX_AVATAR_BYTES = 10 * 1024 * 1024;
 
 const profileSchema = z.object({
   username: usernameSchema,
@@ -59,6 +65,9 @@ export async function updateProfile(formData: FormData): Promise<UpdateProfileRe
     if (!file.type.startsWith("image/")) {
       return { ok: false, error: "The avatar must be an image." };
     }
+    if (file.size > MAX_AVATAR_BYTES) {
+      return { ok: false, error: "The avatar is too large." };
+    }
     const buffer = Buffer.from(await file.arrayBuffer());
     const stored = await getStorage().put(buffer, { filename: file.name, contentType: file.type });
     avatar = { avatarUrl: stored.url, image: stored.url };
@@ -66,16 +75,23 @@ export async function updateProfile(formData: FormData): Promise<UpdateProfileRe
     avatar = { avatarUrl: null, image: null };
   }
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      username: handle,
-      name: parsed.data.name,
-      bio: parsed.data.bio ?? null,
-      gender: parsed.data.gender ?? null,
-      ...(avatar ?? {}),
-    },
-  });
+  try {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        username: handle,
+        name: parsed.data.name,
+        bio: parsed.data.bio ?? null,
+        gender: parsed.data.gender ?? null,
+        ...(avatar ?? {}),
+      },
+    });
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      return { ok: false, error: "That username is already taken." };
+    }
+    throw error;
+  }
 
   revalidatePath("/");
   revalidatePath("/boards");

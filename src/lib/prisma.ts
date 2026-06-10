@@ -24,3 +24,19 @@ export const prisma: PrismaClient = globalForPrisma.prisma ?? createPrismaClient
 if (env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
+
+/**
+ * Whether an error is a Prisma unique-constraint violation (code `P2002`),
+ * used to turn write-time uniqueness races into a controlled error.
+ *
+ * @param error - The caught error.
+ * @returns True when it is a P2002 known request error.
+ */
+export function isUniqueConstraintError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "P2002"
+  );
+}

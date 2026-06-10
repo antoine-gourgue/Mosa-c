@@ -32,14 +32,19 @@ export function ConfirmEmail({ token }: ConfirmEmailProps): ReactElement {
       return;
     }
     ran.current = true;
-    void confirmEmailChange(token).then((result) => {
-      if (result.ok) {
-        setState("ok");
-      } else {
-        setError(result.error);
+    confirmEmailChange(token)
+      .then((result) => {
+        if (result.ok) {
+          setState("ok");
+        } else {
+          setError(result.error);
+          setState("error");
+        }
+      })
+      .catch(() => {
+        setError("Something went wrong. Please try again from settings.");
         setState("error");
-      }
-    });
+      });
   }, [token]);
 
   return (

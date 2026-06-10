@@ -74,8 +74,8 @@ export async function consumeAccountToken(
   if (record === null || record.kind !== kind) {
     return null;
   }
-  await prisma.accountToken.delete({ where: { id: record.id } }).catch(() => undefined);
-  if (record.expiresAt.getTime() < Date.now()) {
+  const { count } = await prisma.accountToken.deleteMany({ where: { id: record.id } });
+  if (count === 0 || record.expiresAt.getTime() < Date.now()) {
     return null;
   }
   return { userId: record.userId, newEmail: record.newEmail };

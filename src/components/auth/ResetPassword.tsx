@@ -63,11 +63,15 @@ export function ResetPassword({ token }: ResetPasswordProps): ReactElement {
       return;
     }
     startTransition(async () => {
-      const result = await resetPassword(token, password);
-      if (result.ok) {
-        setDone(true);
-      } else {
-        setError(result.error);
+      try {
+        const result = await resetPassword(token, password);
+        if (result.ok) {
+          setDone(true);
+        } else {
+          setError(result.error);
+        }
+      } catch {
+        setError("Something went wrong. Please try again.");
       }
     });
   };

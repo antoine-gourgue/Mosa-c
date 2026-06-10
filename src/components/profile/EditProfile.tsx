@@ -64,7 +64,9 @@ export function EditProfile({
   const [displayName, setDisplayName] = useState(name);
   const [handle, setHandle] = useState(username);
   const [bioText, setBioText] = useState(bio);
-  const [genderValue, setGenderValue] = useState<GenderValue | null>(gender);
+  const [genderValue, setGenderValue] = useState<GenderValue | null>(
+    gender === "UNDISCLOSED" ? null : gender,
+  );
   const [preview, setPreview] = useState<string | null>(avatarUrl);
   const [removeAvatar, setRemoveAvatar] = useState(false);
   const fileRef = useRef<File | null>(null);

@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    accountToken: { deleteMany: vi.fn(), create: vi.fn(), findUnique: vi.fn(), delete: vi.fn() },
+    accountToken: { deleteMany: vi.fn(), create: vi.fn(), findUnique: vi.fn() },
   },
 }));
 
@@ -12,7 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { consumeAccountToken, generateToken, hashToken, issueAccountToken } from "./account-token";
 
 const db = prisma as unknown as {
-  accountToken: { deleteMany: Mock; create: Mock; findUnique: Mock; delete: Mock };
+  accountToken: { deleteMany: Mock; create: Mock; findUnique: Mock };
 };
 
 const sha = (s: string): string => createHash("sha256").update(s).digest("hex");
@@ -21,7 +21,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   db.accountToken.deleteMany.mockResolvedValue({ count: 0 });
   db.accountToken.create.mockResolvedValue({});
-  db.accountToken.delete.mockResolvedValue({});
 });
 
 describe("generateToken / hashToken", () => {
@@ -66,7 +65,7 @@ describe("consumeAccountToken", () => {
       expiresAt: new Date(Date.now() + 10000),
     });
     expect(await consumeAccountToken("tok", "PASSWORD_RESET")).toBeNull();
-    expect(db.accountToken.delete).not.toHaveBeenCalled();
+    expect(db.accountToken.deleteMany).not.toHaveBeenCalled();
   });
 
   it("consumes a valid token and returns its payload", async () => {
@@ -77,11 +76,24 @@ describe("consumeAccountToken", () => {
       newEmail: "new@x.com",
       expiresAt: new Date(Date.now() + 10000),
     });
+    db.accountToken.deleteMany.mockResolvedValue({ count: 1 });
     expect(await consumeAccountToken("tok", "EMAIL_CHANGE")).toEqual({
       userId: "u1",
       newEmail: "new@x.com",
     });
-    expect(db.accountToken.delete).toHaveBeenCalledWith({ where: { id: "t1" } });
+    expect(db.accountToken.deleteMany).toHaveBeenCalledWith({ where: { id: "t1" } });
+  });
+
+  it("returns null when a racing request already consumed the token", async () => {
+    db.accountToken.findUnique.mockResolvedValue({
+      id: "t1",
+      kind: "EMAIL_CHANGE",
+      userId: "u1",
+      newEmail: "new@x.com",
+      expiresAt: new Date(Date.now() + 10000),
+    });
+    db.accountToken.deleteMany.mockResolvedValue({ count: 0 });
+    expect(await consumeAccountToken("tok", "EMAIL_CHANGE")).toBeNull();
   });
 
   it("rejects (and clears) an expired token", async () => {
@@ -92,7 +104,8 @@ describe("consumeAccountToken", () => {
       newEmail: null,
       expiresAt: new Date(Date.now() - 1000),
     });
+    db.accountToken.deleteMany.mockResolvedValue({ count: 1 });
     expect(await consumeAccountToken("tok", "PASSWORD_RESET")).toBeNull();
-    expect(db.accountToken.delete).toHaveBeenCalled();
+    expect(db.accountToken.deleteMany).toHaveBeenCalled();
   });
 });

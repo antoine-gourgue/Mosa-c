@@ -20,12 +20,13 @@ export const metadata: Metadata = {
 export default async function ConfirmEmailPage({
   searchParams,
 }: {
-  searchParams: Promise<{ token?: string }>;
+  searchParams: Promise<{ token?: string | string[] }>;
 }): Promise<ReactElement> {
   const { token } = await searchParams;
+  const resolvedToken = Array.isArray(token) ? (token[0] ?? "") : (token ?? "");
   return (
     <AuthLayout>
-      <ConfirmEmail token={token ?? ""} />
+      <ConfirmEmail token={resolvedToken} />
     </AuthLayout>
   );
 }

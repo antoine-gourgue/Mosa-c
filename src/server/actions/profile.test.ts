@@ -9,6 +9,8 @@ vi.mock("@/lib/storage", () => ({
 }));
 vi.mock("@/lib/prisma", () => ({
   prisma: { user: { update: vi.fn(), findFirst: vi.fn() } },
+  isUniqueConstraintError: (error: unknown) =>
+    typeof error === "object" && error !== null && (error as { code?: unknown }).code === "P2002",
 }));
 
 import { getCurrentUser } from "@/lib/auth";
@@ -66,6 +68,21 @@ describe("updateProfile", () => {
     const file = new File(["x"], "a.txt", { type: "text/plain" });
     const result = await updateProfile(form({ username: "ada", name: "Ada", avatar: file }));
     expect(result).toEqual({ ok: false, error: "The avatar must be an image." });
+  });
+
+  it("rejects an oversized avatar before buffering it", async () => {
+    const file = new File([new Uint8Array(11 * 1024 * 1024)], "a.png", { type: "image/png" });
+    const result = await updateProfile(form({ username: "ada", name: "Ada", avatar: file }));
+    expect(result).toEqual({ ok: false, error: "The avatar is too large." });
+    expect(db.user.update).not.toHaveBeenCalled();
+  });
+
+  it("reports a conflict when the username is taken at write time", async () => {
+    db.user.update.mockRejectedValue(Object.assign(new Error("conflict"), { code: "P2002" }));
+    expect(await updateProfile(form({ username: "ada", name: "Ada" }))).toEqual({
+      ok: false,
+      error: "That username is already taken.",
+    });
   });
 
   it("updates the profile and redirects to the (lowercased) handle", async () => {

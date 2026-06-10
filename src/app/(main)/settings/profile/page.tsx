@@ -36,16 +36,19 @@ export default async function EditProfilePage(): Promise<ReactElement> {
       passwordHash: true,
     },
   });
+  if (profile === null) {
+    redirect("/login");
+  }
   return (
     <EditProfile
-      name={profile?.name ?? user.name ?? ""}
-      username={profile?.username ?? ""}
-      bio={profile?.bio ?? ""}
-      avatarUrl={profile?.avatarUrl ?? null}
-      email={profile?.email ?? ""}
-      emailVerified={profile?.emailVerified != null}
-      gender={profile?.gender ?? null}
-      hasPassword={profile?.passwordHash != null}
+      name={profile.name ?? ""}
+      username={profile.username ?? ""}
+      bio={profile.bio ?? ""}
+      avatarUrl={profile.avatarUrl ?? null}
+      email={profile.email}
+      emailVerified={profile.emailVerified != null}
+      gender={profile.gender ?? null}
+      hasPassword={profile.passwordHash != null}
     />
   );
 }

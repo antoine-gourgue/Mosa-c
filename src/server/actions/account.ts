@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
 import { sendEmailChangeEmail, sendPasswordResetEmail } from "@/lib/email";
 import { hashPassword } from "@/lib/password";
-import { prisma } from "@/lib/prisma";
+import { isUniqueConstraintError, prisma } from "@/lib/prisma";
 import { consumeAccountToken, issueAccountToken } from "@/server/services/account-token";
 
 /**
@@ -69,7 +69,10 @@ export async function requestEmailChange(newEmail: string): Promise<AccountActio
     return { ok: false, error: "That email is already in use." };
   }
   const token = await issueAccountToken(user.id, "EMAIL_CHANGE", email);
-  await sendEmailChangeEmail(email, `${appBase()}/confirm-email?token=${token}`);
+  const sent = await sendEmailChangeEmail(email, `${appBase()}/confirm-email?token=${token}`);
+  if (!sent) {
+    return { ok: false, error: "We couldn't send the confirmation email. Please try again." };
+  }
   return { ok: true };
 }
 
@@ -92,10 +95,17 @@ export async function confirmEmailChange(token: string): Promise<AccountActionRe
   if (taken !== null) {
     return { ok: false, error: "That email is already in use." };
   }
-  await prisma.user.update({
-    where: { id: consumed.userId },
-    data: { email: consumed.newEmail, emailVerified: new Date() },
-  });
+  try {
+    await prisma.user.update({
+      where: { id: consumed.userId },
+      data: { email: consumed.newEmail, emailVerified: new Date() },
+    });
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      return { ok: false, error: "That email is already in use." };
+    }
+    throw error;
+  }
   return { ok: true };
 }
 
@@ -104,10 +114,11 @@ export async function confirmEmailChange(token: string): Promise<AccountActionRe
  *
  * @param userId - The user the token belongs to.
  * @param email - The address to send the link to.
+ * @returns Whether the email was accepted for delivery.
  */
-async function sendReset(userId: string, email: string): Promise<void> {
+async function sendReset(userId: string, email: string): Promise<boolean> {
   const token = await issueAccountToken(userId, "PASSWORD_RESET");
-  await sendPasswordResetEmail(email, `${appBase()}/reset-password?token=${token}`);
+  return sendPasswordResetEmail(email, `${appBase()}/reset-password?token=${token}`);
 }
 
 /**
@@ -127,7 +138,10 @@ export async function requestPasswordReset(): Promise<AccountActionResult> {
   if (record === null || record.passwordHash === null) {
     return { ok: false, error: "Your account has no password to reset." };
   }
-  await sendReset(user.id, record.email);
+  const sent = await sendReset(user.id, record.email);
+  if (!sent) {
+    return { ok: false, error: "We couldn't send the reset email. Please try again." };
+  }
   return { ok: true };
 }
 
