@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { ReactElement } from "react";
 import { Avatar, Button } from "@/components/ui";
@@ -36,6 +37,7 @@ export function CreatorRow({
   isAuthed = true,
   centered = false,
 }: CreatorRowProps): ReactElement {
+  const t = useTranslations("profile");
   const { following, toggle } = useFollow(creator.id, initialFollowing, isAuthed);
   const followerCount = followers + (following === initialFollowing ? 0 : following ? 1 : -1);
 
@@ -64,7 +66,7 @@ export function CreatorRow({
           className={centered ? "" : "ml-auto"}
           onClick={toggle}
         >
-          {following ? "Following" : "Follow"}
+          {following ? t("following") : t("follow")}
         </Button>
       )}
     </div>
