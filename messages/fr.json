@@ -106,7 +106,9 @@
     "cannotMessageUser": "Vous ne pouvez pas envoyer de message à cet utilisateur.",
     "cannotDeleteComment": "Vous ne pouvez pas supprimer ce commentaire.",
     "cannotSaveBoard": "Vous ne pouvez pas enregistrer dans ce tableau.",
-    "messageTooLong": "Votre message est trop long."
+    "messageTooLong": "Votre message est trop long.",
+    "titleRequired": "Un titre est requis.",
+    "editOwnPins": "Vous ne pouvez modifier que vos propres épingles."
   },
   "nav": {
     "home": "Accueil",
@@ -268,7 +270,10 @@
     "boardNamePlaceholder": "Comme « Lieux à visiter » ou « Recettes à essayer »",
     "name": "Nom",
     "cancel": "Annuler",
-    "createAction": "Créer"
+    "createAction": "Créer",
+    "editPin": "Modifier l’épingle",
+    "save": "Enregistrer",
+    "editFailed": "Impossible d’enregistrer vos modifications. Veuillez réessayer."
   },
   "board": {
     "manageCollaborators": "Gérer les collaborateurs",
@@ -336,7 +341,8 @@
     "deleteBody": "Cette épingle et ses mentions J’aime, commentaires et enregistrements seront définitivement supprimés.",
     "delete": "Supprimer",
     "savedToBoard": "Enregistré dans {board}",
-    "view": "Voir"
+    "view": "Voir",
+    "editPin": "Modifier l’épingle"
   },
   "notifications": {
     "title": "Notifications",

@@ -15,10 +15,10 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    pin: { create: vi.fn(), findUnique: vi.fn(), delete: vi.fn() },
+    pin: { create: vi.fn(), findUnique: vi.fn(), delete: vi.fn(), update: vi.fn() },
     save: { create: vi.fn(), upsert: vi.fn() },
     tag: { upsert: vi.fn() },
-    pinTag: { create: vi.fn() },
+    pinTag: { create: vi.fn(), deleteMany: vi.fn() },
     board: { findFirst: vi.fn(), create: vi.fn() },
     boardPin: { upsert: vi.fn() },
   },
@@ -30,13 +30,13 @@ vi.mock("@/lib/storage", () => ({
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { createPin, deletePin } from "./pins";
+import { createPin, deletePin, updatePin } from "./pins";
 
 const db = prisma as unknown as {
-  pin: { create: Mock; findUnique: Mock; delete: Mock };
+  pin: { create: Mock; findUnique: Mock; delete: Mock; update: Mock };
   save: { create: Mock; upsert: Mock };
   tag: { upsert: Mock };
-  pinTag: { create: Mock };
+  pinTag: { create: Mock; deleteMany: Mock };
   board: { findFirst: Mock; create: Mock };
   boardPin: { upsert: Mock };
 };
@@ -129,5 +129,43 @@ describe("deletePin", () => {
     db.pin.findUnique.mockResolvedValue({ creatorId: "u1" });
     expect(await deletePin("p1")).toEqual({ ok: true });
     expect(db.pin.delete).toHaveBeenCalledWith({ where: { id: "p1" } });
+  });
+});
+
+describe("updatePin", () => {
+  const editForm = (over: Record<string, string> = {}): FormData => {
+    const fd = new FormData();
+    fd.set("title", "New title");
+    fd.set("description", "New description");
+    fd.set("link", "");
+    fd.set("tags", "");
+    for (const [k, v] of Object.entries(over)) {
+      fd.set(k, v);
+    }
+    return fd;
+  };
+
+  it("refuses to edit another user's pin", async () => {
+    db.pin.findUnique.mockResolvedValue({ creatorId: "other" });
+    expect((await updatePin("p1", editForm())).ok).toBe(false);
+    expect(db.pin.update).not.toHaveBeenCalled();
+  });
+
+  it("rejects an empty title", async () => {
+    db.pin.findUnique.mockResolvedValue({ creatorId: "u1" });
+    expect((await updatePin("p1", editForm({ title: "   " }))).ok).toBe(false);
+    expect(db.pin.update).not.toHaveBeenCalled();
+  });
+
+  it("updates the fields and replaces the tags", async () => {
+    db.pin.findUnique.mockResolvedValue({ creatorId: "u1" });
+    db.tag.upsert.mockResolvedValue({ id: "t1" });
+    expect(await updatePin("p1", editForm({ tags: "Travel, Food" }))).toEqual({ ok: true });
+    expect(db.pin.update).toHaveBeenCalledWith({
+      where: { id: "p1" },
+      data: { title: "New title", description: "New description", link: null },
+    });
+    expect(db.pinTag.deleteMany).toHaveBeenCalledWith({ where: { pinId: "p1" } });
+    expect(db.pinTag.create).toHaveBeenCalledTimes(2);
   });
 });

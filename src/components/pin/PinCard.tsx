@@ -10,6 +10,7 @@ import type { MenuItem } from "@/components/ui";
 import { useEngagementActions, usePinOverride } from "@/components/engagement";
 import {
   CommentIcon,
+  ComposeIcon,
   DownloadIcon,
   FlagIcon,
   HeartFilledIcon,
@@ -25,6 +26,7 @@ import { recordDownload } from "@/server/actions/downloads";
 import { deletePin } from "@/server/actions/pins";
 import { reportPin } from "@/server/actions/reports";
 import type { Pin } from "@/types/domain";
+import { EditPinDialog } from "./EditPinDialog";
 
 /**
  * Props for the {@link PinCard} component.
@@ -68,6 +70,7 @@ export function PinCard({
   const downloads = override.downloadCount ?? pin.downloadCount;
   const { show } = useToast();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [deleting, startDelete] = useTransition();
 
   const stop = (event: MouseEvent<HTMLButtonElement>): void => {
@@ -121,19 +124,28 @@ export function PinCard({
       icon: <DownloadIcon size={18} />,
       onSelect: () => void onDownload(),
     },
-    canDelete
-      ? {
-          label: t("deletePin"),
-          icon: <TrashIcon size={18} />,
-          onSelect: () => setConfirmDelete(true),
-          destructive: true,
-        }
-      : {
-          label: t("reportPin"),
-          icon: <FlagIcon size={18} />,
-          onSelect: () => void onReport(),
-          destructive: true,
-        },
+    ...(canDelete
+      ? [
+          {
+            label: t("editPin"),
+            icon: <ComposeIcon size={18} />,
+            onSelect: () => setEditOpen(true),
+          },
+          {
+            label: t("deletePin"),
+            icon: <TrashIcon size={18} />,
+            onSelect: () => setConfirmDelete(true),
+            destructive: true,
+          },
+        ]
+      : [
+          {
+            label: t("reportPin"),
+            icon: <FlagIcon size={18} />,
+            onSelect: () => void onReport(),
+            destructive: true,
+          },
+        ]),
   ];
 
   return (
@@ -251,6 +263,18 @@ export function PinCard({
         onConfirm={onConfirmDelete}
         onCancel={() => setConfirmDelete(false)}
       />
+
+      {canDelete ? (
+        <EditPinDialog
+          pinId={pin.id}
+          initialTitle={pin.title}
+          initialDescription={pin.description ?? ""}
+          initialLink={pin.link ?? ""}
+          initialTags={pin.tags.map((tag) => tag.name)}
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }

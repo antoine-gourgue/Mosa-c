@@ -83,6 +83,8 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
           <DetailActions
             pinId={pin.id}
             title={pin.title}
+            description={pin.description}
+            tags={pin.tags.map((tag) => tag.name)}
             imageUrl={pin.imageUrl}
             link={pin.link}
             initialLiked={like.liked}

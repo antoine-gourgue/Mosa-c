@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { errorMessage } from "@/server/error-message";
 import { redirect } from "next/navigation";
@@ -166,6 +167,66 @@ export async function deletePin(
   }
   await prisma.pin.delete({ where: { id: pinId } });
   revalidatePath("/");
+  revalidatePath("/boards");
+  return { ok: true };
+}
+
+/**
+ * Result of {@link updatePin}.
+ */
+export type UpdatePinResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * Updates a pin's title, description, link and tags. Allowed for the creator
+ * only; the image is not editable. Tags are replaced with the submitted set.
+ *
+ * @param pinId - The pin to update.
+ * @param formData - The edit form data (title, description, link, tags).
+ * @returns Whether the update succeeded.
+ */
+export async function updatePin(pinId: string, formData: FormData): Promise<UpdatePinResult> {
+  const t = await getTranslations("errors");
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: t("signedOut") };
+  }
+  const pin = await prisma.pin.findUnique({ where: { id: pinId }, select: { creatorId: true } });
+  if (pin === null) {
+    return { ok: false, error: t("pinNotFound") };
+  }
+  if (pin.creatorId !== user.id) {
+    return { ok: false, error: t("editOwnPins") };
+  }
+  const parsed = z
+    .object({
+      title: z.string().trim().min(1, t("titleRequired")).max(120),
+      description: z.string().trim().max(2000).optional(),
+      link: z.union([z.literal(""), z.url()]).default(""),
+    })
+    .safeParse({
+      title: formData.get("title"),
+      description: formData.get("description") ?? undefined,
+      link: formData.get("link") ?? "",
+    });
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? t("checkForm") };
+  }
+  await prisma.pin.update({
+    where: { id: pinId },
+    data: {
+      title: parsed.data.title,
+      description: parsed.data.description ?? null,
+      link: parsed.data.link === "" ? null : parsed.data.link,
+    },
+  });
+  const tags = parseTagNames(formData.get("tags")?.toString() ?? "");
+  await prisma.pinTag.deleteMany({ where: { pinId } });
+  for (const { slug, name } of tags) {
+    const tag = await prisma.tag.upsert({ where: { slug }, update: {}, create: { slug, name } });
+    await prisma.pinTag.create({ data: { pinId, tagId: tag.id } });
+  }
+  revalidatePath("/");
+  revalidatePath(`/pin/${pinId}`);
   revalidatePath("/boards");
   return { ok: true };
 }

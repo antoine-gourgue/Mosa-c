@@ -10,3 +10,5 @@ export { InfiniteFeed } from "./InfiniteFeed";
 export type { InfiniteFeedProps } from "./InfiniteFeed";
 export { LikeButton } from "./LikeButton";
 export type { LikeButtonProps } from "./LikeButton";
+export { EditPinDialog } from "./EditPinDialog";
+export type { EditPinDialogProps } from "./EditPinDialog";
