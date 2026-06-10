@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/prisma", () => ({ prisma: { block: { findMany: vi.fn() } } }));
 
 import { prisma } from "@/lib/prisma";
-import { getBlockState, getHiddenUserIds } from "./blocks";
+import { getBlockedUsers, getBlockState, getHiddenUserIds } from "./blocks";
 
 const db = prisma as unknown as { block: { findMany: Mock } };
 
@@ -49,5 +49,26 @@ describe("getBlockState", () => {
   it("reports the other user having blocked the viewer", async () => {
     db.block.findMany.mockResolvedValue([{ blockerId: "u2" }]);
     expect(await getBlockState("u1", "u2")).toEqual({ blockedByViewer: false, blocksViewer: true });
+  });
+});
+
+describe("getBlockedUsers", () => {
+  it("maps the blocked users to creators", async () => {
+    db.block.findMany.mockResolvedValue([
+      {
+        blocked: {
+          id: "u2",
+          name: "Bob",
+          username: "bob",
+          bio: null,
+          avatarUrl: null,
+          followersLabel: null,
+          verified: false,
+        },
+      },
+    ]);
+    const users = await getBlockedUsers("u1");
+    expect(users).toHaveLength(1);
+    expect(users[0]).toMatchObject({ id: "u2", name: "Bob", username: "bob" });
   });
 });

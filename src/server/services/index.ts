@@ -28,8 +28,15 @@ export {
 } from "./boards";
 export { getSavedPinIds, getSavedPins, isSaved } from "./saves";
 export { getFollowedCreatorIds, isFollowing } from "./follows";
-export { getHiddenUserIds, getBlockState } from "./blocks";
+export { getHiddenUserIds, getBlockState, getBlockedUsers } from "./blocks";
 export type { BlockState } from "./blocks";
+export {
+  getNotificationPrefs,
+  parseNotificationPrefs,
+  defaultNotificationPrefs,
+  NOTIFICATION_TYPES,
+} from "./notification-prefs";
+export type { NotificationPrefs } from "./notification-prefs";
 export { getLikeState, getLikedPinIds, getLikedPins } from "./likes";
 export { getComments } from "./comments";
 export { getNotifications, getUnreadCount } from "./notifications";

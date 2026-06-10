@@ -66,6 +66,7 @@ model User {
   verified       Boolean   @default(false)
   role           Role      @default(USER)
   disabled       Boolean   @default(false)
+  notifPrefs     Json?
   lastSeenAt     DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt

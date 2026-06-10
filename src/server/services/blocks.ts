@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import type { Creator } from "@/types/domain";
+import { toCreator } from "./mappers";
 
 /**
  * Returns the ids of users whose content must be hidden from the viewer: users
@@ -59,4 +61,20 @@ export async function getBlockState(viewerId: string | null, otherId: string): P
     blockedByViewer: rows.some((row) => row.blockerId === viewerId),
     blocksViewer: rows.some((row) => row.blockerId === otherId),
   };
+}
+
+/**
+ * Lists the users the given user has blocked, most recently blocked first, for
+ * the blocked-users management list.
+ *
+ * @param userId - The blocking user's id.
+ * @returns The blocked users as creators.
+ */
+export async function getBlockedUsers(userId: string): Promise<Creator[]> {
+  const rows = await prisma.block.findMany({
+    where: { blockerId: userId },
+    orderBy: { createdAt: "desc" },
+    select: { blocked: true },
+  });
+  return rows.map((row) => toCreator(row.blocked));
 }

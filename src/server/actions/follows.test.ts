@@ -6,6 +6,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     follow: { findUnique: vi.fn(), create: vi.fn(), delete: vi.fn() },
     notification: { findFirst: vi.fn(), create: vi.fn() },
+    user: { findUnique: vi.fn().mockResolvedValue(null) },
   },
 }));
 
@@ -16,6 +17,7 @@ import { toggleFollow } from "./follows";
 const db = prisma as unknown as {
   follow: { findUnique: Mock; create: Mock; delete: Mock };
   notification: { findFirst: Mock; create: Mock };
+  user: { findUnique: Mock };
 };
 
 describe("toggleFollow", () => {
