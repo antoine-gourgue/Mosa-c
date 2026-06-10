@@ -13,12 +13,14 @@ vi.mock("next-intl/server", () => ({
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ getCurrentUser: vi.fn() }));
 vi.mock("@/server/services/notifications", () => ({ getNotifications: vi.fn() }));
+vi.mock("@/server/services/follows", () => ({ getPendingFollowRequests: vi.fn() }));
 vi.mock("@/lib/prisma", () => ({
   prisma: { notification: { updateMany: vi.fn() } },
 }));
 
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getPendingFollowRequests } from "@/server/services/follows";
 import { getNotifications } from "@/server/services/notifications";
 import { loadNotifications, markAllRead, markRead } from "./notifications";
 
@@ -65,10 +67,15 @@ describe("notification actions", () => {
       expect((await loadNotifications()).ok).toBe(false);
     });
 
-    it("returns the user's notifications", async () => {
+    it("returns the user's notifications and pending follow requests", async () => {
       vi.mocked(getNotifications).mockResolvedValue([{ id: "n1" }] as never);
+      vi.mocked(getPendingFollowRequests).mockResolvedValue([{ id: "r1" }] as never);
       const result = await loadNotifications();
-      expect(result).toMatchObject({ ok: true, notifications: [{ id: "n1" }] });
+      expect(result).toMatchObject({
+        ok: true,
+        notifications: [{ id: "n1" }],
+        requests: [{ id: "r1" }],
+      });
     });
   });
 });

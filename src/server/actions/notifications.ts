@@ -5,24 +5,28 @@ import { errorMessage } from "@/server/error-message";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { AppError } from "@/server/result";
+import { getPendingFollowRequests } from "@/server/services/follows";
 import { getNotifications } from "@/server/services/notifications";
-import type { AppNotification } from "@/types/domain";
+import type { AppNotification, Creator } from "@/types/domain";
 
 /**
- * Loads the current user's notifications for the rail overlay panel, fetched
- * lazily the first time the panel is opened.
+ * Loads the current user's notifications and pending follow requests for the
+ * rail overlay panel, fetched lazily the first time the panel is opened.
  *
- * @returns The notifications, or an authorization error.
+ * @returns The notifications and follow requests, or an authorization error.
  */
 export async function loadNotifications(): Promise<
-  { ok: true; notifications: AppNotification[] } | { ok: false; error: string }
+  { ok: true; notifications: AppNotification[]; requests: Creator[] } | { ok: false; error: string }
 > {
   const user = await getCurrentUser();
   if (user === null) {
     return { ok: false, error: await errorMessage("signedOut") };
   }
-  const notifications = await getNotifications(user.id);
-  return { ok: true, notifications };
+  const [notifications, requests] = await Promise.all([
+    getNotifications(user.id),
+    getPendingFollowRequests(user.id),
+  ]);
+  return { ok: true, notifications, requests };
 }
 
 /**
