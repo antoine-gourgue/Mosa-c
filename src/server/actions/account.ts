@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
 import { sendEmailChangeEmail, sendPasswordResetEmail } from "@/lib/email";
-import { hashPassword } from "@/lib/password";
+import { hashPassword, verifyPassword } from "@/lib/password";
 import { isUniqueConstraintError, prisma } from "@/lib/prisma";
 import {
   consumeAccountToken,
@@ -50,12 +50,17 @@ export async function getAccountStatus(): Promise<
 
 /**
  * Starts an email-address change: emails a confirmation link to the new address.
- * The current email stays until the link is confirmed.
+ * The current email stays until the link is confirmed. Accounts that have a
+ * password must re-authenticate with it before the change is accepted.
  *
  * @param newEmail - The address the user wants to switch to.
+ * @param currentPassword - The account password, to confirm the user's identity.
  * @returns Whether the confirmation email was sent.
  */
-export async function requestEmailChange(newEmail: string): Promise<AccountActionResult> {
+export async function requestEmailChange(
+  newEmail: string,
+  currentPassword = "",
+): Promise<AccountActionResult> {
   const user = await getCurrentUser();
   if (user === null) {
     return { ok: false, error: "You must be signed in." };
@@ -63,6 +68,16 @@ export async function requestEmailChange(newEmail: string): Promise<AccountActio
   const parsed = z.email().safeParse(newEmail.trim().toLowerCase());
   if (!parsed.success) {
     return { ok: false, error: "Enter a valid email address." };
+  }
+  const account = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { passwordHash: true },
+  });
+  if (
+    account?.passwordHash != null &&
+    !(await verifyPassword(currentPassword, account.passwordHash))
+  ) {
+    return { ok: false, error: "Your current password is incorrect." };
   }
   const email = parsed.data;
   const existing = await prisma.user.findFirst({

@@ -213,6 +213,12 @@ export function EditProfile({
 const STATUS_POLL_MS = 4000;
 
 /**
+ * How long, in milliseconds, to keep polling before giving up — matching the
+ * confirmation link's lifetime, after which polling would be pointless.
+ */
+const STATUS_POLL_TIMEOUT_MS = 30 * 60 * 1000;
+
+/**
  * The Account column: change the email (confirmed via a link to the new
  * address) and trigger a password reset by email.
  *
@@ -232,6 +238,7 @@ function AccountSection({
   const [currentEmail, setCurrentEmail] = useState(email);
   const [verified, setVerified] = useState(emailVerified);
   const [emailValue, setEmailValue] = useState(email);
+  const [currentPassword, setCurrentPassword] = useState("");
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailPending, startEmail] = useTransition();
@@ -244,7 +251,13 @@ function AccountSection({
     if (pendingEmail === null) {
       return;
     }
+    const deadline = Date.now() + STATUS_POLL_TIMEOUT_MS;
     const id = setInterval(async () => {
+      if (Date.now() > deadline) {
+        setPendingEmail(null);
+        setEmailError("The confirmation link expired. Please try changing your email again.");
+        return;
+      }
       const status = await getAccountStatus();
       if (status.ok && status.email.toLowerCase() === pendingEmail) {
         setCurrentEmail(status.email);
@@ -259,9 +272,10 @@ function AccountSection({
   const onVerifyEmail = (): void => {
     setEmailError(null);
     startEmail(async () => {
-      const result = await requestEmailChange(emailValue);
+      const result = await requestEmailChange(emailValue, currentPassword);
       if (result.ok) {
         setPendingEmail(emailValue.trim().toLowerCase());
+        setCurrentPassword("");
       } else {
         setEmailError(result.error);
       }
@@ -315,12 +329,26 @@ function AccountSection({
                 : "Your email is not verified yet."}
           </span>
         </div>
+        {hasPassword && emailChanged ? (
+          <div className="mt-3">
+            <Input
+              label="Current password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="Confirm with your password"
+              value={currentPassword}
+              onChange={(event) => setCurrentPassword(event.target.value)}
+            />
+          </div>
+        ) : null}
         <Button
           type="button"
           variant="ghost"
           className="mt-2.5"
           loading={emailPending}
-          disabled={!emailChanged || emailValue.trim() === ""}
+          disabled={
+            !emailChanged || emailValue.trim() === "" || (hasPassword && currentPassword === "")
+          }
           onClick={onVerifyEmail}
         >
           Change email

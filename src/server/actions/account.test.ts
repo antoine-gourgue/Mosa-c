@@ -2,7 +2,10 @@ import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/auth", () => ({ getCurrentUser: vi.fn() }));
-vi.mock("@/lib/password", () => ({ hashPassword: vi.fn(async () => "newhash") }));
+vi.mock("@/lib/password", () => ({
+  hashPassword: vi.fn(async () => "newhash"),
+  verifyPassword: vi.fn(async () => true),
+}));
 vi.mock("@/lib/email", () => ({
   sendEmailChangeEmail: vi.fn(async () => true),
   sendPasswordResetEmail: vi.fn(async () => true),
@@ -23,6 +26,7 @@ vi.mock("@/lib/prisma", () => ({
 
 import { getCurrentUser } from "@/lib/auth";
 import { sendEmailChangeEmail, sendPasswordResetEmail } from "@/lib/email";
+import { verifyPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
 import {
   consumeAccountToken,
@@ -85,6 +89,22 @@ describe("requestEmailChange", () => {
     vi.mocked(isAccountTokenOnCooldown).mockResolvedValue(true);
     expect((await requestEmailChange("new@x.com")).ok).toBe(false);
     expect(issueAccountToken).not.toHaveBeenCalled();
+  });
+
+  it("rejects a wrong current password for accounts with one", async () => {
+    db.user.findUnique.mockResolvedValue({ passwordHash: "h" });
+    db.user.findFirst.mockResolvedValue(null);
+    vi.mocked(verifyPassword).mockResolvedValueOnce(false);
+    expect((await requestEmailChange("new@x.com", "wrong")).ok).toBe(false);
+    expect(issueAccountToken).not.toHaveBeenCalled();
+  });
+
+  it("proceeds with the correct current password", async () => {
+    db.user.findUnique.mockResolvedValue({ passwordHash: "h" });
+    db.user.findFirst.mockResolvedValue(null);
+    vi.mocked(verifyPassword).mockResolvedValueOnce(true);
+    expect(await requestEmailChange("new@x.com", "right")).toEqual({ ok: true });
+    expect(verifyPassword).toHaveBeenCalledWith("right", "h");
   });
 });
 
