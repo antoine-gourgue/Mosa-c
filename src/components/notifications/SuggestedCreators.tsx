@@ -58,7 +58,12 @@ export async function SuggestedCreators({
               </div>
             </Link>
             <div className="ml-auto shrink-0">
-              <FollowButton creatorId={creator.id} initialFollowing={following} size="sm" />
+              <FollowButton
+                creatorId={creator.id}
+                initialState={following ? "following" : "none"}
+                isPrivate={creator.isPrivate}
+                size="sm"
+              />
             </div>
           </li>
         ))}

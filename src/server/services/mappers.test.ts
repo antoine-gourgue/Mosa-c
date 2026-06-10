@@ -10,6 +10,7 @@ const creatorRow: CreatorRow = {
   avatarUrl: "/a.png",
   followersLabel: "1.2k",
   verified: true,
+  isPrivate: true,
 };
 
 describe("toCreator", () => {
@@ -22,6 +23,7 @@ describe("toCreator", () => {
       avatarUrl: "/a.png",
       followersLabel: "1.2k",
       verified: true,
+      isPrivate: true,
     });
   });
 

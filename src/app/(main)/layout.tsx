@@ -14,7 +14,12 @@ import {
   TopNav,
 } from "@/components/layout";
 import { getCurrentUser } from "@/lib/auth";
-import { getCreatorById, getUnreadConversationIds, getUnreadCount } from "@/server/services";
+import {
+  getCreatorById,
+  getPendingFollowRequestCount,
+  getUnreadConversationIds,
+  getUnreadCount,
+} from "@/server/services";
 
 /**
  * Authenticated application shell wrapping every main route with the sticky top
@@ -35,11 +40,13 @@ export default async function MainLayout({
 }): Promise<ReactElement> {
   const t = await getTranslations("common");
   const user = await getCurrentUser();
-  const [profile, unreadCount, unreadConversationIds] = await Promise.all([
+  const [profile, notifCount, pendingRequests, unreadConversationIds] = await Promise.all([
     user === null ? Promise.resolve(null) : getCreatorById(user.id),
     user === null ? Promise.resolve(0) : getUnreadCount(user.id),
+    user === null ? Promise.resolve(0) : getPendingFollowRequestCount(user.id),
     user === null ? Promise.resolve<string[]>([]) : getUnreadConversationIds(user.id),
   ]);
+  const unreadCount = notifCount + pendingRequests;
   const shell = (
     <>
       <a

@@ -9,10 +9,11 @@ import {
   getBoardsForUser,
   getComments,
   getFollowCounts,
+  getFollowState,
   getLikeState,
   getPinById,
-  isFollowing,
 } from "@/server/services";
+import type { FollowState } from "@/types/domain";
 import { DetailActions } from "./DetailActions";
 import { CreatorRow } from "./CreatorRow";
 import { Comments } from "./Comments";
@@ -38,13 +39,18 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
     notFound();
   }
   const user = await getCurrentUser();
-  const [following, like, comments, boards, followCounts] = await Promise.all([
-    user === null ? Promise.resolve(false) : isFollowing(user.id, pin.creator.id),
+  const [followState, like, comments, boards, followCounts] = await Promise.all([
+    user === null ? Promise.resolve<FollowState>("none") : getFollowState(user.id, pin.creator.id),
     getLikeState(pin.id, user?.id ?? null),
     getComments(pin.id, user?.id ?? null),
     user === null ? Promise.resolve([]) : getBoardsForUser(user.id),
     getFollowCounts(pin.creator.id),
   ]);
+
+  const isOwner = user?.id === pin.creator.id;
+  if (pin.creator.isPrivate && !isOwner && followState !== "following") {
+    notFound();
+  }
 
   const aspectClass =
     pin.height > pin.width
@@ -90,7 +96,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
             initialLiked={like.liked}
             likeCount={like.count}
             downloadCount={pin.downloadCount}
-            isOwner={user?.id === pin.creator.id}
+            isOwner={isOwner}
             boards={boards.map((board) => ({
               id: board.id,
               name: board.name,
@@ -103,7 +109,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
           pinId={pin.id}
           initialComments={comments}
           viewerId={user?.id ?? null}
-          isPinOwner={user?.id === pin.creator.id}
+          isPinOwner={isOwner}
           header={
             <div className="flex flex-col gap-2">
               {pin.tags.length > 0 ? (
@@ -124,7 +130,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
               <Divider className="mt-2" />
               <CreatorRow
                 creator={pin.creator}
-                initialFollowing={following}
+                initialState={followState}
                 isSelf={user?.id === pin.creator.id}
                 followers={followCounts.followers}
                 isAuthed={user !== null}

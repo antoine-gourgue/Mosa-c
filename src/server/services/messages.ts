@@ -258,6 +258,7 @@ async function toSummary(row: SummaryRow, userId: string): Promise<ConversationS
     avatarUrl: null,
     followersLabel: null,
     verified: false,
+    isPrivate: false,
   };
   const last = conversation.messages[0] ?? null;
   const unreadCount = await prisma.message.count({

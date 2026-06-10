@@ -479,6 +479,7 @@ export function MessagesPanel({
     bio: null,
     followersLabel: null,
     verified: false,
+    isPrivate: false,
   });
 
   const startWith = (other: Creator): void => {

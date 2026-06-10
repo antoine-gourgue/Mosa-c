@@ -50,6 +50,39 @@ export async function getAccountStatus(): Promise<
 }
 
 /**
+ * Sets whether the current user's account is private. Switching to public
+ * auto-approves every pending follow request, turning each requester into a
+ * follower, since a public account has nothing left to gate.
+ *
+ * @param isPrivate - Whether the account should be private.
+ * @returns Whether the change was applied.
+ */
+export async function setAccountPrivacy(isPrivate: boolean): Promise<AccountActionResult> {
+  const t = await getTranslations("errors");
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: t("signedOut") };
+  }
+  await prisma.user.update({ where: { id: user.id }, data: { isPrivate } });
+  if (!isPrivate) {
+    const pending = await prisma.followRequest.findMany({
+      where: { targetId: user.id },
+      select: { requesterId: true },
+    });
+    if (pending.length > 0) {
+      await prisma.$transaction([
+        prisma.follow.createMany({
+          data: pending.map((row) => ({ followerId: row.requesterId, creatorId: user.id })),
+          skipDuplicates: true,
+        }),
+        prisma.followRequest.deleteMany({ where: { targetId: user.id } }),
+      ]);
+    }
+  }
+  return { ok: true };
+}
+
+/**
  * Starts an email-address change: emails a confirmation link to the new address.
  * The current email stays until the link is confirmed. Accounts that have a
  * password must re-authenticate with it before the change is accepted.

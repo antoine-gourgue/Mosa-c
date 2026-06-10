@@ -6,7 +6,8 @@ vi.mock("@/lib/prisma", () => ({
     pin: { findMany: vi.fn(), findUnique: vi.fn() },
     like: { findMany: vi.fn() },
     save: { findMany: vi.fn() },
-    follow: { findMany: vi.fn() },
+    follow: { findMany: vi.fn().mockResolvedValue([]) },
+    user: { findMany: vi.fn().mockResolvedValue([]) },
     block: { findMany: vi.fn().mockResolvedValue([]) },
   },
 }));
@@ -28,6 +29,7 @@ const db = prisma as unknown as {
   like: { findMany: Mock };
   save: { findMany: Mock };
   follow: { findMany: Mock };
+  user: { findMany: Mock };
 };
 
 const NOW = new Date("2026-06-09T00:00:00Z").getTime();
@@ -79,6 +81,8 @@ const pinRow = (id: string, over: Record<string, unknown> = {}) => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  db.user.findMany.mockResolvedValue([]);
+  db.follow.findMany.mockResolvedValue([]);
 });
 
 describe("rankForYou", () => {
@@ -117,6 +121,24 @@ describe("getPins", () => {
   it("maps all pins newest first", async () => {
     db.pin.findMany.mockResolvedValue([pinRow("p1")]);
     expect((await getPins()).map((p) => p.id)).toEqual(["p1"]);
+  });
+
+  it("excludes pins from private accounts the viewer does not follow", async () => {
+    db.user.findMany.mockResolvedValue([{ id: "priv" }]);
+    db.follow.findMany.mockResolvedValue([]);
+    db.pin.findMany.mockResolvedValue([]);
+    await getPins("viewer");
+    expect(db.pin.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { creatorId: { notIn: ["priv"] } } }),
+    );
+  });
+
+  it("keeps pins from a private account the viewer follows", async () => {
+    db.user.findMany.mockResolvedValue([{ id: "priv" }]);
+    db.follow.findMany.mockResolvedValue([{ creatorId: "priv" }]);
+    db.pin.findMany.mockResolvedValue([]);
+    await getPins("viewer");
+    expect(db.pin.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: {} }));
   });
 });
 

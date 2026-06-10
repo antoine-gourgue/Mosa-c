@@ -6,14 +6,14 @@ import type { ReactElement } from "react";
 import { Avatar, Button } from "@/components/ui";
 import { useFollow } from "@/components/engagement";
 import { cn } from "@/lib/cn";
-import type { Creator } from "@/types/domain";
+import type { Creator, FollowState } from "@/types/domain";
 
 /**
  * Props for the {@link CreatorRow} component.
  */
 export type CreatorRowProps = {
   creator: Creator;
-  initialFollowing: boolean;
+  initialState: FollowState;
   isSelf?: boolean;
   followers: number;
   isAuthed?: boolean;
@@ -31,15 +31,17 @@ export type CreatorRowProps = {
  */
 export function CreatorRow({
   creator,
-  initialFollowing,
+  initialState,
   isSelf = false,
   followers,
   isAuthed = true,
   centered = false,
 }: CreatorRowProps): ReactElement {
   const t = useTranslations("profile");
-  const { following, toggle } = useFollow(creator.id, initialFollowing, isAuthed);
-  const followerCount = followers + (following === initialFollowing ? 0 : following ? 1 : -1);
+  const { status, toggle } = useFollow(creator.id, initialState, isAuthed, creator.isPrivate);
+  const following = status === "following";
+  const wasFollowing = initialState === "following";
+  const followerCount = followers + (following === wasFollowing ? 0 : following ? 1 : -1);
 
   return (
     <div className={cn("flex items-center gap-3", centered && "justify-center")}>
@@ -62,11 +64,15 @@ export function CreatorRow({
       </Link>
       {isSelf ? null : (
         <Button
-          variant={following ? "dark" : "ghost"}
+          variant={status === "none" ? "ghost" : "dark"}
           className={centered ? "" : "ml-auto"}
           onClick={toggle}
         >
-          {following ? t("following") : t("follow")}
+          {status === "following"
+            ? t("following")
+            : status === "requested"
+              ? t("requested")
+              : t("follow")}
         </Button>
       )}
     </div>
