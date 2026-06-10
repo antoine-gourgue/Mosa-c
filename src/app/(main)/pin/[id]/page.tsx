@@ -54,7 +54,7 @@ export default async function PinPage({
   const tg = await getTranslations("page");
   const user = await getCurrentUser();
   const [related, savedIds, likedIds] = await Promise.all([
-    getRelatedPins(id),
+    getRelatedPins(id, 16, user?.id ?? null),
     user === null ? Promise.resolve<string[]>([]) : getSavedPinIds(user.id),
     user === null ? Promise.resolve<string[]>([]) : getLikedPinIds(user.id),
   ]);

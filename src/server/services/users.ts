@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { Creator, MentionSuggestion } from "@/types/domain";
+import { getHiddenUserIds } from "./blocks";
 import { toCreator } from "./mappers";
 
 /**
@@ -18,10 +19,15 @@ export async function searchMentionUsers(
   limit = 6,
 ): Promise<MentionSuggestion[]> {
   const trimmed = query.trim();
+  const hidden = await getHiddenUserIds(excludeId);
+  const idFilter = {
+    ...(excludeId === null ? {} : { not: excludeId }),
+    ...(hidden.length > 0 ? { notIn: hidden } : {}),
+  };
   const rows = await prisma.user.findMany({
     where: {
       username: { not: null },
-      ...(excludeId === null ? {} : { id: { not: excludeId } }),
+      ...(Object.keys(idFilter).length > 0 ? { id: idFilter } : {}),
       ...(trimmed === ""
         ? {}
         : {
@@ -64,8 +70,12 @@ export async function getCreatorById(id: string): Promise<Creator | null> {
  * @returns The suggested creators.
  */
 export async function getSuggestedCreators(excludeId: string, limit = 3): Promise<Creator[]> {
+  const hidden = await getHiddenUserIds(excludeId);
   const rows = await prisma.user.findMany({
-    where: { id: { not: excludeId }, verified: true },
+    where: {
+      id: { not: excludeId, ...(hidden.length > 0 ? { notIn: hidden } : {}) },
+      verified: true,
+    },
     take: limit,
     orderBy: { createdAt: "asc" },
   });

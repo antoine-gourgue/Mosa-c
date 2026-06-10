@@ -637,3 +637,18 @@ export function LockIcon(props: IconProps): ReactElement {
     </SvgIcon>
   );
 }
+
+/**
+ * A circle with a diagonal slash, used for blocking a user.
+ *
+ * @param props - Icon size and style props.
+ * @returns The block glyph.
+ */
+export function BlockIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon strokeWidth={1.8} {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m5.6 5.6 12.8 12.8" />
+    </SvgIcon>
+  );
+}

@@ -1,6 +1,7 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { ChatMessage, ConversationSummary, Creator } from "@/types/domain";
+import { getHiddenUserIds } from "./blocks";
 import { type CreatorRow, toCreator } from "./mappers";
 
 const EPOCH = new Date(0);
@@ -102,6 +103,10 @@ export async function getOrCreateConversation(
   otherUserId: string,
 ): Promise<string | null> {
   if (viewerId === otherUserId) {
+    return null;
+  }
+  const hidden = await getHiddenUserIds(viewerId);
+  if (hidden.includes(otherUserId)) {
     return null;
   }
   const pairKey = pairKeyFor(viewerId, otherUserId);
@@ -293,8 +298,11 @@ async function fetchSummaries(
   userId: string,
   where: Prisma.ConversationWhereInput,
 ): Promise<ConversationSummary[]> {
+  const hidden = await getHiddenUserIds(userId);
+  const conversation: Prisma.ConversationWhereInput =
+    hidden.length > 0 ? { ...where, participants: { none: { userId: { in: hidden } } } } : where;
   const rows = await prisma.conversationParticipant.findMany({
-    where: { userId, conversation: where },
+    where: { userId, conversation },
     orderBy: { conversation: { updatedAt: "desc" } },
     select: summarySelect(userId),
   });

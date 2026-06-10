@@ -174,11 +174,38 @@ describe("admin actions", () => {
     expect(db.comment.delete).not.toHaveBeenCalled();
   });
 
-  it("resolves a report by removing the reported pin", async () => {
+  it("resolves a pin report by removing the reported pin", async () => {
     asAdmin();
-    db.report.findUnique.mockResolvedValue({ pinId: "pin9" });
+    db.report.findUnique.mockResolvedValue({ targetType: "PIN", pinId: "pin9", commentId: null });
     await resolveReport("r1");
     expect(db.pin.delete).toHaveBeenCalledWith({ where: { id: "pin9" } });
+  });
+
+  it("resolves a comment report by removing the reported comment", async () => {
+    asAdmin();
+    db.report.findUnique.mockResolvedValue({
+      targetType: "COMMENT",
+      pinId: null,
+      commentId: "c9",
+    });
+    await resolveReport("r1");
+    expect(db.comment.delete).toHaveBeenCalledWith({ where: { id: "c9" } });
+    expect(db.pin.delete).not.toHaveBeenCalled();
+  });
+
+  it("resolves a user report by marking it reviewed", async () => {
+    asAdmin();
+    db.report.findUnique.mockResolvedValue({
+      targetType: "USER",
+      pinId: null,
+      commentId: null,
+    });
+    await resolveReport("r1");
+    expect(db.report.update).toHaveBeenCalledWith({
+      where: { id: "r1" },
+      data: { status: "REVIEWED" },
+    });
+    expect(db.pin.delete).not.toHaveBeenCalled();
   });
 
   it("dismisses a report without removing the pin", async () => {

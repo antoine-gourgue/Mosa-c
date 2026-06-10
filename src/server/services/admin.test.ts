@@ -162,19 +162,64 @@ describe("getAdminComments", () => {
 });
 
 describe("getAdminReports", () => {
-  it("lists pending reports with reporter and pin", async () => {
+  it("lists pending reports with reporter and pin target", async () => {
     db.report.count.mockResolvedValue(1);
     db.report.findMany.mockResolvedValue([
       {
         id: "r1",
         reason: "spam",
         createdAt: D,
+        targetType: "PIN",
         reporter: { name: "Ada", email: "a@x.com" },
         pin: { id: "p1", title: "Pin" },
+        comment: null,
+        targetUser: null,
       },
     ]);
     const page = await getAdminReports(1);
-    expect(page.rows[0]).toMatchObject({ reporterEmail: "a@x.com", pinTitle: "Pin" });
+    expect(page.rows[0]).toMatchObject({
+      reporterEmail: "a@x.com",
+      target: { type: "PIN", pinId: "p1", title: "Pin" },
+    });
+  });
+
+  it("maps comment and user report targets", async () => {
+    db.report.count.mockResolvedValue(2);
+    db.report.findMany.mockResolvedValue([
+      {
+        id: "r2",
+        reason: null,
+        createdAt: D,
+        targetType: "COMMENT",
+        reporter: { name: "Ada", email: "a@x.com" },
+        pin: null,
+        comment: { id: "c1", body: "rude", pinId: "p1" },
+        targetUser: null,
+      },
+      {
+        id: "r3",
+        reason: null,
+        createdAt: D,
+        targetType: "USER",
+        reporter: { name: "Ada", email: "a@x.com" },
+        pin: null,
+        comment: null,
+        targetUser: { id: "u9", name: "Bob", username: "bob" },
+      },
+    ]);
+    const page = await getAdminReports(1);
+    expect(page.rows[0]?.target).toEqual({
+      type: "COMMENT",
+      commentId: "c1",
+      pinId: "p1",
+      body: "rude",
+    });
+    expect(page.rows[1]?.target).toEqual({
+      type: "USER",
+      userId: "u9",
+      name: "Bob",
+      username: "bob",
+    });
   });
 });
 

@@ -16,7 +16,7 @@ export async function SearchDiscovery(): Promise<ReactElement> {
   const user = await getCurrentUser();
   const [tags, pins, savedIds, likedIds] = await Promise.all([
     getPopularTags(),
-    getPins(),
+    getPins(user?.id ?? null),
     user === null ? Promise.resolve<string[]>([]) : getSavedPinIds(user.id),
     user === null ? Promise.resolve<string[]>([]) : getLikedPinIds(user.id),
   ]);

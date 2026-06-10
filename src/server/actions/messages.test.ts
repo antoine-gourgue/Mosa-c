@@ -40,6 +40,7 @@ vi.mock("@/lib/prisma", () => ({
       delete: vi.fn(),
     },
     follow: { findUnique: vi.fn() },
+    block: { findMany: vi.fn().mockResolvedValue([]) },
     $transaction: vi.fn(),
   },
 }));

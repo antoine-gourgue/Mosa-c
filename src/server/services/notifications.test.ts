@@ -19,6 +19,7 @@ vi.mock("next-intl/server", () => ({
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     notification: { findMany: vi.fn(), count: vi.fn() },
+    block: { findMany: vi.fn().mockResolvedValue([]) },
   },
 }));
 

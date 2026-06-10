@@ -1,7 +1,12 @@
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/prisma", () => ({ prisma: { comment: { findMany: vi.fn() } } }));
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    comment: { findMany: vi.fn() },
+    block: { findMany: vi.fn().mockResolvedValue([]) },
+  },
+}));
 
 import { prisma } from "@/lib/prisma";
 import { aggregateReactions, getComments, toComment } from "./comments";
