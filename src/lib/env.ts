@@ -34,6 +34,8 @@ const envSchema = z.object({
   UMAMI_WEBSITE_ID: optionalSecret,
   NEXT_PUBLIC_APP_URL: optionalUrl,
   NEXT_PUBLIC_REALTIME_URL: optionalUrl,
+  REALTIME_INTERNAL_URL: optionalUrl,
+  REALTIME_INTERNAL_SECRET: optionalSecret,
 });
 
 /**

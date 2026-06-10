@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import { useNavPanel } from "@/components/layout/NavPanelProvider";
 import { Avatar } from "@/components/ui";
@@ -22,6 +22,7 @@ import { useTimeFormat } from "@/hooks/use-time-format";
 import { loadNotifications, markAllRead } from "@/server/actions/notifications";
 import type { AppNotification, Creator, NotificationKind } from "@/types/domain";
 import { FollowRequests } from "./FollowRequests";
+import { useNotificationsUnread } from "./NotificationsProvider";
 
 /**
  * Resolves the destination link for a notification: the pin for likes and
@@ -79,13 +80,15 @@ export function NotificationsPanel(): ReactElement {
   const time = useTimeFormat();
   const router = useRouter();
   const { activePanel, close } = useNavPanel();
+  const { revision } = useNotificationsUnread();
   const open = activePanel === "notifications";
   const [loaded, setLoaded] = useState(false);
   const [items, setItems] = useState<AppNotification[]>([]);
   const [requests, setRequests] = useState<Creator[]>([]);
+  const loadedRevision = useRef(-1);
 
   useEffect(() => {
-    if (!open || loaded) {
+    if (!open || (loaded && loadedRevision.current === revision)) {
       return;
     }
     let cancelled = false;
@@ -100,12 +103,13 @@ export function NotificationsPanel(): ReactElement {
           void markAllRead().then(() => router.refresh());
         }
       }
+      loadedRevision.current = revision;
       setLoaded(true);
     });
     return () => {
       cancelled = true;
     };
-  }, [open, loaded, router]);
+  }, [open, loaded, revision, router]);
 
   useEffect(() => {
     if (!open) {

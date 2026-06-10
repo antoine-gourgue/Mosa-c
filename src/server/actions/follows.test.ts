@@ -35,6 +35,7 @@ describe("toggleFollow", () => {
     db.follow.findUnique.mockResolvedValue(null);
     db.followRequest.findUnique.mockResolvedValue(null);
     db.notification.findFirst.mockResolvedValue(null);
+    db.notification.create.mockResolvedValue({ id: "n1" });
     db.user.findUnique.mockResolvedValue({ isPrivate: false });
     vi.mocked(getCurrentUser).mockResolvedValue({
       id: "u1",

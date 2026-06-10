@@ -4,7 +4,7 @@ import type { ReactElement, ReactNode } from "react";
 import { ToastProvider } from "@/components/ui";
 import { EngagementProvider } from "@/components/engagement";
 import { MessagesPanel, MessagesProvider } from "@/components/messages";
-import { NotificationsPanel } from "@/components/notifications";
+import { NotificationsPanel, NotificationsProvider } from "@/components/notifications";
 import {
   BottomNav,
   ContentShell,
@@ -55,7 +55,7 @@ export default async function MainLayout({
       >
         {t("skipToContent")}
       </a>
-      {user !== null ? <SideNav unreadCount={unreadCount} /> : null}
+      {user !== null ? <SideNav /> : null}
       <ContentShell offset={user !== null}>
         <Suspense>
           <TopNav
@@ -80,7 +80,7 @@ export default async function MainLayout({
       ) : null}
       {user !== null ? <NotificationsPanel /> : null}
       {user !== null ? <Fab /> : null}
-      {user !== null ? <BottomNav unreadCount={unreadCount} /> : null}
+      {user !== null ? <BottomNav /> : null}
       {modal}
     </>
   );
@@ -89,7 +89,9 @@ export default async function MainLayout({
       <EngagementProvider>
         {user !== null ? (
           <MessagesProvider viewerId={user.id} initialUnreadIds={unreadConversationIds}>
-            <NavPanelProvider>{shell}</NavPanelProvider>
+            <NotificationsProvider initialUnreadCount={unreadCount}>
+              <NavPanelProvider>{shell}</NavPanelProvider>
+            </NotificationsProvider>
           </MessagesProvider>
         ) : (
           shell
