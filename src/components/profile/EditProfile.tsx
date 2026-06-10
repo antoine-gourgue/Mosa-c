@@ -1,11 +1,15 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import type { ChangeEvent, FormEvent, ReactElement } from "react";
 import { Avatar, Button, Input, Select, Textarea } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { compressImage } from "@/lib/image";
-import { requestEmailChange, requestPasswordReset } from "@/server/actions/account";
+import {
+  getAccountStatus,
+  requestEmailChange,
+  requestPasswordReset,
+} from "@/server/actions/account";
 import { updateProfile } from "@/server/actions/profile";
 
 /**
@@ -34,6 +38,7 @@ export type EditProfileProps = {
   bio: string;
   avatarUrl: string | null;
   email: string;
+  emailVerified: boolean;
   gender: GenderValue | null;
   hasPassword: boolean;
 };
@@ -52,6 +57,7 @@ export function EditProfile({
   bio,
   avatarUrl,
   email,
+  emailVerified,
   gender,
   hasPassword,
 }: EditProfileProps): ReactElement {
@@ -192,43 +198,71 @@ export function EditProfile({
           </Button>
         </form>
 
-        <AccountSection email={email} hasPassword={hasPassword} />
+        <AccountSection email={email} emailVerified={emailVerified} hasPassword={hasPassword} />
       </div>
     </div>
   );
 }
 
 /**
+ * How often, in milliseconds, the account status is polled while a confirmation
+ * link is outstanding, so a click in the new inbox is reflected here.
+ */
+const STATUS_POLL_MS = 4000;
+
+/**
  * The Account column: change the email (confirmed via a link to the new
  * address) and trigger a password reset by email.
  *
- * @param props - The current email and whether the account has a password.
+ * @param props - The current email, its verified state, and whether the account
+ *   has a password.
  * @returns The account section element.
  */
 function AccountSection({
   email,
+  emailVerified,
   hasPassword,
 }: {
   email: string;
+  emailVerified: boolean;
   hasPassword: boolean;
 }): ReactElement {
+  const [currentEmail, setCurrentEmail] = useState(email);
+  const [verified, setVerified] = useState(emailVerified);
   const [emailValue, setEmailValue] = useState(email);
-  const [emailMsg, setEmailMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [emailPending, startEmail] = useTransition();
   const [pwdMsg, setPwdMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pwdPending, startPwd] = useTransition();
 
-  const emailChanged = emailValue.trim().toLowerCase() !== email.toLowerCase();
+  const emailChanged = emailValue.trim().toLowerCase() !== currentEmail.toLowerCase();
+
+  useEffect(() => {
+    if (pendingEmail === null) {
+      return;
+    }
+    const id = setInterval(async () => {
+      const status = await getAccountStatus();
+      if (status.ok && status.email.toLowerCase() === pendingEmail) {
+        setCurrentEmail(status.email);
+        setVerified(status.emailVerified);
+        setEmailValue(status.email);
+        setPendingEmail(null);
+      }
+    }, STATUS_POLL_MS);
+    return () => clearInterval(id);
+  }, [pendingEmail]);
 
   const onVerifyEmail = (): void => {
-    setEmailMsg(null);
+    setEmailError(null);
     startEmail(async () => {
       const result = await requestEmailChange(emailValue);
-      setEmailMsg(
-        result.ok
-          ? { ok: true, text: "Check your new inbox for a confirmation link." }
-          : { ok: false, text: result.error },
-      );
+      if (result.ok) {
+        setPendingEmail(emailValue.trim().toLowerCase());
+      } else {
+        setEmailError(result.error);
+      }
     });
   };
 
@@ -256,6 +290,29 @@ function AccountSection({
           value={emailValue}
           onChange={(event) => setEmailValue(event.target.value)}
         />
+        <div
+          className={cn(
+            "mt-2 flex items-center gap-2 rounded-lg px-3 py-2 text-sm",
+            pendingEmail === null && verified
+              ? "bg-success/10 text-success"
+              : "bg-accent/10 text-accent",
+          )}
+        >
+          <span
+            aria-hidden
+            className={cn(
+              "size-2 shrink-0 rounded-sm",
+              pendingEmail === null && verified ? "bg-success" : "bg-accent",
+            )}
+          />
+          <span>
+            {pendingEmail !== null
+              ? `Waiting for confirmation — open the link sent to ${pendingEmail}.`
+              : verified
+                ? "Your email is verified."
+                : "Your email is not verified yet."}
+          </span>
+        </div>
         <Button
           type="button"
           variant="ghost"
@@ -264,13 +321,9 @@ function AccountSection({
           disabled={!emailChanged || emailValue.trim() === ""}
           onClick={onVerifyEmail}
         >
-          Verify new email
+          Change email
         </Button>
-        {emailMsg !== null ? (
-          <p className={cn("mt-2 text-sm", emailMsg.ok ? "text-ink-soft" : "text-accent")}>
-            {emailMsg.text}
-          </p>
-        ) : null}
+        {emailError !== null ? <p className="mt-2 text-sm text-accent">{emailError}</p> : null}
       </div>
 
       {hasPassword ? (

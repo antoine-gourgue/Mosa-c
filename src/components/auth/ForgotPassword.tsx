@@ -41,9 +41,12 @@ export function ForgotPassword(): ReactElement {
       </p>
 
       {sent ? (
-        <p className="mt-6 text-ink-soft">
-          If an account exists for that email, a reset link is on its way. Check your inbox.
-        </p>
+        <div className="mt-6 flex items-start gap-2 rounded-lg bg-success/10 px-3 py-2.5 text-sm text-success">
+          <span aria-hidden className="mt-1 size-2 shrink-0 rounded-sm bg-success" />
+          <span>
+            If an account exists for that email, a reset link is on its way. Check your inbox.
+          </span>
+        </div>
       ) : (
         <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
           <Input

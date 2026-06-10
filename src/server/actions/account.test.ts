@@ -21,6 +21,7 @@ import { prisma } from "@/lib/prisma";
 import { consumeAccountToken, issueAccountToken } from "@/server/services/account-token";
 import {
   confirmEmailChange,
+  getAccountStatus,
   requestEmailChange,
   requestPasswordReset,
   requestPasswordResetForEmail,
@@ -121,6 +122,20 @@ describe("requestPasswordResetForEmail", () => {
   it("reports success and skips an invalid email", async () => {
     expect(await requestPasswordResetForEmail("nope")).toEqual({ ok: true });
     expect(sendPasswordResetEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe("getAccountStatus", () => {
+  it("returns not-ok when signed out", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    expect(await getAccountStatus()).toEqual({ ok: false });
+  });
+
+  it("returns the email and its verified state", async () => {
+    db.user.findUnique.mockResolvedValue({ email: "a@x.com", emailVerified: new Date() });
+    expect(await getAccountStatus()).toEqual({ ok: true, email: "a@x.com", emailVerified: true });
+    db.user.findUnique.mockResolvedValue({ email: "a@x.com", emailVerified: null });
+    expect(await getAccountStatus()).toMatchObject({ emailVerified: false });
   });
 });
 

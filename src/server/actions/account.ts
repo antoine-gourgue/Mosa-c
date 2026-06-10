@@ -22,6 +22,29 @@ function appBase(): string {
 }
 
 /**
+ * Reads the current user's email and whether it is verified, for the settings
+ * UI to reflect a pending email change in (near) real time.
+ *
+ * @returns The current email and verified flag, or a signed-out result.
+ */
+export async function getAccountStatus(): Promise<
+  { ok: true; email: string; emailVerified: boolean } | { ok: false }
+> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false };
+  }
+  const record = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { email: true, emailVerified: true },
+  });
+  if (record === null) {
+    return { ok: false };
+  }
+  return { ok: true, email: record.email, emailVerified: record.emailVerified !== null };
+}
+
+/**
  * Starts an email-address change: emails a confirmation link to the new address.
  * The current email stays until the link is confirmed.
  *

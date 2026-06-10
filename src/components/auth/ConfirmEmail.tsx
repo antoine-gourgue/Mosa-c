@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
-import { Button } from "@/components/ui";
 import { Logo } from "@/icons";
 import { confirmEmailChange } from "@/server/actions/account";
 
@@ -56,10 +55,9 @@ export function ConfirmEmail({ token }: ConfirmEmailProps): ReactElement {
       ) : state === "ok" ? (
         <>
           <h1 className="mt-6 text-2xl font-extrabold text-ink">Email confirmed</h1>
-          <p className="mt-2 text-ink-soft">Your account email has been updated.</p>
-          <Button href="/settings/profile" className="mt-6">
-            Back to settings
-          </Button>
+          <p className="mt-2 text-ink-soft">
+            Your account email has been updated. You can close this tab.
+          </p>
         </>
       ) : (
         <>

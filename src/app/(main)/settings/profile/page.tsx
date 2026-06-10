@@ -31,6 +31,7 @@ export default async function EditProfilePage(): Promise<ReactElement> {
       bio: true,
       avatarUrl: true,
       email: true,
+      emailVerified: true,
       gender: true,
       passwordHash: true,
     },
@@ -42,6 +43,7 @@ export default async function EditProfilePage(): Promise<ReactElement> {
       bio={profile?.bio ?? ""}
       avatarUrl={profile?.avatarUrl ?? null}
       email={profile?.email ?? ""}
+      emailVerified={profile?.emailVerified != null}
       gender={profile?.gender ?? null}
       hasPassword={profile?.passwordHash != null}
     />
