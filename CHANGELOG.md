@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.19.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.18.0...v1.19.0) (2026-06-10)
+
+
+### Features
+
+* **privacy:** private accounts with follow requests ([b379b08](https://github.com/antoine-gourgue/Mosa-c/commit/b379b083f156e09d87ca363cbc3d232e0cc829b9))
+* **privacy:** private accounts with follow requests ([c5c20ec](https://github.com/antoine-gourgue/Mosa-c/commit/c5c20ec5d3089ef93dbeabea6238b472a6f65fcb))
+
+
+### Bug Fixes
+
+* **privacy:** show follow requests in the notifications panel ([8cdbf84](https://github.com/antoine-gourgue/Mosa-c/commit/8cdbf84bb84995aa6f18d1699ccedaa863faad7a))
+
 ## [1.18.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.17.0...v1.18.0) (2026-06-10)
 
 
