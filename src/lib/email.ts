@@ -164,3 +164,120 @@ export async function sendOtpEmail(to: string, code: string): Promise<boolean> {
     ],
   });
 }
+
+/**
+ * Renders a branded, flat action email with the Mosaic logo lockup, a heading,
+ * an intro line and a single call-to-action button.
+ *
+ * @param params - The heading, intro text, button label and absolute URL.
+ * @returns The HTML body.
+ */
+function renderActionHtml(params: {
+  heading: string;
+  intro: string;
+  buttonLabel: string;
+  buttonUrl: string;
+}): string {
+  const sans = "-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif";
+  return `<!doctype html>
+<html lang="en">
+  <body style="margin:0;padding:0;background:#ffffff">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff">
+      <tr>
+        <td align="center" style="padding:44px 24px">
+          <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%">
+            <tr>
+              <td style="padding-bottom:32px">
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding-right:9px;vertical-align:middle"><img src="cid:mosaic-logo" width="28" height="28" alt="" style="display:block;border:0" /></td>
+                    <td style="vertical-align:middle"><span style="font-family:${sans};font-size:19px;font-weight:800;color:#1a1a1a;letter-spacing:-0.3px">Mosaic</span></td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <h1 style="margin:0 0 10px;font-family:${sans};font-size:24px;font-weight:700;color:#1a1a1a">${params.heading}</h1>
+                <p style="margin:0 0 28px;font-family:${sans};font-size:15px;line-height:1.6;color:#6b6b6b">${params.intro}</p>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="${params.buttonUrl}" style="display:inline-block;background:#db2d44;color:#ffffff;font-family:${sans};font-size:15px;font-weight:600;text-decoration:none;padding:13px 26px;border-radius:12px">${params.buttonLabel}</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding-top:32px">
+                <div style="height:1px;background:#ececee;margin-bottom:20px"></div>
+                <p style="margin:0;font-family:${sans};font-size:13px;line-height:1.6;color:#9a9a9a">This link expires in 30 minutes. If you didn&rsquo;t request this, you can safely ignore this email.</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+/**
+ * Sends a transactional action email (link-based) with the Mosaic logo.
+ *
+ * @param params - Recipient, subject, heading, intro, button label and URL.
+ * @returns Whether the email was accepted for delivery.
+ */
+async function sendActionEmail(params: {
+  to: string;
+  subject: string;
+  heading: string;
+  intro: string;
+  buttonLabel: string;
+  buttonUrl: string;
+}): Promise<boolean> {
+  return sendEmail({
+    to: params.to,
+    subject: params.subject,
+    html: renderActionHtml(params),
+    text: `${params.intro} ${params.buttonLabel}: ${params.buttonUrl} (this link expires in 30 minutes).`,
+    attachments: [
+      { filename: "mosaic-logo.png", content: EMAIL_LOGO_BASE64, contentId: "mosaic-logo" },
+    ],
+  });
+}
+
+/**
+ * Emails a link to confirm a pending email-address change to the new address.
+ *
+ * @param to - The new email address to confirm.
+ * @param url - The absolute confirmation URL.
+ * @returns Whether the email was accepted for delivery.
+ */
+export async function sendEmailChangeEmail(to: string, url: string): Promise<boolean> {
+  return sendActionEmail({
+    to,
+    subject: "Confirm your new Mosaic email",
+    heading: "Confirm your email",
+    intro: "Confirm this is your email address to use it for your Mosaic account.",
+    buttonLabel: "Confirm email",
+    buttonUrl: url,
+  });
+}
+
+/**
+ * Emails a password-reset link.
+ *
+ * @param to - The recipient email address.
+ * @param url - The absolute reset URL.
+ * @returns Whether the email was accepted for delivery.
+ */
+export async function sendPasswordResetEmail(to: string, url: string): Promise<boolean> {
+  return sendActionEmail({
+    to,
+    subject: "Reset your Mosaic password",
+    heading: "Reset your password",
+    intro: "Click below to choose a new password for your Mosaic account.",
+    buttonLabel: "Reset password",
+    buttonUrl: url,
+  });
+}

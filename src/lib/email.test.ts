@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { sendEmail, sendOtpEmail } from "./email";
+import { sendEmail, sendEmailChangeEmail, sendOtpEmail, sendPasswordResetEmail } from "./email";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -76,5 +76,36 @@ describe("sendOtpEmail", () => {
     });
     expect(body.html).toContain("Verify my email");
     expect(body.html).toContain("https://mosaic.app/verify?email=you%40x.com&code=123456");
+  });
+});
+
+describe("action emails", () => {
+  it("logs a password-reset link in the console fallback", async () => {
+    vi.stubEnv("RESEND_API_KEY", "");
+    vi.stubEnv("EMAIL_FROM", "");
+    const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    expect(await sendPasswordResetEmail("a@x.com", "https://m/reset?token=abc")).toBe(true);
+    expect(info.mock.calls[0]?.[0]).toContain("https://m/reset?token=abc");
+  });
+
+  it("posts an email-change confirmation via Resend with the button and logo", async () => {
+    vi.stubEnv("RESEND_API_KEY", "key");
+    vi.stubEnv("EMAIL_FROM", "Mosaic <noreply@send.x.com>");
+    let captured = "";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, opts: { body: string }) => {
+        captured = opts.body;
+        return { ok: true };
+      }),
+    );
+    expect(await sendEmailChangeEmail("new@x.com", "https://m/confirm-email?token=xyz")).toBe(true);
+    const body = JSON.parse(captured) as {
+      attachments?: { content_id?: string }[];
+      html: string;
+    };
+    expect(body.attachments?.[0]?.content_id).toBe("mosaic-logo");
+    expect(body.html).toContain("Confirm email");
+    expect(body.html).toContain("https://m/confirm-email?token=xyz");
   });
 });

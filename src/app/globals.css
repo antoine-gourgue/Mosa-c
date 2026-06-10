@@ -11,6 +11,7 @@
   --color-line: #e9e9e9;
   --color-accent: oklch(0.55 0.21 22);
   --color-accent-press: oklch(0.48 0.21 22);
+  --color-success: oklch(0.55 0.13 150);
 
   --radius-pin: 16px;
   --radius-lg: 24px;

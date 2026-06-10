@@ -9,6 +9,9 @@ const PUBLIC_EXACT = new Set([
   "/icon.svg",
   "/sw.js",
   "/offline",
+  "/forgot-password",
+  "/reset-password",
+  "/confirm-email",
 ]);
 const PUBLIC_PREFIXES = ["/styleguide", "/pin/", "/u/"];
 
