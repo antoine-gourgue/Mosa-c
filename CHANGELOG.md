@@ -1,5 +1,40 @@
 # Changelog
 
+## [1.17.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.16.0...v1.17.0) (2026-06-10)
+
+
+### Features
+
+* **i18n:** localize relative times and dates via a locale-aware time hook ([d3c6501](https://github.com/antoine-gourgue/Mosa-c/commit/d3c65011d18f215b9c4517b22b1c98c2e72081ca))
+* **i18n:** next-intl foundation with auto-detected locale ([dd64b8f](https://github.com/antoine-gourgue/Mosa-c/commit/dd64b8f30615c0ac2859d5240b80bda98ac67176))
+* **i18n:** next-intl foundation with auto-detected locale ([898c33c](https://github.com/antoine-gourgue/Mosa-c/commit/898c33c29570bd97ec5df70fee72638443fc0a4b))
+
+
+### Bug Fixes
+
+* **i18n:** harden the locale cookie with secure and httpOnly flags ([5de2c07](https://github.com/antoine-gourgue/Mosa-c/commit/5de2c074c0150ece85f6f45dc35ac0e0f33adefe))
+
+
+### Refactors
+
+* **i18n:** localize account and profile action errors ([7f80b78](https://github.com/antoine-gourgue/Mosa-c/commit/7f80b78011dbb792bb8cff19f86336778d366a83))
+* **i18n:** localize auth action and validation errors ([1a42a33](https://github.com/antoine-gourgue/Mosa-c/commit/1a42a33371f21f63e0b376305e5ceedfedb50b39))
+* **i18n:** localize auth screens via message catalogues ([6c67f58](https://github.com/antoine-gourgue/Mosa-c/commit/6c67f58688b0143b0534abd0d9cc98695399a9af))
+* **i18n:** localize boards and pin cards ([0631eed](https://github.com/antoine-gourgue/Mosa-c/commit/0631eedabed5c640f57b1ee7fa76bb5eef0d4d96))
+* **i18n:** localize feed, page bodies, metadata and error pages ([d2f4e96](https://github.com/antoine-gourgue/Mosa-c/commit/d2f4e9612e32ea6c2789ef6fc40b4922f19762c7))
+* **i18n:** localize follower counts and feed/message empty states ([be0218d](https://github.com/antoine-gourgue/Mosa-c/commit/be0218d439d82e643b16372716f914bbaf3bc6d4))
+* **i18n:** localize landing, profile and search ([1b7d215](https://github.com/antoine-gourgue/Mosa-c/commit/1b7d2159149b39a6a181d0d3e0d0f4744bc80a8b))
+* **i18n:** localize navigation (side, bottom, top, fab) ([b175329](https://github.com/antoine-gourgue/Mosa-c/commit/b175329d6293b174aed7c221a7a95abfe9b30793))
+* **i18n:** localize notifications (inbox, panel, messages) ([079afd2](https://github.com/antoine-gourgue/Mosa-c/commit/079afd29959792e6738d86b6752180477fbc5a9e))
+* **i18n:** localize profile settings screen ([2348303](https://github.com/antoine-gourgue/Mosa-c/commit/234830355909df859e23967ec5be0c7e60bf2abc))
+* **i18n:** localize remaining server action errors ([f01ab11](https://github.com/antoine-gourgue/Mosa-c/commit/f01ab118a0c3dd18f50e96d1eca18c566f3e2a03))
+* **i18n:** localize shared ui component defaults ([56a45b3](https://github.com/antoine-gourgue/Mosa-c/commit/56a45b3006cee1aa764f89ad9a14cf4d8712bd7d))
+* **i18n:** localize the comment count header ([44cdfb3](https://github.com/antoine-gourgue/Mosa-c/commit/44cdfb35ed0b3a043fd67745c3e720e1d9345316))
+* **i18n:** localize the create-pin flow ([09f3496](https://github.com/antoine-gourgue/Mosa-c/commit/09f349601f203f3a597e6deed08f54da2516cf49))
+* **i18n:** localize the messaging experience ([ad42ea9](https://github.com/antoine-gourgue/Mosa-c/commit/ad42ea95fe396c0b9c3717e0dd2e8ab5ac7a87d3))
+* **i18n:** localize the pin detail view and comments ([22c30a2](https://github.com/antoine-gourgue/Mosa-c/commit/22c30a2d38df0582f6f8aeb67ec4bb8e52cf96f2))
+* **i18n:** localize typing indicator and message requests ([a37fa5c](https://github.com/antoine-gourgue/Mosa-c/commit/a37fa5c1cfe1a3b23e09d01014b354e45965704f))
+
 ## [1.16.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.15.0...v1.16.0) (2026-06-10)
 
 
