@@ -2,7 +2,7 @@
 
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, signOut } from "@/lib/auth";
 import { sendEmailChangeEmail, sendPasswordResetEmail } from "@/lib/email";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import { isUniqueConstraintError, prisma } from "@/lib/prisma";
@@ -237,5 +237,37 @@ export async function resetPassword(
     data: { passwordHash: await hashPassword(parsed.data) },
   });
   await prisma.session.deleteMany({ where: { userId: consumed.userId } });
+  return { ok: true };
+}
+
+/**
+ * Permanently deletes the current user's account and all their data. Acts as a
+ * GDPR erasure: the database cascade removes the user's pins, boards, comments,
+ * likes, saves, follows, blocks, reports, conversations and notifications. The
+ * caller must confirm by typing their exact username (or "DELETE" for accounts
+ * without a handle). Signs out and redirects to the login page on success.
+ *
+ * @param confirmation - The confirmation string the user typed.
+ * @returns A failure result on mismatch; redirects on success.
+ */
+export async function deleteAccount(confirmation: string): Promise<AccountActionResult> {
+  const t = await getTranslations("errors");
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: t("signedOut") };
+  }
+  const record = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { username: true },
+  });
+  if (record === null) {
+    return { ok: false, error: t("signedOut") };
+  }
+  const expected = record.username ?? "DELETE";
+  if (confirmation.trim() !== expected) {
+    return { ok: false, error: t("deleteConfirmMismatch") };
+  }
+  await prisma.user.delete({ where: { id: user.id } });
+  await signOut({ redirectTo: "/login" });
   return { ok: true };
 }

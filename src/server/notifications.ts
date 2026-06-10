@@ -1,5 +1,6 @@
 import type { NotificationType } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
+import { wantsNotification } from "@/server/services/notification-prefs";
 
 /**
  * Input for {@link createNotification}.
@@ -16,7 +17,8 @@ export type CreateNotificationInput = {
  * Creates a notification for an engagement event (follow, like or comment).
  *
  * Self-directed notifications (where the actor is the recipient) are skipped so
- * users are never notified about their own actions. For follows and likes a
+ * users are never notified about their own actions, as are kinds the recipient
+ * has turned off in their notification preferences. For follows and likes a
  * duplicate unread notification from the same actor on the same target is
  * collapsed to avoid spamming the inbox when a relationship is toggled
  * repeatedly.
@@ -27,6 +29,10 @@ export type CreateNotificationInput = {
 export async function createNotification(input: CreateNotificationInput): Promise<void> {
   const { type, recipientId, actorId, pinId, commentId } = input;
   if (recipientId === actorId) {
+    return;
+  }
+
+  if (!(await wantsNotification(recipientId, type))) {
     return;
   }
 

@@ -2,7 +2,10 @@ import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
-  prisma: { notification: { findFirst: vi.fn(), create: vi.fn() } },
+  prisma: {
+    notification: { findFirst: vi.fn(), create: vi.fn() },
+    user: { findUnique: vi.fn().mockResolvedValue(null) },
+  },
 }));
 
 import { prisma } from "@/lib/prisma";
@@ -10,10 +13,12 @@ import { createNotification } from "./notifications";
 
 const db = prisma as unknown as {
   notification: { findFirst: Mock; create: Mock };
+  user: { findUnique: Mock };
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
+  db.user.findUnique.mockResolvedValue(null);
 });
 
 describe("createNotification", () => {
@@ -34,6 +39,12 @@ describe("createNotification", () => {
     expect(db.notification.create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ type: "LIKE", pinId: "p1" }) }),
     );
+  });
+
+  it("skips a kind the recipient has turned off", async () => {
+    db.user.findUnique.mockResolvedValue({ notifPrefs: { LIKE: false } });
+    await createNotification({ type: "LIKE", recipientId: "u1", actorId: "u2", pinId: "p1" });
+    expect(db.notification.create).not.toHaveBeenCalled();
   });
 
   it("always creates a COMMENT notification without deduping", async () => {

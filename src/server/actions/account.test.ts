@@ -10,7 +10,7 @@ vi.mock("next-intl/server", () => ({
     return (key: string) => en[ns]?.[key] ?? key;
   },
 }));
-vi.mock("@/lib/auth", () => ({ getCurrentUser: vi.fn() }));
+vi.mock("@/lib/auth", () => ({ getCurrentUser: vi.fn(), signOut: vi.fn() }));
 vi.mock("@/lib/password", () => ({
   hashPassword: vi.fn(async () => "newhash"),
   verifyPassword: vi.fn(async () => true),
@@ -26,14 +26,14 @@ vi.mock("@/server/services/account-token", () => ({
 }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    user: { findFirst: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+    user: { findFirst: vi.fn(), findUnique: vi.fn(), update: vi.fn(), delete: vi.fn() },
     session: { deleteMany: vi.fn() },
   },
   isUniqueConstraintError: (error: unknown) =>
     typeof error === "object" && error !== null && (error as { code?: unknown }).code === "P2002",
 }));
 
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, signOut } from "@/lib/auth";
 import { sendEmailChangeEmail, sendPasswordResetEmail } from "@/lib/email";
 import { verifyPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
@@ -44,6 +44,7 @@ import {
 } from "@/server/services/account-token";
 import {
   confirmEmailChange,
+  deleteAccount,
   getAccountStatus,
   requestEmailChange,
   requestPasswordReset,
@@ -52,7 +53,7 @@ import {
 } from "./account";
 
 const db = prisma as unknown as {
-  user: { findFirst: Mock; findUnique: Mock; update: Mock };
+  user: { findFirst: Mock; findUnique: Mock; update: Mock; delete: Mock };
   session: { deleteMany: Mock };
 };
 
@@ -238,5 +239,33 @@ describe("resetPassword", () => {
       expect.objectContaining({ data: { passwordHash: "newhash" } }),
     );
     expect(db.session.deleteMany).toHaveBeenCalledWith({ where: { userId: "u1" } });
+  });
+});
+
+describe("deleteAccount", () => {
+  it("rejects when signed out", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    expect((await deleteAccount("ada")).ok).toBe(false);
+    expect(db.user.delete).not.toHaveBeenCalled();
+  });
+
+  it("rejects when the confirmation does not match the username", async () => {
+    db.user.findUnique.mockResolvedValue({ username: "ada" });
+    expect((await deleteAccount("nope")).ok).toBe(false);
+    expect(db.user.delete).not.toHaveBeenCalled();
+    expect(signOut).not.toHaveBeenCalled();
+  });
+
+  it("deletes the account and signs out when the username matches", async () => {
+    db.user.findUnique.mockResolvedValue({ username: "ada" });
+    await deleteAccount("ada");
+    expect(db.user.delete).toHaveBeenCalledWith({ where: { id: "u1" } });
+    expect(signOut).toHaveBeenCalled();
+  });
+
+  it("accepts DELETE for an account without a username", async () => {
+    db.user.findUnique.mockResolvedValue({ username: null });
+    await deleteAccount("DELETE");
+    expect(db.user.delete).toHaveBeenCalledWith({ where: { id: "u1" } });
   });
 });
