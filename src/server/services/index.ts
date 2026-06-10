@@ -27,7 +27,13 @@ export {
   canManageBoard,
 } from "./boards";
 export { getSavedPinIds, getSavedPins, isSaved } from "./saves";
-export { getFollowedCreatorIds, isFollowing } from "./follows";
+export {
+  getFollowedCreatorIds,
+  isFollowing,
+  getFollowState,
+  getPendingFollowRequests,
+  getPendingFollowRequestCount,
+} from "./follows";
 export { getHiddenUserIds, getBlockState, getBlockedUsers } from "./blocks";
 export type { BlockState } from "./blocks";
 export {

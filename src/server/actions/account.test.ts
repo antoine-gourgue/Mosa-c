@@ -28,6 +28,9 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     user: { findFirst: vi.fn(), findUnique: vi.fn(), update: vi.fn(), delete: vi.fn() },
     session: { deleteMany: vi.fn() },
+    follow: { createMany: vi.fn() },
+    followRequest: { findMany: vi.fn(), deleteMany: vi.fn() },
+    $transaction: vi.fn(),
   },
   isUniqueConstraintError: (error: unknown) =>
     typeof error === "object" && error !== null && (error as { code?: unknown }).code === "P2002",
@@ -50,11 +53,15 @@ import {
   requestPasswordReset,
   requestPasswordResetForEmail,
   resetPassword,
+  setAccountPrivacy,
 } from "./account";
 
 const db = prisma as unknown as {
   user: { findFirst: Mock; findUnique: Mock; update: Mock; delete: Mock };
   session: { deleteMany: Mock };
+  follow: { createMany: Mock };
+  followRequest: { findMany: Mock; deleteMany: Mock };
+  $transaction: Mock;
 };
 
 beforeEach(() => {
@@ -267,5 +274,33 @@ describe("deleteAccount", () => {
     db.user.findUnique.mockResolvedValue({ username: null });
     await deleteAccount("DELETE");
     expect(db.user.delete).toHaveBeenCalledWith({ where: { id: "u1" } });
+  });
+});
+
+describe("setAccountPrivacy", () => {
+  it("rejects when signed out", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    expect((await setAccountPrivacy(true)).ok).toBe(false);
+  });
+
+  it("makes the account private without touching requests", async () => {
+    expect(await setAccountPrivacy(true)).toEqual({ ok: true });
+    expect(db.user.update).toHaveBeenCalledWith({
+      where: { id: "u1" },
+      data: { isPrivate: true },
+    });
+    expect(db.followRequest.findMany).not.toHaveBeenCalled();
+  });
+
+  it("auto-approves pending requests when going public", async () => {
+    db.followRequest.findMany.mockResolvedValue([{ requesterId: "r1" }, { requesterId: "r2" }]);
+    expect(await setAccountPrivacy(false)).toEqual({ ok: true });
+    expect(db.$transaction).toHaveBeenCalledOnce();
+  });
+
+  it("skips the transaction when public with no pending requests", async () => {
+    db.followRequest.findMany.mockResolvedValue([]);
+    expect(await setAccountPrivacy(false)).toEqual({ ok: true });
+    expect(db.$transaction).not.toHaveBeenCalled();
   });
 });

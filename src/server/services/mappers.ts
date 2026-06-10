@@ -11,6 +11,7 @@ export type CreatorRow = {
   avatarUrl: string | null;
   followersLabel: string | null;
   verified: boolean;
+  isPrivate?: boolean;
 };
 
 /**
@@ -75,6 +76,7 @@ export function toCreator(row: CreatorRow): Creator {
     avatarUrl: row.avatarUrl,
     followersLabel: row.followersLabel,
     verified: row.verified,
+    isPrivate: row.isPrivate ?? false,
   };
 }
 

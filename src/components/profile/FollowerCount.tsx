@@ -28,6 +28,7 @@ export function FollowerCount({
   initialFollowing,
 }: FollowerCountProps): ReactElement {
   const override = useFollowOverride(creatorId);
-  const delta = override === undefined || override === initialFollowing ? 0 : override ? 1 : -1;
+  const nowFollowing = override === undefined ? initialFollowing : override === "following";
+  const delta = nowFollowing === initialFollowing ? 0 : nowFollowing ? 1 : -1;
   return <span className="font-semibold text-ink">{followers + delta}</span>;
 }

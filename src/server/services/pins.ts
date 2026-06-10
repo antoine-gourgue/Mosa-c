@@ -6,14 +6,49 @@ import { getFollowedCreatorIds } from "./follows";
 import { PIN_INCLUDE, toPin } from "./mappers";
 
 /**
+ * Resolves the creator ids whose pins must be kept out of a viewer's discovery
+ * surfaces (home feed, "For you", search, related). This is the union of:
+ *
+ * - users the viewer has blocked or who have blocked the viewer; and
+ * - private accounts the viewer neither follows nor owns, since a private
+ *   account's pins are only visible to approved followers.
+ *
+ * @param viewerId - The current viewer id, or null when signed out.
+ * @returns The creator ids to exclude.
+ */
+async function getFeedExcludedUserIds(viewerId: string | null): Promise<string[]> {
+  const [hidden, privateUsers] = await Promise.all([
+    getHiddenUserIds(viewerId),
+    prisma.user.findMany({ where: { isPrivate: true }, select: { id: true } }),
+  ]);
+  const excluded = new Set(hidden);
+  if (privateUsers.length === 0) {
+    return [...excluded];
+  }
+  const allowed = new Set<string>();
+  if (viewerId !== null) {
+    allowed.add(viewerId);
+    for (const id of await getFollowedCreatorIds(viewerId)) {
+      allowed.add(id);
+    }
+  }
+  for (const user of privateUsers) {
+    if (!allowed.has(user.id)) {
+      excluded.add(user.id);
+    }
+  }
+  return [...excluded];
+}
+
+/**
  * Fetches all pins for the feed, newest first, excluding pins from users the
- * viewer has blocked or who have blocked the viewer.
+ * viewer cannot see (blocked either way, or private accounts they do not follow).
  *
  * @param viewerId - The current viewer id, or null when signed out.
  * @returns The list of pins.
  */
 export async function getPins(viewerId: string | null = null): Promise<Pin[]> {
-  const hidden = await getHiddenUserIds(viewerId);
+  const hidden = await getFeedExcludedUserIds(viewerId);
   const rows = await prisma.pin.findMany({
     where: hidden.length > 0 ? { creatorId: { notIn: hidden } } : {},
     include: PIN_INCLUDE,
@@ -302,7 +337,7 @@ export async function getHomeFeed(params: {
   limit?: number;
 }): Promise<FeedPage> {
   const { skip = 0, sort = "recent", feed = "foryou", viewerId, limit = FEED_PAGE_SIZE } = params;
-  const hiddenIds = await getHiddenUserIds(viewerId);
+  const hiddenIds = await getFeedExcludedUserIds(viewerId);
   if (feed === "foryou" && sort === "recent") {
     return getForYouFeed({ viewerId, hiddenIds, skip, limit });
   }
@@ -347,7 +382,7 @@ export async function getRelatedPins(
   if (current === null) {
     return [];
   }
-  const hidden = await getHiddenUserIds(viewerId);
+  const hidden = await getFeedExcludedUserIds(viewerId);
   const hiddenWhere: PinWhereInput = hidden.length > 0 ? { creatorId: { notIn: hidden } } : {};
   const tagIds = current.tags.map((pinTag) => pinTag.tagId);
   const sameTags =
@@ -413,7 +448,7 @@ export async function searchPins(
   if (q === "") {
     return [];
   }
-  const hidden = await getHiddenUserIds(viewerId);
+  const hidden = await getFeedExcludedUserIds(viewerId);
   const rows = await prisma.pin.findMany({
     where: {
       OR: [

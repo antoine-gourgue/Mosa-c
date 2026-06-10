@@ -9,7 +9,14 @@ export type Creator = {
   avatarUrl: string | null;
   followersLabel: string | null;
   verified: boolean;
+  isPrivate: boolean;
 };
+
+/**
+ * The viewer's follow relationship with a creator: not following, a pending
+ * follow request (for private accounts), or following.
+ */
+export type FollowState = "none" | "requested" | "following";
 
 /**
  * A free-form tag as surfaced to the UI.

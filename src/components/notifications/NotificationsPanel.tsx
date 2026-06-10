@@ -20,7 +20,8 @@ import {
 import { cn } from "@/lib/cn";
 import { useTimeFormat } from "@/hooks/use-time-format";
 import { loadNotifications, markAllRead } from "@/server/actions/notifications";
-import type { AppNotification, NotificationKind } from "@/types/domain";
+import type { AppNotification, Creator, NotificationKind } from "@/types/domain";
+import { FollowRequests } from "./FollowRequests";
 
 /**
  * Resolves the destination link for a notification: the pin for likes and
@@ -81,6 +82,7 @@ export function NotificationsPanel(): ReactElement {
   const open = activePanel === "notifications";
   const [loaded, setLoaded] = useState(false);
   const [items, setItems] = useState<AppNotification[]>([]);
+  const [requests, setRequests] = useState<Creator[]>([]);
 
   useEffect(() => {
     if (!open || loaded) {
@@ -93,6 +95,7 @@ export function NotificationsPanel(): ReactElement {
       }
       if (result.ok) {
         setItems(result.notifications);
+        setRequests(result.requests);
         if (result.notifications.some((notification) => !notification.read)) {
           void markAllRead().then(() => router.refresh());
         }
@@ -152,7 +155,7 @@ export function NotificationsPanel(): ReactElement {
               </li>
             ))}
           </ul>
-        ) : items.length === 0 ? (
+        ) : items.length === 0 && requests.length === 0 ? (
           <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
             <span className="grid size-14 place-items-center rounded-full bg-surface text-ink-soft">
               <BellIcon size={26} />
@@ -161,59 +164,64 @@ export function NotificationsPanel(): ReactElement {
             <p className="max-w-xs text-sm text-ink-soft">{t("emptyHint")}</p>
           </div>
         ) : (
-          <ul className="flex flex-col">
-            {items.map((item) => {
-              const badge = typeBadge(item.kind);
-              return (
-                <li key={item.id}>
-                  <Link
-                    href={linkFor(item)}
-                    onClick={close}
-                    className={cn(
-                      "flex items-center gap-3 rounded-2xl px-2 py-2.5 transition-colors hover:bg-surface",
-                      !item.read && "bg-accent/[0.06]",
-                    )}
-                  >
-                    <span className="relative shrink-0">
-                      <Avatar
-                        name={item.actor.name}
-                        src={item.actor.avatarUrl ?? undefined}
-                        size={44}
-                      />
-                      <span
-                        className={cn(
-                          "absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full text-bg ring-2 ring-bg",
-                          badge.className,
-                        )}
-                        aria-hidden
-                      >
-                        {badge.icon}
-                      </span>
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[14px] leading-snug text-ink">
-                        {item.message}
-                      </span>
-                      <span className="block text-xs text-ink-soft">
-                        {time.relative(item.createdAt)}
-                      </span>
-                    </span>
-                    {item.pinImageUrl !== null ? (
-                      <span className="relative size-11 shrink-0 overflow-hidden rounded-lg">
-                        <Image
-                          src={item.pinImageUrl}
-                          alt=""
-                          fill
-                          sizes="44px"
-                          className="bg-surface-2 object-cover"
+          <>
+            <div className="px-2">
+              <FollowRequests requesters={requests} />
+            </div>
+            <ul className="flex flex-col">
+              {items.map((item) => {
+                const badge = typeBadge(item.kind);
+                return (
+                  <li key={item.id}>
+                    <Link
+                      href={linkFor(item)}
+                      onClick={close}
+                      className={cn(
+                        "flex items-center gap-3 rounded-2xl px-2 py-2.5 transition-colors hover:bg-surface",
+                        !item.read && "bg-accent/[0.06]",
+                      )}
+                    >
+                      <span className="relative shrink-0">
+                        <Avatar
+                          name={item.actor.name}
+                          src={item.actor.avatarUrl ?? undefined}
+                          size={44}
                         />
+                        <span
+                          className={cn(
+                            "absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full text-bg ring-2 ring-bg",
+                            badge.className,
+                          )}
+                          aria-hidden
+                        >
+                          {badge.icon}
+                        </span>
                       </span>
-                    ) : null}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[14px] leading-snug text-ink">
+                          {item.message}
+                        </span>
+                        <span className="block text-xs text-ink-soft">
+                          {time.relative(item.createdAt)}
+                        </span>
+                      </span>
+                      {item.pinImageUrl !== null ? (
+                        <span className="relative size-11 shrink-0 overflow-hidden rounded-lg">
+                          <Image
+                            src={item.pinImageUrl}
+                            alt=""
+                            fill
+                            sizes="44px"
+                            className="bg-surface-2 object-cover"
+                          />
+                        </span>
+                      ) : null}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
       </div>
     </aside>

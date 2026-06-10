@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import type { ReactElement, ReactNode } from "react";
+import type { FollowState } from "@/types/domain";
 
 /**
  * Per-pin engagement overrides held in the shared store. Each field, when set,
@@ -18,12 +19,12 @@ export type PinOverride = {
 
 type EngagementContextValue = {
   overrides: ReadonlyMap<string, PinOverride>;
-  follows: ReadonlyMap<string, boolean>;
+  follows: ReadonlyMap<string, FollowState>;
   setLike: (pinId: string, liked: boolean, likeCount: number) => void;
   setSaved: (pinId: string, saved: boolean) => void;
   setCommentCount: (pinId: string, commentCount: number) => void;
   setDownloadCount: (pinId: string, downloadCount: number) => void;
-  setFollowing: (creatorId: string, following: boolean) => void;
+  setFollowing: (creatorId: string, status: FollowState) => void;
 };
 
 const noop = (): void => {};
@@ -49,7 +50,7 @@ const EngagementContext = createContext<EngagementContextValue>({
  */
 export function EngagementProvider({ children }: { children: ReactNode }): ReactElement {
   const [overrides, setOverrides] = useState<Map<string, PinOverride>>(() => new Map());
-  const [follows, setFollows] = useState<Map<string, boolean>>(() => new Map());
+  const [follows, setFollows] = useState<Map<string, FollowState>>(() => new Map());
 
   const patch = useCallback((pinId: string, part: PinOverride): void => {
     setOverrides((prev) => {
@@ -59,10 +60,10 @@ export function EngagementProvider({ children }: { children: ReactNode }): React
     });
   }, []);
 
-  const setFollowing = useCallback((creatorId: string, following: boolean): void => {
+  const setFollowing = useCallback((creatorId: string, status: FollowState): void => {
     setFollows((prev) => {
       const next = new Map(prev);
-      next.set(creatorId, following);
+      next.set(creatorId, status);
       return next;
     });
   }, []);
@@ -113,7 +114,7 @@ export function usePinOverride(pinId: string): PinOverride {
  * @param creatorId - The creator id.
  * @returns The overridden follow state, or undefined when none is set.
  */
-export function useFollowOverride(creatorId: string): boolean | undefined {
+export function useFollowOverride(creatorId: string): FollowState | undefined {
   const { follows } = useContext(EngagementContext);
   return follows.get(creatorId);
 }

@@ -17,6 +17,7 @@ function creator(name: string): Creator {
     avatarUrl: null,
     followersLabel: null,
     verified: false,
+    isPrivate: false,
   };
 }
 

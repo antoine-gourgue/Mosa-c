@@ -7,19 +7,21 @@ import { PinFeed } from "@/components/pin";
 import { ProfileHeader, ProfileTabs } from "@/components/profile";
 import type { ProfileTab } from "@/components/profile";
 import { JsonLd } from "@/components/seo";
+import { LockIcon } from "@/icons";
+import type { FollowState } from "@/types/domain";
 import { getCurrentUser } from "@/lib/auth";
 import { env } from "@/lib/env";
 import {
   getBlockState,
   getCreatedPins,
   getFollowCounts,
+  getFollowState,
   getLikedPinIds,
   getLikedPins,
   getSavedPinIds,
   getSavedPins,
   getUserBoardsWithCovers,
   getUserByUsername,
-  isFollowing,
 } from "@/server/services";
 
 /**
@@ -187,6 +189,26 @@ async function BlockedNotice({ username }: { username: string }): Promise<ReactE
 }
 
 /**
+ * Notice shown in place of a private account's content when the viewer is not an
+ * approved follower. The Follow/Requested control in the header lets the viewer
+ * ask to follow.
+ *
+ * @returns The private-account notice.
+ */
+async function PrivateNotice(): Promise<ReactElement> {
+  const t = await getTranslations("profile");
+  return (
+    <div className="mx-auto flex max-w-md flex-col items-center gap-3 py-20 text-center">
+      <span className="grid size-14 place-items-center rounded-full bg-surface-2 text-ink-soft">
+        <LockIcon size={24} />
+      </span>
+      <h2 className="text-xl font-bold text-ink">{t("privateTitle")}</h2>
+      <p className="text-ink-soft">{t("privateBody")}</p>
+    </div>
+  );
+}
+
+/**
  * Public profile route at `/u/[username]`: header, tabs and the active tab's
  * content.
  *
@@ -220,14 +242,17 @@ export default async function ProfilePage({
       </div>
     );
   }
-  const [counts, following, savedIds, likedIds] = await Promise.all([
+  const [counts, followState, savedIds, likedIds] = await Promise.all([
     getFollowCounts(user.id),
-    viewer !== null && !isOwnProfile ? isFollowing(viewer.id, user.id) : Promise.resolve(false),
+    viewer !== null && !isOwnProfile
+      ? getFollowState(viewer.id, user.id)
+      : Promise.resolve<FollowState>("none"),
     viewer !== null ? getSavedPinIds(viewer.id) : Promise.resolve<string[]>([]),
     viewer !== null ? getLikedPinIds(viewer.id) : Promise.resolve<string[]>([]),
   ]);
   const requestedTab = resolveTab(tab);
   const active = requestedTab === "liked" && !isOwnProfile ? "created" : requestedTab;
+  const canViewContent = isOwnProfile || !user.isPrivate || followState === "following";
 
   return (
     <div className="mx-auto max-w-[1180px]">
@@ -245,13 +270,15 @@ export default async function ProfilePage({
         user={user}
         followers={counts.followers}
         following={counts.following}
-        initialFollowing={following}
+        initialState={followState}
         isOwnProfile={isOwnProfile}
         isAuthed={viewer !== null}
         blockedByViewer={blockState.blockedByViewer}
       />
       {blockState.blockedByViewer ? (
         <BlockedNotice username={username} />
+      ) : !canViewContent ? (
+        <PrivateNotice />
       ) : (
         <>
           <ProfileTabs username={username} active={active} isOwnProfile={isOwnProfile} />

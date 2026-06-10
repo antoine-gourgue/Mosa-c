@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { ReactElement } from "react";
 import { Avatar } from "@/components/ui";
-import type { Creator } from "@/types/domain";
+import type { Creator, FollowState } from "@/types/domain";
 import { FollowButton } from "./FollowButton";
 import { FollowerCount } from "./FollowerCount";
 import { MessageButton } from "./MessageButton";
@@ -15,7 +15,7 @@ export type ProfileHeaderProps = {
   user: Creator;
   followers: number;
   following: number;
-  initialFollowing: boolean;
+  initialState: FollowState;
   isOwnProfile: boolean;
   isAuthed: boolean;
   blockedByViewer: boolean;
@@ -32,7 +32,7 @@ export async function ProfileHeader({
   user,
   followers,
   following,
-  initialFollowing,
+  initialState,
   isOwnProfile,
   isAuthed,
   blockedByViewer,
@@ -53,7 +53,7 @@ export async function ProfileHeader({
         <FollowerCount
           creatorId={user.id}
           followers={followers}
-          initialFollowing={initialFollowing}
+          initialFollowing={initialState === "following"}
         />{" "}
         {t("followersLabel")} · <span className="font-semibold text-ink">{following}</span>{" "}
         {t("followingLabel")}
@@ -69,7 +69,8 @@ export async function ProfileHeader({
         <div className="flex items-center gap-2">
           <FollowButton
             creatorId={user.id}
-            initialFollowing={initialFollowing}
+            initialState={initialState}
+            isPrivate={user.isPrivate}
             isAuthed={isAuthed}
           />
           {isAuthed ? <MessageButton userId={user.id} /> : null}
