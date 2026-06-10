@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.16.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.15.0...v1.16.0) (2026-06-10)
+
+
+### Features
+
+* **account:** harden email change and password reset flows ([4c308ed](https://github.com/antoine-gourgue/Mosa-c/commit/4c308ed66e1e58ac0e15bf4683c8229208ba96f0))
+* **account:** re-auth email changes and bound the status polling ([dda43ef](https://github.com/antoine-gourgue/Mosa-c/commit/dda43ef3cfd2834ba990fe9b968d98a67fae3724))
+* **account:** throttle action emails and invalidate sessions on reset ([1b01cf6](https://github.com/antoine-gourgue/Mosa-c/commit/1b01cf639dc1e227a5907e07ca2c79f55911ed2a))
+
 ## [1.15.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.14.0...v1.15.0) (2026-06-10)
 
 
