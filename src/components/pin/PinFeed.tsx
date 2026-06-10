@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import type { ReactElement } from "react";
@@ -42,6 +43,7 @@ export function PinFeed({
   min = 220,
   viewerId = null,
 }: PinFeedProps): ReactElement {
+  const t = useTranslations("pin");
   const [removedIds, setRemovedIds] = useState<Set<string>>(() => new Set());
   const items = pins.filter((pin) => !removedIds.has(pin.id));
   const [initialSaved] = useState(() => new Set(savedIds));
@@ -82,10 +84,10 @@ export function PinFeed({
     setSaved(pin.id, !wasSaved);
     if (!wasSaved) {
       show({
-        title: "Saved to Quick Saves",
+        title: t("savedToBoard", { board: "Quick Saves" }),
         description: pin.title,
         img: pin.imageUrl,
-        action: { label: "View", onClick: () => router.push("/boards") },
+        action: { label: t("view"), onClick: () => router.push("/boards") },
       });
     }
     startTransition(async () => {

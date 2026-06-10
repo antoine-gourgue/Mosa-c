@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
@@ -15,6 +16,7 @@ import { BoardFormDialog } from "./BoardFormDialog";
  * @returns The create-board control.
  */
 export function CreateBoardButton(): ReactElement {
+  const t = useTranslations("board");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export function CreateBoardButton(): ReactElement {
         setOpen(false);
         router.push(`/boards/${board.id}`);
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "Could not create the board.");
+        setError(cause instanceof Error ? cause.message : t("createFailed"));
       }
     });
   };
@@ -36,13 +38,13 @@ export function CreateBoardButton(): ReactElement {
   return (
     <>
       <Button leftIcon={<PlusIcon size={18} />} onClick={() => setOpen(true)}>
-        Create board
+        {t("createBoard")}
       </Button>
       {open ? (
         <BoardFormDialog
-          title="Create board"
-          label="Board name"
-          submitLabel="Create"
+          title={t("createBoard")}
+          label={t("boardName")}
+          submitLabel={t("create")}
           pending={pending}
           error={error}
           onSubmit={onSubmit}

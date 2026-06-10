@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -29,6 +30,7 @@ export type BoardHeaderProps = {
  * @returns The board header element.
  */
 export function BoardHeader({ board }: BoardHeaderProps): ReactElement {
+  const t = useTranslations("board");
   const router = useRouter();
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -51,7 +53,7 @@ export function BoardHeader({ board }: BoardHeaderProps): ReactElement {
         setRenameOpen(false);
         router.refresh();
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "Could not rename the board.");
+        setError(cause instanceof Error ? cause.message : t("renameFailed"));
       }
     });
   };
@@ -72,18 +74,22 @@ export function BoardHeader({ board }: BoardHeaderProps): ReactElement {
 
   const menuItems: MenuItem[] = [];
   if (canEdit) {
-    menuItems.push({ label: "Rename board", onSelect: () => setRenameOpen(true) });
+    menuItems.push({ label: t("renameBoard"), onSelect: () => setRenameOpen(true) });
   }
   if (isOwner) {
-    menuItems.push({ label: "Manage collaborators", onSelect: () => setManageOpen(true) });
+    menuItems.push({ label: t("manageCollaborators"), onSelect: () => setManageOpen(true) });
     menuItems.push({
-      label: "Delete board",
+      label: t("deleteBoard"),
       onSelect: () => setDeleteOpen(true),
       destructive: true,
     });
   }
   if (canLeave) {
-    menuItems.push({ label: "Leave board", onSelect: () => setLeaveOpen(true), destructive: true });
+    menuItems.push({
+      label: t("leaveBoard"),
+      onSelect: () => setLeaveOpen(true),
+      destructive: true,
+    });
   }
 
   return (
@@ -91,7 +97,7 @@ export function BoardHeader({ board }: BoardHeaderProps): ReactElement {
       <div className="flex items-center gap-2">
         <h1 className="text-4xl font-extrabold text-ink sm:text-5xl">{board.name}</h1>
         {manageable ? (
-          <Menu label="Board options" icon={<MoreIcon />} align="end" items={menuItems} />
+          <Menu label={t("boardOptions")} icon={<MoreIcon />} align="end" items={menuItems} />
         ) : null}
       </div>
 
@@ -111,15 +117,13 @@ export function BoardHeader({ board }: BoardHeaderProps): ReactElement {
         />
       ) : null}
 
-      <p className="text-sm text-ink-soft">
-        {pinCount} {pinCount === 1 ? "Pin" : "Pins"}
-      </p>
+      <p className="text-sm text-ink-soft">{t("pinCount", { count: pinCount })}</p>
 
       {renameOpen ? (
         <BoardFormDialog
-          title="Rename board"
-          label="Board name"
-          submitLabel="Save"
+          title={t("renameBoard")}
+          label={t("boardName")}
+          submitLabel={t("save")}
           initialValue={board.name}
           pending={pending}
           error={error}
@@ -129,9 +133,9 @@ export function BoardHeader({ board }: BoardHeaderProps): ReactElement {
       ) : null}
       <ConfirmDialog
         open={deleteOpen}
-        title="Delete board?"
-        description="The board and its pin references will be permanently removed. The pins themselves are kept."
-        confirmLabel="Delete"
+        title={t("deleteTitle")}
+        description={t("deleteBody")}
+        confirmLabel={t("delete")}
         destructive
         pending={pending}
         onConfirm={onDelete}
@@ -139,9 +143,9 @@ export function BoardHeader({ board }: BoardHeaderProps): ReactElement {
       />
       <ConfirmDialog
         open={leaveOpen}
-        title="Leave board?"
-        description="You will lose access to this board until you are added again."
-        confirmLabel="Leave"
+        title={t("leaveTitle")}
+        description={t("leaveBody")}
+        confirmLabel={t("leave")}
         destructive
         pending={pending}
         onConfirm={onLeave}

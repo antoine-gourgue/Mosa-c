@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import type { FormEvent, ReactElement } from "react";
@@ -38,6 +39,7 @@ export function BoardFormDialog({
   onSubmit,
   onCancel,
 }: BoardFormDialogProps): ReactElement {
+  const t = useTranslations("board");
   const [value, setValue] = useState(initialValue);
 
   useEffect(() => {
@@ -76,7 +78,7 @@ export function BoardFormDialog({
         />
         <div className="mt-6 flex justify-end gap-2">
           <Button type="button" variant="ghost" onClick={onCancel} disabled={pending}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button type="submit" disabled={pending || value.trim() === ""}>
             {submitLabel}

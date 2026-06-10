@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
@@ -79,10 +80,8 @@ function BoardCover({ covers }: { covers: string[] }): ReactElement {
  * @param props - The boards to display and an optional empty-state message.
  * @returns The boards grid, or an empty state when there are none.
  */
-export function BoardsGrid({
-  boards,
-  emptyMessage = "No boards yet.",
-}: BoardsGridProps): ReactElement {
+export function BoardsGrid({ boards, emptyMessage }: BoardsGridProps): ReactElement {
+  const t = useTranslations("board");
   const scope = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -106,7 +105,7 @@ export function BoardsGrid({
         <span className="grid size-14 place-items-center rounded-full bg-surface-2 text-ink-soft">
           <StackIcon size={26} />
         </span>
-        <p className="text-lg font-semibold text-ink">{emptyMessage}</p>
+        <p className="text-lg font-semibold text-ink">{emptyMessage ?? t("noBoards")}</p>
       </div>
     );
   }
@@ -123,9 +122,7 @@ export function BoardsGrid({
             <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-150 group-hover:bg-ink/[0.06]" />
           </div>
           <p className="mt-2 truncate font-semibold text-ink group-hover:underline">{board.name}</p>
-          <p className="text-sm text-ink-soft">
-            {board.pinCount} {board.pinCount === 1 ? "Pin" : "Pins"}
-          </p>
+          <p className="text-sm text-ink-soft">{t("pinCount", { count: board.pinCount })}</p>
         </Link>
       ))}
     </div>
