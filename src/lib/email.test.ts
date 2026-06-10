@@ -40,6 +40,13 @@ describe("sendEmail", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
     expect(await sendEmail(message)).toBe(false);
   });
+
+  it("returns false when the Resend response is not ok", async () => {
+    vi.stubEnv("RESEND_API_KEY", "key");
+    vi.stubEnv("EMAIL_FROM", "Mosaic <noreply@send.x.com>");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }));
+    expect(await sendEmail(message)).toBe(false);
+  });
 });
 
 describe("sendOtpEmail", () => {
@@ -107,5 +114,15 @@ describe("action emails", () => {
     expect(body.attachments?.[0]?.content_id).toBe("mosaic-logo");
     expect(body.html).toContain("Confirm email");
     expect(body.html).toContain("https://m/confirm-email?token=xyz");
+  });
+
+  it("returns false when delivery fails, so callers can report it", async () => {
+    vi.stubEnv("RESEND_API_KEY", "key");
+    vi.stubEnv("EMAIL_FROM", "Mosaic <noreply@send.x.com>");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }));
+    expect(await sendEmailChangeEmail("new@x.com", "https://m/confirm-email?token=xyz")).toBe(
+      false,
+    );
+    expect(await sendPasswordResetEmail("a@x.com", "https://m/reset?token=abc")).toBe(false);
   });
 });

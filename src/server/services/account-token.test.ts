@@ -9,7 +9,15 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 import { prisma } from "@/lib/prisma";
-import { consumeAccountToken, generateToken, hashToken, issueAccountToken } from "./account-token";
+import {
+  ACCOUNT_TOKEN_COOLDOWN_MS,
+  ACCOUNT_TOKEN_TTL_MS,
+  consumeAccountToken,
+  generateToken,
+  hashToken,
+  isAccountTokenOnCooldown,
+  issueAccountToken,
+} from "./account-token";
 
 const db = prisma as unknown as {
   accountToken: { deleteMany: Mock; upsert: Mock; findUnique: Mock };
@@ -46,6 +54,27 @@ describe("issueAccountToken", () => {
   it("stores the pending email for an email change", async () => {
     await issueAccountToken("u1", "EMAIL_CHANGE", "new@x.com");
     expect(db.accountToken.upsert.mock.calls[0]?.[0].create.newEmail).toBe("new@x.com");
+  });
+});
+
+describe("isAccountTokenOnCooldown", () => {
+  it("returns false when no token exists", async () => {
+    db.accountToken.findUnique.mockResolvedValue(null);
+    expect(await isAccountTokenOnCooldown("u1", "PASSWORD_RESET")).toBe(false);
+  });
+
+  it("returns true for a token issued within the cooldown", async () => {
+    db.accountToken.findUnique.mockResolvedValue({
+      expiresAt: new Date(Date.now() + ACCOUNT_TOKEN_TTL_MS),
+    });
+    expect(await isAccountTokenOnCooldown("u1", "PASSWORD_RESET")).toBe(true);
+  });
+
+  it("returns false for a token issued before the cooldown", async () => {
+    db.accountToken.findUnique.mockResolvedValue({
+      expiresAt: new Date(Date.now() + ACCOUNT_TOKEN_TTL_MS - 2 * ACCOUNT_TOKEN_COOLDOWN_MS),
+    });
+    expect(await isAccountTokenOnCooldown("u1", "PASSWORD_RESET")).toBe(false);
   });
 });
 
