@@ -219,7 +219,8 @@
     "deleteCommentTitle": "Delete comment?",
     "deleteCommentBody": "This comment will be permanently removed.",
     "delete": "Delete",
-    "logInToComment": "Log in to comment"
+    "logInToComment": "Log in to comment",
+    "commentCount": "{count, plural, one {# comment} other {# comments}}"
   },
   "create": {
     "createPin": "Create Pin",

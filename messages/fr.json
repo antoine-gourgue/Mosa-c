@@ -219,7 +219,8 @@
     "deleteCommentTitle": "Supprimer le commentaire ?",
     "deleteCommentBody": "Ce commentaire sera définitivement supprimé.",
     "delete": "Supprimer",
-    "logInToComment": "Connectez-vous pour commenter"
+    "logInToComment": "Connectez-vous pour commenter",
+    "commentCount": "{count, plural, one {# commentaire} other {# commentaires}}"
   },
   "create": {
     "createPin": "Créer une épingle",

@@ -241,9 +241,7 @@ export function Comments({
       <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-3 md:px-8">
         {header}
 
-        <h2 className="pb-3 pt-5 font-bold text-ink">
-          {total} {total === 1 ? "comment" : "comments"}
-        </h2>
+        <h2 className="pb-3 pt-5 font-bold text-ink">{t("commentCount", { count: total })}</h2>
 
         {comments.length === 0 ? (
           <p className="pb-2 text-ink-soft">{t("noComments")}</p>
