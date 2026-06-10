@@ -5,7 +5,11 @@ import { getCurrentUser } from "@/lib/auth";
 import { sendEmailChangeEmail, sendPasswordResetEmail } from "@/lib/email";
 import { hashPassword } from "@/lib/password";
 import { isUniqueConstraintError, prisma } from "@/lib/prisma";
-import { consumeAccountToken, issueAccountToken } from "@/server/services/account-token";
+import {
+  consumeAccountToken,
+  isAccountTokenOnCooldown,
+  issueAccountToken,
+} from "@/server/services/account-token";
 
 /**
  * The simple result shape shared by the account actions.
@@ -67,6 +71,9 @@ export async function requestEmailChange(newEmail: string): Promise<AccountActio
   });
   if (existing !== null) {
     return { ok: false, error: "That email is already in use." };
+  }
+  if (await isAccountTokenOnCooldown(user.id, "EMAIL_CHANGE")) {
+    return { ok: false, error: "Please wait a minute before requesting another email." };
   }
   const token = await issueAccountToken(user.id, "EMAIL_CHANGE", email);
   const sent = await sendEmailChangeEmail(email, `${appBase()}/confirm-email?token=${token}`);
@@ -138,6 +145,9 @@ export async function requestPasswordReset(): Promise<AccountActionResult> {
   if (record === null || record.passwordHash === null) {
     return { ok: false, error: "Your account has no password to reset." };
   }
+  if (await isAccountTokenOnCooldown(user.id, "PASSWORD_RESET")) {
+    return { ok: false, error: "Please wait a minute before requesting another email." };
+  }
   const sent = await sendReset(user.id, record.email);
   if (!sent) {
     return { ok: false, error: "We couldn't send the reset email. Please try again." };
@@ -167,7 +177,11 @@ export async function requestPasswordResetForEmail(email: string): Promise<Accou
       where: { email: parsed.data },
       select: { id: true, email: true, passwordHash: true },
     });
-    if (user !== null && user.passwordHash !== null) {
+    if (
+      user !== null &&
+      user.passwordHash !== null &&
+      !(await isAccountTokenOnCooldown(user.id, "PASSWORD_RESET"))
+    ) {
       await sendReset(user.id, user.email);
     }
   }
@@ -179,7 +193,8 @@ export async function requestPasswordResetForEmail(email: string): Promise<Accou
 }
 
 /**
- * Sets a new password from a reset link.
+ * Sets a new password from a reset link, then invalidates every existing
+ * session so a reset (e.g. after a compromise) logs out all other devices.
  *
  * @param token - The token from the reset link.
  * @param newPassword - The new password.
@@ -204,5 +219,6 @@ export async function resetPassword(
     where: { id: consumed.userId },
     data: { passwordHash: await hashPassword(parsed.data) },
   });
+  await prisma.session.deleteMany({ where: { userId: consumed.userId } });
   return { ok: true };
 }

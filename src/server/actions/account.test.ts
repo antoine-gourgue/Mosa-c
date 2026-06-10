@@ -10,9 +10,13 @@ vi.mock("@/lib/email", () => ({
 vi.mock("@/server/services/account-token", () => ({
   issueAccountToken: vi.fn(async () => "tok"),
   consumeAccountToken: vi.fn(),
+  isAccountTokenOnCooldown: vi.fn(async () => false),
 }));
 vi.mock("@/lib/prisma", () => ({
-  prisma: { user: { findFirst: vi.fn(), findUnique: vi.fn(), update: vi.fn() } },
+  prisma: {
+    user: { findFirst: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+    session: { deleteMany: vi.fn() },
+  },
   isUniqueConstraintError: (error: unknown) =>
     typeof error === "object" && error !== null && (error as { code?: unknown }).code === "P2002",
 }));
@@ -20,7 +24,11 @@ vi.mock("@/lib/prisma", () => ({
 import { getCurrentUser } from "@/lib/auth";
 import { sendEmailChangeEmail, sendPasswordResetEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
-import { consumeAccountToken, issueAccountToken } from "@/server/services/account-token";
+import {
+  consumeAccountToken,
+  isAccountTokenOnCooldown,
+  issueAccountToken,
+} from "@/server/services/account-token";
 import {
   confirmEmailChange,
   getAccountStatus,
@@ -32,12 +40,15 @@ import {
 
 const db = prisma as unknown as {
   user: { findFirst: Mock; findUnique: Mock; update: Mock };
+  session: { deleteMany: Mock };
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getCurrentUser).mockResolvedValue({ id: "u1" } as never);
+  vi.mocked(isAccountTokenOnCooldown).mockResolvedValue(false);
   db.user.update.mockResolvedValue({});
+  db.session.deleteMany.mockResolvedValue({ count: 0 });
 });
 
 describe("requestEmailChange", () => {
@@ -67,6 +78,13 @@ describe("requestEmailChange", () => {
     db.user.findFirst.mockResolvedValue(null);
     vi.mocked(sendEmailChangeEmail).mockResolvedValueOnce(false);
     expect((await requestEmailChange("new@x.com")).ok).toBe(false);
+  });
+
+  it("throttles repeat requests within the cooldown", async () => {
+    db.user.findFirst.mockResolvedValue(null);
+    vi.mocked(isAccountTokenOnCooldown).mockResolvedValue(true);
+    expect((await requestEmailChange("new@x.com")).ok).toBe(false);
+    expect(issueAccountToken).not.toHaveBeenCalled();
   });
 });
 
@@ -125,6 +143,13 @@ describe("requestPasswordReset", () => {
     vi.mocked(sendPasswordResetEmail).mockResolvedValueOnce(false);
     expect((await requestPasswordReset()).ok).toBe(false);
   });
+
+  it("throttles repeat requests within the cooldown", async () => {
+    db.user.findUnique.mockResolvedValue({ email: "a@x.com", passwordHash: "h" });
+    vi.mocked(isAccountTokenOnCooldown).mockResolvedValue(true);
+    expect((await requestPasswordReset()).ok).toBe(false);
+    expect(sendPasswordResetEmail).not.toHaveBeenCalled();
+  });
 });
 
 describe("requestPasswordResetForEmail", () => {
@@ -138,6 +163,13 @@ describe("requestPasswordResetForEmail", () => {
     db.user.findUnique.mockResolvedValue({ id: "u9", email: "a@x.com", passwordHash: "h" });
     await requestPasswordResetForEmail("a@x.com");
     expect(sendPasswordResetEmail).toHaveBeenCalled();
+  });
+
+  it("silently skips sending (still ok) when on cooldown", async () => {
+    db.user.findUnique.mockResolvedValue({ id: "u9", email: "a@x.com", passwordHash: "h" });
+    vi.mocked(isAccountTokenOnCooldown).mockResolvedValue(true);
+    expect(await requestPasswordResetForEmail("a@x.com")).toEqual({ ok: true });
+    expect(sendPasswordResetEmail).not.toHaveBeenCalled();
   });
 
   it("reports success and skips an invalid email", async () => {
@@ -170,11 +202,12 @@ describe("resetPassword", () => {
     expect((await resetPassword("tok", "newpassword")).ok).toBe(false);
   });
 
-  it("stores the new password hash", async () => {
+  it("stores the new password hash and invalidates all sessions", async () => {
     vi.mocked(consumeAccountToken).mockResolvedValue({ userId: "u1", newEmail: null });
     expect(await resetPassword("tok", "newpassword")).toEqual({ ok: true });
     expect(db.user.update).toHaveBeenCalledWith(
       expect.objectContaining({ data: { passwordHash: "newhash" } }),
     );
+    expect(db.session.deleteMany).toHaveBeenCalledWith({ where: { userId: "u1" } });
   });
 });

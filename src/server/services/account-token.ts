@@ -7,6 +7,12 @@ import { prisma } from "@/lib/prisma";
 export const ACCOUNT_TOKEN_TTL_MS = 30 * 60 * 1000;
 
 /**
+ * Minimum delay between two issuances of the same token kind for a user, to
+ * throttle confirmation/reset emails and prevent inbox flooding.
+ */
+export const ACCOUNT_TOKEN_COOLDOWN_MS = 60 * 1000;
+
+/**
  * The kinds of account action a token authorises.
  */
 export type AccountTokenKind = "EMAIL_CHANGE" | "PASSWORD_RESET";
@@ -28,6 +34,30 @@ export function generateToken(): string {
  */
 export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
+}
+
+/**
+ * Whether a token of the given kind was issued for the user within the cooldown
+ * window, used to throttle repeat email sends. The last issuance time is derived
+ * from the active token's expiry (issued at `expiresAt - TTL`).
+ *
+ * @param userId - The user to check.
+ * @param kind - The action kind to check.
+ * @returns True when another token was issued less than the cooldown ago.
+ */
+export async function isAccountTokenOnCooldown(
+  userId: string,
+  kind: AccountTokenKind,
+): Promise<boolean> {
+  const existing = await prisma.accountToken.findUnique({
+    where: { userId_kind: { userId, kind } },
+    select: { expiresAt: true },
+  });
+  if (existing === null) {
+    return false;
+  }
+  const issuedAt = existing.expiresAt.getTime() - ACCOUNT_TOKEN_TTL_MS;
+  return Date.now() - issuedAt < ACCOUNT_TOKEN_COOLDOWN_MS;
 }
 
 /**
