@@ -1275,7 +1275,7 @@ export function MessagesPanel({
                   </>
                 ) : (
                   <p className="px-4 py-6 text-center text-sm text-ink-soft">
-                    No conversations yet. Start one below.
+                    {t("noConversationsStart")}
                   </p>
                 )}
 

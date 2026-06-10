@@ -12,7 +12,9 @@
     "mostLiked": "Most liked",
     "mostDownloaded": "Most downloaded",
     "mostCommented": "Most commented",
-    "backToFeed": "Back to feed"
+    "backToFeed": "Back to feed",
+    "followingEmpty": "No pins from people you follow yet — follow some creators to fill this feed.",
+    "forYouEmpty": "No pins to show here yet."
   },
   "errorPage": {
     "title": "Something went wrong",
@@ -144,7 +146,8 @@
     "tabCreated": "Created",
     "tabSaved": "Saved",
     "tabLiked": "Liked",
-    "tabBoards": "Boards"
+    "tabBoards": "Boards",
+    "followerCount": "{count, plural, one {# follower} other {# followers}}"
   },
   "messages": {
     "title": "Messages",
@@ -184,7 +187,9 @@
     "deleteConversation": "Delete conversation with {name}",
     "removeMember": "Remove {name}",
     "selectConversation": "Select a conversation to start chatting.",
-    "newConversationHint": "This could be the start of something great."
+    "newConversationHint": "This could be the start of something great.",
+    "noConversationsProfile": "No conversations yet. Message someone from their profile.",
+    "noConversationsStart": "No conversations yet. Start one below."
   },
   "detail": {
     "visitSite": "Visit site",

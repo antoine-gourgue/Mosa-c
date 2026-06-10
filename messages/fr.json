@@ -12,7 +12,9 @@
     "mostLiked": "Plus aimées",
     "mostDownloaded": "Plus téléchargées",
     "mostCommented": "Plus commentées",
-    "backToFeed": "Retour au fil"
+    "backToFeed": "Retour au fil",
+    "followingEmpty": "Aucune épingle de personnes que vous suivez — suivez des créateurs pour remplir ce fil.",
+    "forYouEmpty": "Aucune épingle à afficher ici pour le moment."
   },
   "errorPage": {
     "title": "Une erreur est survenue",
@@ -144,7 +146,8 @@
     "tabCreated": "Créées",
     "tabSaved": "Enregistrées",
     "tabLiked": "Aimées",
-    "tabBoards": "Tableaux"
+    "tabBoards": "Tableaux",
+    "followerCount": "{count, plural, one {# abonné} other {# abonnés}}"
   },
   "messages": {
     "title": "Messages",
@@ -184,7 +187,9 @@
     "deleteConversation": "Supprimer la conversation avec {name}",
     "removeMember": "Retirer {name}",
     "selectConversation": "Sélectionnez une conversation pour commencer à discuter.",
-    "newConversationHint": "Ceci pourrait être le début de quelque chose de génial."
+    "newConversationHint": "Ceci pourrait être le début de quelque chose de génial.",
+    "noConversationsProfile": "Aucune conversation pour le moment. Écrivez à quelqu’un depuis son profil.",
+    "noConversationsStart": "Aucune conversation pour le moment. Démarrez-en une ci-dessous."
   },
   "detail": {
     "visitSite": "Visiter le site",

@@ -56,7 +56,7 @@ export function CreatorRow({
         <div className="flex flex-col text-left">
           <span className="font-semibold text-ink hover:underline">{creator.name}</span>
           <span className="text-sm text-ink-soft">
-            {followerCount} {followerCount === 1 ? "follower" : "followers"}
+            {t("followerCount", { count: followerCount })}
           </span>
         </div>
       </Link>

@@ -601,7 +601,7 @@ export function Messenger({
             ) : null}
             {list.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-ink-soft">
-                No conversations yet. Message someone from their profile.
+                {t("noConversationsProfile")}
               </p>
             ) : (
               <ul>{list.map(renderConversationRow)}</ul>
