@@ -57,6 +57,26 @@
     "cannotSaveBoard": "You cannot save to this board.",
     "messageTooLong": "Your message is too long."
   },
+  "nav": {
+    "home": "Home",
+    "saves": "Saves",
+    "create": "Create",
+    "createPin": "Create Pin",
+    "notifications": "Notifications",
+    "messages": "Messages",
+    "search": "Search",
+    "alerts": "Alerts",
+    "settings": "Settings",
+    "primary": "Primary",
+    "homeAria": "Mosaic home",
+    "accountMenu": "Account menu",
+    "yourProfile": "Your profile",
+    "editProfile": "Edit profile",
+    "logOut": "Log out",
+    "logIn": "Log in",
+    "messagesUnread": "Messages, {count} unread",
+    "tabUnread": "{label}, {count} unread"
+  },
   "gender": {
     "female": "Female",
     "male": "Male",

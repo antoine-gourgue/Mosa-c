@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactElement, ReactNode } from "react";
@@ -18,7 +19,7 @@ export type BottomNavProps = {
  */
 type Tab = {
   href: string;
-  label: string;
+  labelKey: "home" | "search" | "alerts" | "saves";
   icon: ReactNode;
   isActive: (pathname: string) => boolean;
   badge?: boolean;
@@ -35,26 +36,27 @@ type Tab = {
  * @returns The bottom navigation element.
  */
 export function BottomNav({ unreadCount }: BottomNavProps): ReactElement {
+  const t = useTranslations("nav");
   const pathname = usePathname();
 
   const tabs: Tab[] = [
-    { href: "/", label: "Home", icon: <HomeIcon size={23} />, isActive: (p) => p === "/" },
+    { href: "/", labelKey: "home", icon: <HomeIcon size={23} />, isActive: (p) => p === "/" },
     {
       href: "/search",
-      label: "Search",
+      labelKey: "search",
       icon: <SearchIcon size={23} />,
       isActive: (p) => p.startsWith("/search"),
     },
     {
       href: "/notifications",
-      label: "Alerts",
+      labelKey: "alerts",
       icon: <BellIcon size={23} />,
       isActive: (p) => p.startsWith("/notifications"),
       badge: true,
     },
     {
       href: "/boards",
-      label: "Saves",
+      labelKey: "saves",
       icon: <StackIcon size={23} />,
       isActive: (p) => p.startsWith("/boards"),
     },
@@ -62,7 +64,7 @@ export function BottomNav({ unreadCount }: BottomNavProps): ReactElement {
 
   return (
     <nav
-      aria-label="Primary"
+      aria-label={t("primary")}
       className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+12px)] z-50 sm:hidden"
     >
       <ul className="flex h-16 items-center justify-around rounded-[28px] border border-surface-2 bg-bg/85 px-1 shadow-pop backdrop-blur-xl">
@@ -72,7 +74,7 @@ export function BottomNav({ unreadCount }: BottomNavProps): ReactElement {
         <li className="flex flex-1 justify-center">
           <Link
             href="/create"
-            aria-label="Create Pin"
+            aria-label={t("createPin")}
             className="grid size-12 -translate-y-3 place-items-center rounded-[18px] bg-accent text-bg shadow-pop transition duration-150 hover:bg-accent-press active:scale-95"
           >
             <PlusIcon size={26} />
@@ -105,13 +107,15 @@ function NavTab({
   active: boolean;
   unread: number;
 }): ReactElement {
+  const t = useTranslations("nav");
   const showBadge = tab.badge === true && unread > 0;
+  const label = t(tab.labelKey);
   return (
     <li className="flex flex-1 justify-center">
       <Link
         href={tab.href}
         aria-current={active ? "page" : undefined}
-        aria-label={showBadge ? `${tab.label}, ${unread} unread` : tab.label}
+        aria-label={showBadge ? t("tabUnread", { label, count: unread }) : label}
         className="flex flex-col items-center gap-0.5 py-1.5"
       >
         <span
@@ -131,7 +135,7 @@ function NavTab({
             active ? "text-accent" : "text-ink-faint",
           )}
         >
-          {tab.label}
+          {label}
         </span>
       </Link>
     </li>

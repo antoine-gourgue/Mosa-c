@@ -57,6 +57,26 @@
     "cannotSaveBoard": "Vous ne pouvez pas enregistrer dans ce tableau.",
     "messageTooLong": "Votre message est trop long."
   },
+  "nav": {
+    "home": "Accueil",
+    "saves": "Enregistrements",
+    "create": "Créer",
+    "createPin": "Créer une épingle",
+    "notifications": "Notifications",
+    "messages": "Messages",
+    "search": "Rechercher",
+    "alerts": "Alertes",
+    "settings": "Réglages",
+    "primary": "Principal",
+    "homeAria": "Accueil Mosaic",
+    "accountMenu": "Menu du compte",
+    "yourProfile": "Votre profil",
+    "editProfile": "Modifier le profil",
+    "logOut": "Se déconnecter",
+    "logIn": "Se connecter",
+    "messagesUnread": "Messages, {count} non lus",
+    "tabUnread": "{label}, {count} non lus"
+  },
   "gender": {
     "female": "Femme",
     "male": "Homme",

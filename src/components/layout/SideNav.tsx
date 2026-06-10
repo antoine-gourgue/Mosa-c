@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentType, ReactElement } from "react";
@@ -30,7 +31,7 @@ export type SideNavProps = {
 
 type Item = {
   href: string;
-  label: string;
+  labelKey: "home" | "saves" | "create" | "notifications" | "messages";
   Icon: ComponentType<IconProps>;
   IconActive?: ComponentType<IconProps>;
   isActive: (pathname: string) => boolean;
@@ -40,16 +41,16 @@ type Item = {
 const ITEMS: Item[] = [
   {
     href: "/",
-    label: "Home",
+    labelKey: "home",
     Icon: HomeIcon,
     IconActive: HomeFilledIcon,
     isActive: (p) => p === "/",
   },
-  { href: "/boards", label: "Saves", Icon: StackIcon, isActive: (p) => p.startsWith("/boards") },
-  { href: "/create", label: "Create", Icon: PlusIcon, isActive: (p) => p.startsWith("/create") },
+  { href: "/boards", labelKey: "saves", Icon: StackIcon, isActive: (p) => p.startsWith("/boards") },
+  { href: "/create", labelKey: "create", Icon: PlusIcon, isActive: (p) => p.startsWith("/create") },
   {
     href: "/notifications",
-    label: "Notifications",
+    labelKey: "notifications",
     Icon: BellIcon,
     IconActive: BellFilledIcon,
     isActive: (p) => p.startsWith("/notifications"),
@@ -57,7 +58,7 @@ const ITEMS: Item[] = [
   },
   {
     href: "/messages",
-    label: "Messages",
+    labelKey: "messages",
     Icon: CommentIcon,
     IconActive: CommentFilledIcon,
     isActive: (p) => p.startsWith("/messages"),
@@ -94,6 +95,7 @@ function RailTooltip({ label }: { label: string }): ReactElement {
  * @returns The side navigation rail.
  */
 export function SideNav({ unreadCount }: SideNavProps): ReactElement {
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const { unreadCount: unreadMessages } = useMessagesUnread();
   const { activePanel, toggle, close } = useNavPanel();
@@ -115,12 +117,12 @@ export function SideNav({ unreadCount }: SideNavProps): ReactElement {
 
   return (
     <nav
-      aria-label="Primary"
+      aria-label={t("primary")}
       className="fixed bottom-0 left-0 top-0 z-50 hidden w-16 flex-col items-center gap-4 border-r border-line bg-bg py-3 sm:flex"
     >
       <Link
         href="/"
-        aria-label="Mosaic home"
+        aria-label={t("homeAria")}
         onClick={close}
         className="mb-1 grid size-12 place-items-center"
       >
@@ -146,14 +148,14 @@ export function SideNav({ unreadCount }: SideNavProps): ReactElement {
             <button
               key={item.href}
               type="button"
-              aria-label={item.label}
+              aria-label={t(item.labelKey)}
               aria-current={panelActive ? "page" : undefined}
               onClick={() => toggle(panel)}
               className={cn("cursor-pointer", itemClass(panelActive))}
             >
               <Glyph size={28} />
               {badge}
-              <RailTooltip label={item.label} />
+              <RailTooltip label={t(item.labelKey)} />
             </button>
           );
         }
@@ -163,27 +165,27 @@ export function SideNav({ unreadCount }: SideNavProps): ReactElement {
           <Link
             key={item.href}
             href={item.href}
-            aria-label={item.label}
+            aria-label={t(item.labelKey)}
             aria-current={active ? "page" : undefined}
             onClick={close}
             className={itemClass(active)}
           >
             <Glyph size={28} />
             {badge}
-            <RailTooltip label={item.label} />
+            <RailTooltip label={t(item.labelKey)} />
           </Link>
         );
       })}
 
       <Link
         href="/settings/profile"
-        aria-label="Settings"
+        aria-label={t("settings")}
         onClick={close}
         aria-current={settingsActive ? "page" : undefined}
         className={cn("mt-auto", itemClass(settingsActive))}
       >
         {settingsActive ? <GearFilledIcon size={26} /> : <GearIcon size={26} />}
-        <RailTooltip label="Settings" />
+        <RailTooltip label={t("settings")} />
       </Link>
     </nav>
   );
