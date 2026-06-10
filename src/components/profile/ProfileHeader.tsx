@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { ReactElement } from "react";
 import { Avatar } from "@/components/ui";
@@ -25,14 +26,15 @@ export type ProfileHeaderProps = {
  * @param props - The profile user, counts and viewer state.
  * @returns The profile header element.
  */
-export function ProfileHeader({
+export async function ProfileHeader({
   user,
   followers,
   following,
   initialFollowing,
   isOwnProfile,
   isAuthed,
-}: ProfileHeaderProps): ReactElement {
+}: ProfileHeaderProps): Promise<ReactElement> {
+  const t = await getTranslations("profile");
   return (
     <header className="flex flex-col items-center gap-3 py-10 text-center">
       <Avatar
@@ -50,14 +52,15 @@ export function ProfileHeader({
           followers={followers}
           initialFollowing={initialFollowing}
         />{" "}
-        followers · <span className="font-semibold text-ink">{following}</span> following
+        {t("followersLabel")} · <span className="font-semibold text-ink">{following}</span>{" "}
+        {t("followingLabel")}
       </p>
       {isOwnProfile ? (
         <Link
           href="/settings/profile"
           className="h-11 rounded-full bg-surface px-5 text-[15px] font-semibold leading-[44px] text-ink transition-colors hover:bg-surface-2"
         >
-          Edit profile
+          {t("editProfile")}
         </Link>
       ) : (
         <div className="flex items-center gap-2">

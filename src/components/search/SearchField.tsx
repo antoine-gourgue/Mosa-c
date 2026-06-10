@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { ChangeEvent, ReactElement } from "react";
@@ -23,6 +24,7 @@ export type SearchFieldProps = {
  * @returns The search field element.
  */
 export function SearchField({ autoFocus = false, className }: SearchFieldProps): ReactElement {
+  const t = useTranslations("search");
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
@@ -38,8 +40,8 @@ export function SearchField({ autoFocus = false, className }: SearchFieldProps):
       value={query}
       onChange={onChange}
       autoFocus={autoFocus}
-      placeholder="Search for ideas"
-      aria-label="Search"
+      placeholder={t("placeholder")}
+      aria-label={t("label")}
       leadingIcon={<SearchIcon size={20} />}
       className={className}
     />

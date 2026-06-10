@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import type { ReactElement } from "react";
@@ -24,6 +25,7 @@ export type MessageButtonProps = {
  * @returns The message button element.
  */
 export function MessageButton({ userId }: MessageButtonProps): ReactElement {
+  const t = useTranslations("profile");
   const router = useRouter();
   const { open } = useNavPanel();
   const { show } = useToast();
@@ -33,7 +35,7 @@ export function MessageButton({ userId }: MessageButtonProps): ReactElement {
     startTransition(async () => {
       const result = await startConversation(userId);
       if (!result.ok) {
-        show({ title: "Can't message", description: result.error });
+        show({ title: t("cantMessage"), description: result.error });
         return;
       }
       if (window.matchMedia("(min-width: 640px)").matches) {
@@ -46,7 +48,7 @@ export function MessageButton({ userId }: MessageButtonProps): ReactElement {
 
   return (
     <Button variant="ghost" onClick={onClick} disabled={pending}>
-      Message
+      {t("message")}
     </Button>
   );
 }

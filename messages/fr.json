@@ -77,6 +77,33 @@
     "messagesUnread": "Messages, {count} non lus",
     "tabUnread": "{label}, {count} non lus"
   },
+  "landing": {
+    "title": "Découvrez et enregistrez des idées visuelles",
+    "subtitle": "Un espace pour tout ce que vous aimez. Parcourez des épingles, créez des tableaux et suivez les créateurs qui vous inspirent.",
+    "signUp": "S’inscrire",
+    "logIn": "Se connecter",
+    "trending": "Idées tendance"
+  },
+  "profile": {
+    "follow": "Suivre",
+    "following": "Suivi",
+    "followersLabel": "abonnés",
+    "followingLabel": "abonnements",
+    "editProfile": "Modifier le profil",
+    "message": "Message",
+    "cantMessage": "Message impossible",
+    "tabCreated": "Créées",
+    "tabSaved": "Enregistrées",
+    "tabLiked": "Aimées",
+    "tabBoards": "Tableaux"
+  },
+  "search": {
+    "placeholder": "Rechercher des idées",
+    "label": "Rechercher",
+    "ideasForYou": "Idées pour vous",
+    "todaysInspiration": "Inspiration du jour",
+    "noResults": "Aucune idée ne correspond à « {query} »."
+  },
   "gender": {
     "female": "Femme",
     "male": "Homme",
