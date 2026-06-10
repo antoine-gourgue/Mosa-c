@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
 import { Button, ConfirmDialog, Menu, useToast } from "@/components/ui";
-import { LikeButton } from "@/components/pin";
+import { EditPinDialog, LikeButton } from "@/components/pin";
 import { useEngagementActions, usePinOverride } from "@/components/engagement";
 import { useAuthPrompt } from "@/hooks/use-auth-prompt";
-import { DownloadIcon, FlagIcon, LinkIcon, MoreIcon, TrashIcon } from "@/icons";
+import { ComposeIcon, DownloadIcon, FlagIcon, LinkIcon, MoreIcon, TrashIcon } from "@/icons";
 import { downloadPin } from "@/lib/download";
 import { pinUrl } from "@/lib/share";
 import { recordDownload } from "@/server/actions/downloads";
@@ -25,6 +25,8 @@ import { SharePinMenu } from "./SharePinMenu";
 export type DetailActionsProps = {
   pinId: string;
   title: string;
+  description: string | null;
+  tags: string[];
   imageUrl: string;
   link: string | null;
   initialLiked: boolean;
@@ -46,6 +48,8 @@ export type DetailActionsProps = {
 export function DetailActions({
   pinId,
   title,
+  description,
+  tags,
   imageUrl,
   link,
   initialLiked,
@@ -61,6 +65,7 @@ export function DetailActions({
   const { setDownloadCount } = useEngagementActions();
   const downloads = override.downloadCount ?? downloadCount;
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [deleting, startDelete] = useTransition();
   const { show } = useToast();
   const router = useRouter();
@@ -125,6 +130,15 @@ export function DetailActions({
           },
         ]
       : []),
+    ...(isOwner
+      ? [
+          {
+            label: tp("editPin"),
+            icon: <ComposeIcon size={18} />,
+            onSelect: () => setEditOpen(true),
+          },
+        ]
+      : []),
     isOwner
       ? {
           label: tp("deletePin"),
@@ -152,6 +166,17 @@ export function DetailActions({
         onConfirm={onConfirmDelete}
         onCancel={() => setConfirmDelete(false)}
       />
+      {isOwner ? (
+        <EditPinDialog
+          pinId={pinId}
+          initialTitle={title}
+          initialDescription={description ?? ""}
+          initialLink={link ?? ""}
+          initialTags={tags}
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+        />
+      ) : null}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-1.5">
           <LikeButton

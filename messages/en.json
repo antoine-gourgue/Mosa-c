@@ -106,7 +106,9 @@
     "cannotMessageUser": "You can’t message this user.",
     "cannotDeleteComment": "You cannot delete this comment.",
     "cannotSaveBoard": "You cannot save to this board.",
-    "messageTooLong": "Your message is too long."
+    "messageTooLong": "Your message is too long.",
+    "titleRequired": "A title is required.",
+    "editOwnPins": "You can only edit your own pins."
   },
   "nav": {
     "home": "Home",
@@ -268,7 +270,10 @@
     "boardNamePlaceholder": "Like “Places to Go” or “Recipes to Try”",
     "name": "Name",
     "cancel": "Cancel",
-    "createAction": "Create"
+    "createAction": "Create",
+    "editPin": "Edit Pin",
+    "save": "Save",
+    "editFailed": "Could not save your changes. Please try again."
   },
   "board": {
     "manageCollaborators": "Manage collaborators",
@@ -336,7 +341,8 @@
     "deleteBody": "This pin and its likes, comments and saves will be permanently removed.",
     "delete": "Delete",
     "savedToBoard": "Saved to {board}",
-    "view": "View"
+    "view": "View",
+    "editPin": "Edit Pin"
   },
   "notifications": {
     "title": "Notifications",
