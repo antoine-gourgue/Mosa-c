@@ -10,7 +10,7 @@ import { Avatar, Button } from "@/components/ui";
 import { AtIcon, BellIcon, CommentIcon, HeartFilledIcon, PlusIcon, SmileIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { DURATION, REDUCED_MOTION, gsap, useGSAP } from "@/lib/gsap";
-import { formatRelativeTime } from "@/lib/time";
+import { useTimeFormat } from "@/hooks/use-time-format";
 import { markAllRead } from "@/server/actions/notifications";
 import type { AppNotification, NotificationKind } from "@/types/domain";
 
@@ -73,6 +73,7 @@ function typeBadge(kind: NotificationKind): { icon: ReactElement; className: str
  */
 export function NotificationsInbox({ items }: NotificationsInboxProps): ReactElement {
   const t = useTranslations("notifications");
+  const time = useTimeFormat();
   const router = useRouter();
   const listRef = useRef<HTMLUListElement>(null);
   const cleared = useRef(false);
@@ -169,9 +170,7 @@ export function NotificationsInbox({ items }: NotificationsInboxProps): ReactEle
 
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px] leading-snug text-ink">{item.message}</p>
-                    <p className="text-[13px] text-ink-soft">
-                      {formatRelativeTime(item.createdAt)}
-                    </p>
+                    <p className="text-[13px] text-ink-soft">{time.relative(item.createdAt)}</p>
                   </div>
 
                   <span className="relative size-14 shrink-0 overflow-hidden rounded-xl">

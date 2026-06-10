@@ -470,5 +470,17 @@
     "noLikedPins": "Aucune épingle aimée pour le moment.",
     "boardEmpty": "Ce tableau est vide.",
     "noPinsForTag": "Aucune épingle avec ce tag pour le moment."
+  },
+  "time": {
+    "justNow": "à l’instant",
+    "minutes": "{count} min",
+    "hours": "{count} h",
+    "days": "{count} j",
+    "weeks": "{count} sem",
+    "today": "Aujourd’hui {time}",
+    "yesterday": "Hier {time}",
+    "activeNow": "actif maintenant",
+    "activeMinutes": "actif il y a {count} min",
+    "activeHours": "actif il y a {count} h"
   }
 }

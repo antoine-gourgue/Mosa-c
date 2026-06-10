@@ -1,11 +1,17 @@
 /**
- * Formats an ISO timestamp as a clock time (e.g. "14:32").
+ * Translator for the `time` namespace, used to localize relative-time labels.
+ */
+export type TimeTranslator = (key: string, values?: Record<string, string | number>) => string;
+
+/**
+ * Formats an ISO timestamp as a clock time (e.g. "14:32") in the given locale.
  *
  * @param iso - The ISO timestamp.
+ * @param locale - The active locale for formatting.
  * @returns The hour and minute.
  */
-export function formatClockTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+export function formatClockTime(iso: string, locale: string): string {
+  return new Date(iso).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 }
 
 /**
@@ -45,28 +51,31 @@ export function shouldSeparateMessages(previousIso: string | null, currentIso: s
 
 /**
  * Formats a chat date/time separator: "Today 14:32", "Yesterday 09:05" or a
- * dated label like "Mon, Jun 7 14:32" (with the year when not the current one).
+ * dated label like "Mon, Jun 7 14:32" (with the year when not the current one),
+ * localized to the active locale.
  *
  * @param iso - The ISO timestamp.
+ * @param t - Translator for the `time` namespace.
+ * @param locale - The active locale for date formatting.
  * @returns The separator label.
  */
-export function formatMessageSeparator(iso: string): string {
+export function formatMessageSeparator(iso: string, t: TimeTranslator, locale: string): string {
   const date = new Date(iso);
   const now = new Date();
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
-  const time = formatClockTime(iso);
+  const time = formatClockTime(iso, locale);
   if (isSameDay(date, now)) {
-    return `Today ${time}`;
+    return t("today", { time });
   }
   if (isSameDay(date, yesterday)) {
-    return `Yesterday ${time}`;
+    return t("yesterday", { time });
   }
   const options: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric" };
   if (date.getFullYear() !== now.getFullYear()) {
     options.year = "numeric";
   }
-  return `${date.toLocaleDateString(undefined, options)} ${time}`;
+  return `${date.toLocaleDateString(locale, options)} ${time}`;
 }
 
 /**
@@ -75,53 +84,57 @@ export function formatMessageSeparator(iso: string): string {
  * beyond 12 hours or when there is no timestamp.
  *
  * @param iso - The last-seen ISO timestamp, or null.
+ * @param t - Translator for the `time` namespace.
  * @returns The label, or null when it should not be shown.
  */
-export function formatLastActive(iso: string | null): string | null {
+export function formatLastActive(iso: string | null, t: TimeTranslator): string | null {
   if (iso === null) {
     return null;
   }
   const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
   if (minutes < 1) {
-    return "active now";
+    return t("activeNow");
   }
   if (minutes < 60) {
-    return `active ${minutes}m ago`;
+    return t("activeMinutes", { count: minutes });
   }
   const hours = Math.floor(minutes / 60);
   if (hours <= 12) {
-    return `active ${hours}h ago`;
+    return t("activeHours", { count: hours });
   }
   return null;
 }
 
 /**
- * Formats an ISO timestamp as a short relative time (e.g. "5m", "2h", "3d").
+ * Formats an ISO timestamp as a short relative time (e.g. "5m", "2h", "3d"),
+ * localized to the active locale.
  *
  * @param iso - The ISO timestamp.
+ * @param t - Translator for the `time` namespace.
+ * @param locale - The active locale for the date fallback.
  * @returns A compact relative-time label.
  */
-export function formatRelativeTime(iso: string): string {
+export function formatRelativeTime(iso: string, t: TimeTranslator, locale: string): string {
   const elapsed = Date.now() - new Date(iso).getTime();
   const seconds = Math.round(elapsed / 1000);
   if (seconds < 60) {
-    return "just now";
+    return t("justNow");
   }
   const minutes = Math.round(seconds / 60);
   if (minutes < 60) {
-    return `${minutes}m`;
+    return t("minutes", { count: minutes });
   }
   const hours = Math.round(minutes / 60);
   if (hours < 24) {
-    return `${hours}h`;
+    return t("hours", { count: hours });
   }
   const days = Math.round(hours / 24);
   if (days < 7) {
-    return `${days}d`;
+    return t("days", { count: days });
   }
   const weeks = Math.round(days / 7);
   if (weeks < 5) {
-    return `${weeks}w`;
+    return t("weeks", { count: weeks });
   }
-  return new Date(iso).toLocaleDateString();
+  return new Date(iso).toLocaleDateString(locale);
 }

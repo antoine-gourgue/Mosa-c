@@ -7,7 +7,7 @@ import { useState, useTransition } from "react";
 import type { FormEvent, ReactElement, ReactNode } from "react";
 import { Avatar, ConfirmDialog, IconButton } from "@/components/ui";
 import { CloseIcon, SendIcon, TrashIcon } from "@/icons";
-import { formatRelativeTime } from "@/lib/time";
+import { useTimeFormat } from "@/hooks/use-time-format";
 import { useEngagementActions } from "@/components/engagement";
 import { addComment, addReply, deleteComment } from "@/server/actions/comments";
 import type { PinComment } from "@/types/domain";
@@ -78,6 +78,7 @@ export function Comments({
   header,
 }: CommentsProps): ReactElement {
   const t = useTranslations("detail");
+  const time = useTimeFormat();
   const [comments, setComments] = useState(initialComments);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -206,7 +207,7 @@ export function Comments({
         <p className="text-[14px] font-semibold text-ink">{comment.author.name}</p>
         <p className="break-words text-[15px] leading-snug text-ink">{renderBody(comment.body)}</p>
         <div className="mt-1 flex items-center gap-3 text-xs text-ink-soft">
-          <span>{formatRelativeTime(comment.createdAt)}</span>
+          <span>{time.relative(comment.createdAt)}</span>
           {isAuthed ? (
             <button
               type="button"

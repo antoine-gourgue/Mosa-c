@@ -10,13 +10,8 @@ import { BackIcon, LogoutIcon, MoreIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { conversationName } from "@/lib/conversation";
 import { getRealtimeSocket } from "@/lib/realtime";
-import {
-  formatClockTime,
-  formatLastActive,
-  formatMessageSeparator,
-  formatRelativeTime,
-  shouldSeparateMessages,
-} from "@/lib/time";
+import { shouldSeparateMessages } from "@/lib/time";
+import { useTimeFormat } from "@/hooks/use-time-format";
 import {
   acceptRequest,
   declineRequest,
@@ -69,6 +64,7 @@ export function Messenger({
   initialMessages = [],
 }: MessengerProps): ReactElement {
   const t = useTranslations("messages");
+  const time = useTimeFormat();
   const router = useRouter();
   const { markRead: clearUnreadBadge } = useMessagesUnread();
   const [list, setList] = useState(() =>
@@ -542,7 +538,7 @@ export function Messenger({
             </span>
             {conversation.lastMessage !== null ? (
               <span className="shrink-0 text-xs text-ink-faint">
-                {formatRelativeTime(conversation.lastMessage.createdAt)}
+                {time.relative(conversation.lastMessage.createdAt)}
               </span>
             ) : null}
           </span>
@@ -680,9 +676,9 @@ export function Messenger({
                     </span>
                     {otherOnline ? (
                       <span className="text-xs font-medium text-ink">{t("online")}</span>
-                    ) : formatLastActive(otherLastSeen) !== null ? (
+                    ) : time.lastActive(otherLastSeen) !== null ? (
                       <span className="text-xs text-ink-soft">
-                        {formatLastActive(otherLastSeen)}
+                        {time.lastActive(otherLastSeen)}
                       </span>
                     ) : null}
                   </span>
@@ -734,7 +730,7 @@ export function Messenger({
                       <Fragment key={message.id}>
                         {shouldSeparateMessages(previous, message.createdAt) ? (
                           <div className="py-2 text-center text-xs font-medium text-ink-faint">
-                            {formatMessageSeparator(message.createdAt)}
+                            {time.separator(message.createdAt)}
                           </div>
                         ) : null}
                         {message.system ? (
@@ -757,7 +753,7 @@ export function Messenger({
                             ) : null}
                             {message.body !== "" ? (
                               <span
-                                title={formatClockTime(message.createdAt)}
+                                title={time.clock(message.createdAt)}
                                 className={cn(
                                   "max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px] sm:max-w-[560px]",
                                   mine ? "bg-accent text-bg" : "bg-surface text-ink",
@@ -770,7 +766,7 @@ export function Messenger({
                               className="pointer-events-none absolute right-[-48px] top-1/2 -translate-y-1/2 text-xs tabular-nums text-ink-faint transition-opacity"
                               style={{ opacity: dragX < 0 ? 1 : 0 }}
                             >
-                              {formatClockTime(message.createdAt)}
+                              {time.clock(message.createdAt)}
                             </span>
                           </div>
                         )}

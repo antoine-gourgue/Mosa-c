@@ -20,13 +20,8 @@ import {
 import { cn } from "@/lib/cn";
 import { conversationName } from "@/lib/conversation";
 import { getRealtimeSocket } from "@/lib/realtime";
-import {
-  formatClockTime,
-  formatLastActive,
-  formatMessageSeparator,
-  formatRelativeTime,
-  shouldSeparateMessages,
-} from "@/lib/time";
+import { shouldSeparateMessages } from "@/lib/time";
+import { useTimeFormat } from "@/hooks/use-time-format";
 import {
   acceptRequest,
   createGroup,
@@ -95,6 +90,7 @@ function ConversationRow({
   onDelete?: (id: string) => void;
 }): ReactElement {
   const t = useTranslations("messages");
+  const time = useTimeFormat();
   const [offset, setOffset] = useState(0);
   const [dragging, setDragging] = useState(false);
   const startRef = useRef<{ x: number; y: number; base: number; active: boolean } | null>(null);
@@ -189,7 +185,7 @@ function ConversationRow({
               </span>
               {conversation.lastMessage !== null ? (
                 <span className="shrink-0 text-xs text-ink-faint">
-                  {formatRelativeTime(conversation.lastMessage.createdAt)}
+                  {time.relative(conversation.lastMessage.createdAt)}
                 </span>
               ) : null}
             </span>
@@ -226,6 +222,7 @@ export function MessagesPanel({
   viewerImage,
 }: MessagesPanelProps): ReactElement {
   const t = useTranslations("messages");
+  const time = useTimeFormat();
   const { markRead: clearUnreadBadge, inboxRevision, refreshInbox } = useMessagesUnread();
   const {
     activePanel,
@@ -910,9 +907,9 @@ export function MessagesPanel({
                   </span>
                   {otherOnline ? (
                     <span className="text-xs font-medium text-ink">{t("online")}</span>
-                  ) : formatLastActive(otherLastSeen) !== null ? (
+                  ) : time.lastActive(otherLastSeen) !== null ? (
                     <span className="truncate text-xs text-ink-soft">
-                      {formatLastActive(otherLastSeen)}
+                      {time.lastActive(otherLastSeen)}
                     </span>
                   ) : null}
                 </span>
@@ -964,7 +961,7 @@ export function MessagesPanel({
                     <Fragment key={message.id}>
                       {shouldSeparateMessages(previous, message.createdAt) ? (
                         <div className="py-2 text-center text-xs font-medium text-ink-faint">
-                          {formatMessageSeparator(message.createdAt)}
+                          {time.separator(message.createdAt)}
                         </div>
                       ) : null}
                       {message.system ? (
@@ -984,7 +981,7 @@ export function MessagesPanel({
                           ) : null}
                           {message.body !== "" ? (
                             <span
-                              title={formatClockTime(message.createdAt)}
+                              title={time.clock(message.createdAt)}
                               className={cn(
                                 "max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-[15px]",
                                 mine ? "bg-accent text-bg" : "bg-surface text-ink",

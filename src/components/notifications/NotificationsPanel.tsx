@@ -18,7 +18,7 @@ import {
   SmileIcon,
 } from "@/icons";
 import { cn } from "@/lib/cn";
-import { formatRelativeTime } from "@/lib/time";
+import { useTimeFormat } from "@/hooks/use-time-format";
 import { loadNotifications, markAllRead } from "@/server/actions/notifications";
 import type { AppNotification, NotificationKind } from "@/types/domain";
 
@@ -75,6 +75,7 @@ function typeBadge(kind: NotificationKind): { icon: ReactElement; className: str
  */
 export function NotificationsPanel(): ReactElement {
   const t = useTranslations("notifications");
+  const time = useTimeFormat();
   const router = useRouter();
   const { activePanel, close } = useNavPanel();
   const open = activePanel === "notifications";
@@ -194,7 +195,7 @@ export function NotificationsPanel(): ReactElement {
                         {item.message}
                       </span>
                       <span className="block text-xs text-ink-soft">
-                        {formatRelativeTime(item.createdAt)}
+                        {time.relative(item.createdAt)}
                       </span>
                     </span>
                     {item.pinImageUrl !== null ? (

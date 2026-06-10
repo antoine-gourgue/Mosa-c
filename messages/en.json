@@ -470,5 +470,17 @@
     "noLikedPins": "No liked pins yet.",
     "boardEmpty": "This board is empty.",
     "noPinsForTag": "No pins with this tag yet."
+  },
+  "time": {
+    "justNow": "just now",
+    "minutes": "{count}m",
+    "hours": "{count}h",
+    "days": "{count}d",
+    "weeks": "{count}w",
+    "today": "Today {time}",
+    "yesterday": "Yesterday {time}",
+    "activeNow": "active now",
+    "activeMinutes": "active {count}m ago",
+    "activeHours": "active {count}h ago"
   }
 }
