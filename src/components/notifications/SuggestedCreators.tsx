@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { ReactElement } from "react";
 import { Avatar } from "@/components/ui";
@@ -26,13 +27,16 @@ export type SuggestedCreatorsProps = {
  * @param props - The suggested creators with their follow state.
  * @returns The suggestions panel, or null when empty.
  */
-export function SuggestedCreators({ creators }: SuggestedCreatorsProps): ReactElement | null {
+export async function SuggestedCreators({
+  creators,
+}: SuggestedCreatorsProps): Promise<ReactElement | null> {
   if (creators.length === 0) {
     return null;
   }
+  const t = await getTranslations("notifications");
   return (
     <div className="rounded-3xl bg-surface p-5">
-      <h2 className="mb-4 text-lg font-bold text-ink">Discover creators</h2>
+      <h2 className="mb-4 text-lg font-bold text-ink">{t("discoverCreators")}</h2>
       <ul className="flex flex-col gap-4">
         {creators.map(({ creator, following }) => (
           <li key={creator.id} className="flex items-center gap-3">

@@ -1,6 +1,21 @@
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("next-intl/server", () => ({
+  getTranslations: async (ns: string) => {
+    const en = (await import("../../../messages/en.json")).default as unknown as Record<
+      string,
+      Record<string, string>
+    >;
+    return (key: string, values?: Record<string, string>) => {
+      let msg = en[ns]?.[key] ?? key;
+      for (const [k, v] of Object.entries(values ?? {})) {
+        msg = msg.replace(`{${k}}`, v);
+      }
+      return msg;
+    };
+  },
+}));
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     notification: { findMany: vi.fn(), count: vi.fn() },

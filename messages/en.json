@@ -97,6 +97,20 @@
     "tabLiked": "Liked",
     "tabBoards": "Boards"
   },
+  "notifications": {
+    "title": "Notifications",
+    "markAll": "Mark all as read",
+    "empty": "No notifications yet",
+    "emptyHint": "When people follow you or react to your pins, you will see it here.",
+    "close": "Close notifications",
+    "discoverCreators": "Discover creators",
+    "follow": "{name} started following you",
+    "like": "{name} liked your pin",
+    "comment": "{name} commented on your pin",
+    "reply": "{name} replied to your comment",
+    "reaction": "{name} reacted to your comment",
+    "mention": "{name} mentioned you in a comment"
+  },
   "search": {
     "placeholder": "Search for ideas",
     "label": "Search",

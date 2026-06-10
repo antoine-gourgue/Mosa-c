@@ -97,6 +97,20 @@
     "tabLiked": "Aimées",
     "tabBoards": "Tableaux"
   },
+  "notifications": {
+    "title": "Notifications",
+    "markAll": "Tout marquer comme lu",
+    "empty": "Aucune notification pour le moment",
+    "emptyHint": "Quand des personnes vous suivent ou réagissent à vos épingles, vous le verrez ici.",
+    "close": "Fermer les notifications",
+    "discoverCreators": "Découvrir des créateurs",
+    "follow": "{name} a commencé à vous suivre",
+    "like": "{name} a aimé votre épingle",
+    "comment": "{name} a commenté votre épingle",
+    "reply": "{name} a répondu à votre commentaire",
+    "reaction": "{name} a réagi à votre commentaire",
+    "mention": "{name} vous a mentionné dans un commentaire"
+  },
   "search": {
     "placeholder": "Rechercher des idées",
     "label": "Rechercher",

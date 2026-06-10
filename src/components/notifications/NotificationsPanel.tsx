@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -73,6 +74,7 @@ function typeBadge(kind: NotificationKind): { icon: ReactElement; className: str
  * @returns The overlay element.
  */
 export function NotificationsPanel(): ReactElement {
+  const t = useTranslations("notifications");
   const router = useRouter();
   const { activePanel, close } = useNavPanel();
   const open = activePanel === "notifications";
@@ -116,7 +118,7 @@ export function NotificationsPanel(): ReactElement {
 
   return (
     <aside
-      aria-label="Notifications"
+      aria-label={t("title")}
       aria-hidden={!open}
       inert={!open}
       className={cn(
@@ -125,10 +127,10 @@ export function NotificationsPanel(): ReactElement {
       )}
     >
       <header className="flex items-center justify-between px-4 pb-1 pt-3">
-        <h2 className="text-xl font-bold text-ink">Notifications</h2>
+        <h2 className="text-xl font-bold text-ink">{t("title")}</h2>
         <button
           type="button"
-          aria-label="Close notifications"
+          aria-label={t("close")}
           onClick={close}
           className="-mr-1 grid size-9 cursor-pointer place-items-center rounded-xl text-ink-soft hover:bg-surface hover:text-ink"
         >
@@ -154,10 +156,8 @@ export function NotificationsPanel(): ReactElement {
             <span className="grid size-14 place-items-center rounded-full bg-surface text-ink-soft">
               <BellIcon size={26} />
             </span>
-            <p className="font-semibold text-ink">No notifications yet</p>
-            <p className="max-w-xs text-sm text-ink-soft">
-              When people follow you or react to your pins, you will see it here.
-            </p>
+            <p className="font-semibold text-ink">{t("empty")}</p>
+            <p className="max-w-xs text-sm text-ink-soft">{t("emptyHint")}</p>
           </div>
         ) : (
           <ul className="flex flex-col">
