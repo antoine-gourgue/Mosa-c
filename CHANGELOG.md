@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.22.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.21.0...v1.22.0) (2026-06-11)
+
+
+### Features
+
+* **interests:** searchable interest picker that scales ([a7ac805](https://github.com/antoine-gourgue/Mosa-c/commit/a7ac805769c9d2fa906aaed2155bb47e57ab6964))
+* **settings:** switch toggles and a sticky Save/Reset bar ([9b8d5e5](https://github.com/antoine-gourgue/Mosa-c/commit/9b8d5e5ad62f69778c06ec60bb61559d9f376b8c))
+
+
+### Bug Fixes
+
+* **create:** compress the image before AI tag analysis ([26a4172](https://github.com/antoine-gourgue/Mosa-c/commit/26a41723bab98efeae116e846404fb3579ccb42b))
+* **notifications:** clear the bell badge when the panel opens ([ef7f6f3](https://github.com/antoine-gourgue/Mosa-c/commit/ef7f6f36d5c89349c24823f4c996cc635a412727))
+* **notifications:** clear the bell badge when the panel opens ([9388e11](https://github.com/antoine-gourgue/Mosa-c/commit/9388e1100e7eced89d10c83c962ffb9c9d5a6ba2))
+* **notifications:** drop the unread tint after opening the panel ([3ed30ef](https://github.com/antoine-gourgue/Mosa-c/commit/3ed30efcb06723f6af41af03d1f2a3f0aad611a8))
+* **settings:** harden updateNotificationPrefs against malformed input ([f5e9a2c](https://github.com/antoine-gourgue/Mosa-c/commit/f5e9a2c283af8f660b0db46cf982ada4c75901ad))
+
 ## [1.21.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.20.0...v1.21.0) (2026-06-11)
 
 
