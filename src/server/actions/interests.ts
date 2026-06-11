@@ -2,6 +2,19 @@
 
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { searchTags } from "@/server/services/tags";
+import type { Tag } from "@/types/domain";
+
+/**
+ * Searches tags by name for the interest picker, so the user can find tags
+ * beyond the popular shortlist (scales past a flat grid of every tag).
+ *
+ * @param query - The partial tag name.
+ * @returns The matching tags (empty for a blank query).
+ */
+export async function searchInterestTags(query: string): Promise<Tag[]> {
+  return searchTags(query, 40);
+}
 
 /**
  * The result shape shared by the interest actions.

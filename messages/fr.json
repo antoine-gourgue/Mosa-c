@@ -19,12 +19,21 @@
   "interests": {
     "continue": "Continuer",
     "minHint": "Encore {count}",
+    "noPopular": "Aucun thème pour l’instant.",
+    "noResults": "Aucun thème ne correspond à « {query} ».",
+    "noneSelected": "Aucun centre d’intérêt — choisissez-en ci-dessous.",
     "onboardingSubtitle": "Choisissez quelques thèmes pour personnaliser votre feed. Modifiable à tout moment.",
     "onboardingTitle": "Qu’est-ce qui vous inspire ?",
+    "popular": "Thèmes populaires",
+    "remove": "Retirer {tag}",
+    "results": "Résultats",
     "save": "Enregistrer",
     "saveFailed": "Une erreur s’est produite. Veuillez réessayer.",
     "saved": "Centres d’intérêt mis à jour",
-    "skip": "Passer pour l’instant"
+    "searchPlaceholder": "Rechercher des thèmes…",
+    "searching": "Recherche…",
+    "skip": "Passer pour l’instant",
+    "yourInterests": "Vos centres d’intérêt"
   },
   "errorPage": {
     "title": "Une erreur est survenue",

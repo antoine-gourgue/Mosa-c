@@ -23,6 +23,28 @@ export async function getPopularTags(limit = 24): Promise<TagWithCount[]> {
 }
 
 /**
+ * Searches tags by name (case-insensitive), busiest first, for the interest
+ * picker so it scales past the popular shortlist. Returns an empty list for a
+ * blank query.
+ *
+ * @param query - The partial tag name.
+ * @param limit - The maximum number of matches.
+ * @returns The matching tags.
+ */
+export async function searchTags(query: string, limit = 40): Promise<Tag[]> {
+  const q = query.trim();
+  if (q === "") {
+    return [];
+  }
+  const rows = await prisma.tag.findMany({
+    where: { name: { contains: q, mode: "insensitive" } },
+    orderBy: [{ pins: { _count: "desc" } }, { name: "asc" }],
+    take: limit,
+  });
+  return rows.map(toTag);
+}
+
+/**
  * Fetches a tag by its slug.
  *
  * @param slug - The tag slug.

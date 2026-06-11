@@ -9,7 +9,7 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 import { prisma } from "@/lib/prisma";
-import { getInterestTagIds, hasOnboarded } from "./interests";
+import { getInterestTagIds, getInterestTags, hasOnboarded } from "./interests";
 
 const db = prisma as unknown as {
   userInterest: { findMany: Mock };
@@ -29,6 +29,15 @@ describe("getInterestTagIds", () => {
   it("returns an empty array when there are none", async () => {
     db.userInterest.findMany.mockResolvedValue([]);
     expect(await getInterestTagIds("u1")).toEqual([]);
+  });
+});
+
+describe("getInterestTags", () => {
+  it("maps the user's interest tags with names", async () => {
+    db.userInterest.findMany.mockResolvedValue([
+      { tag: { id: "t1", slug: "bikes", name: "Bikes" } },
+    ]);
+    expect(await getInterestTags("u1")).toEqual([{ id: "t1", slug: "bikes", name: "Bikes" }]);
   });
 });
 

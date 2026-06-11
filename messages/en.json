@@ -19,12 +19,21 @@
   "interests": {
     "continue": "Continue",
     "minHint": "Pick {count} more",
+    "noPopular": "No topics yet.",
+    "noResults": "No topics match “{query}”.",
+    "noneSelected": "No interests yet — pick some below.",
     "onboardingSubtitle": "Pick a few topics to personalize your feed. You can change these anytime.",
     "onboardingTitle": "What are you into?",
+    "popular": "Popular topics",
+    "remove": "Remove {tag}",
+    "results": "Results",
     "save": "Save",
     "saveFailed": "Something went wrong. Please try again.",
     "saved": "Interests updated",
-    "skip": "Skip for now"
+    "searchPlaceholder": "Search topics…",
+    "searching": "Searching…",
+    "skip": "Skip for now",
+    "yourInterests": "Your interests"
   },
   "errorPage": {
     "title": "Something went wrong",
