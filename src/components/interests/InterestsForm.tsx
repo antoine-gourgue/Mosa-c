@@ -156,6 +156,7 @@ export function InterestsForm({
                   <button
                     type="button"
                     onClick={() => add(tag)}
+                    data-testid="interest-suggestion"
                     className="flex items-center gap-1 rounded-2xl border border-line px-3.5 py-1.5 text-[15px] font-semibold text-ink transition-colors hover:border-ink/40 hover:bg-surface"
                   >
                     <PlusIcon size={14} />
