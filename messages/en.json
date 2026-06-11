@@ -16,6 +16,16 @@
     "followingEmpty": "No pins from people you follow yet — follow some creators to fill this feed.",
     "forYouEmpty": "No pins to show here yet."
   },
+  "interests": {
+    "continue": "Continue",
+    "minHint": "Pick {count} more",
+    "onboardingSubtitle": "Pick a few topics to personalize your feed. You can change these anytime.",
+    "onboardingTitle": "What are you into?",
+    "save": "Save",
+    "saveFailed": "Something went wrong. Please try again.",
+    "saved": "Interests updated",
+    "skip": "Skip for now"
+  },
   "errorPage": {
     "title": "Something went wrong",
     "body": "An unexpected error occurred. Try again, or head back to the feed.",
@@ -444,6 +454,8 @@
     "deleteDialogTitle": "Delete your account?",
     "deleteFailed": "Couldn’t delete your account",
     "hubTitle": "Settings",
+    "interestsSubtitle": "Tune what shows up in your For you feed.",
+    "interestsTitle": "Interests",
     "language": "Language",
     "languageHint": "The language used across Mosaic.",
     "namePlaceholder": "Your name",
@@ -465,6 +477,7 @@
     "save": "Save changes",
     "subtitle": "Manage your profile and account.",
     "tabAccount": "Account",
+    "tabInterests": "Interests",
     "tabNotifications": "Notifications",
     "tabPrivacy": "Privacy",
     "tabProfile": "Profile",

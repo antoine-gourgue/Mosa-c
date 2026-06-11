@@ -221,7 +221,7 @@ describe("signInWithProvider / logout", () => {
   it("starts an OAuth flow with the provider", async () => {
     vi.mocked(signIn).mockResolvedValue(undefined as never);
     await signInWithProvider("google");
-    expect(signIn).toHaveBeenCalledWith("google", { redirectTo: "/" });
+    expect(signIn).toHaveBeenCalledWith("google", { redirectTo: "/onboarding" });
   });
 
   it("signs the user out to the login page", async () => {

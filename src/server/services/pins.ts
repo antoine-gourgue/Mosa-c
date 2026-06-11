@@ -4,6 +4,7 @@ import type { Pin } from "@/types/domain";
 import { getFollowedBoardIds } from "./board-follows";
 import { getHiddenUserIds } from "./blocks";
 import { getFollowedCreatorIds } from "./follows";
+import { getInterestTagIds } from "./interests";
 import { PIN_INCLUDE, toPin } from "./mappers";
 
 /**
@@ -173,6 +174,7 @@ const FOR_YOU_WINDOW = 400;
  */
 const FOR_YOU_WEIGHTS = {
   followedCreator: 5,
+  interestTag: 3,
   affineCreator: 2,
   sharedTag: 1.5,
   engagement: 1,
@@ -186,12 +188,13 @@ const FOR_YOU_RECENCY_HALFLIFE_DAYS = 7;
 
 /**
  * The viewer's affinity signals used to personalise the "For you" feed: the
- * creators they follow, and the creators and tags drawn from pins they have
- * liked or saved. Empty for signed-out viewers, which degrades the ranking to a
- * popularity + recency blend.
+ * creators they follow, the tags they chose as onboarding interests, and the
+ * creators and tags drawn from pins they have liked or saved. Empty for
+ * signed-out viewers, which degrades the ranking to a popularity + recency blend.
  */
 export type ForYouAffinity = {
   followedCreatorIds: Set<string>;
+  interestTagIds: Set<string>;
   affineCreatorIds: Set<string>;
   affineTagIds: Set<string>;
 };
@@ -226,12 +229,17 @@ function scoreForYou(pin: ScoredPin, affinity: ForYouAffinity, now: number): num
     score += FOR_YOU_WEIGHTS.affineCreator;
   }
   let sharedTags = 0;
+  let interestTags = 0;
   for (const pinTag of pin.tags) {
     if (affinity.affineTagIds.has(pinTag.tag.id)) {
       sharedTags += 1;
     }
+    if (affinity.interestTagIds.has(pinTag.tag.id)) {
+      interestTags += 1;
+    }
   }
   score += sharedTags * FOR_YOU_WEIGHTS.sharedTag;
+  score += interestTags * FOR_YOU_WEIGHTS.interestTag;
   const engagement = pin._count.likes + pin._count.comments + pin.downloadCount;
   score += Math.log1p(engagement) * FOR_YOU_WEIGHTS.engagement;
   const ageDays = Math.max(0, (now - pin.createdAt.getTime()) / 86_400_000);
@@ -277,8 +285,9 @@ export function rankForYou<T extends ScoredPin>(
  */
 async function getForYouAffinity(viewerId: string): Promise<ForYouAffinity> {
   const pinSelect = { pin: { select: { creatorId: true, tags: { select: { tagId: true } } } } };
-  const [followedIds, likes, saves] = await Promise.all([
+  const [followedIds, interestIds, likes, saves] = await Promise.all([
     getFollowedCreatorIds(viewerId),
+    getInterestTagIds(viewerId),
     prisma.like.findMany({
       where: { userId: viewerId },
       orderBy: { createdAt: "desc" },
@@ -300,7 +309,12 @@ async function getForYouAffinity(viewerId: string): Promise<ForYouAffinity> {
       affineTagIds.add(tag.tagId);
     }
   }
-  return { followedCreatorIds: new Set(followedIds), affineCreatorIds, affineTagIds };
+  return {
+    followedCreatorIds: new Set(followedIds),
+    interestTagIds: new Set(interestIds),
+    affineCreatorIds,
+    affineTagIds,
+  };
 }
 
 /**
@@ -321,6 +335,7 @@ async function getForYouFeed(params: {
   const { viewerId, hiddenIds, skip, limit } = params;
   const emptyAffinity: ForYouAffinity = {
     followedCreatorIds: new Set(),
+    interestTagIds: new Set(),
     affineCreatorIds: new Set(),
     affineTagIds: new Set(),
   };

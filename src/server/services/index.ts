@@ -36,6 +36,7 @@ export {
   getPendingFollowRequestCount,
 } from "./follows";
 export { getFollowedBoardIds, isFollowingBoard } from "./board-follows";
+export { getInterestTagIds, hasOnboarded } from "./interests";
 export { getHiddenUserIds, getBlockState, getBlockedUsers } from "./blocks";
 export type { BlockState } from "./blocks";
 export {

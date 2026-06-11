@@ -69,6 +69,7 @@ model User {
   isPrivate      Boolean   @default(false)
   notifPrefs     Json?
   lastSeenAt     DateTime?
+  onboardedAt    DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -97,6 +98,7 @@ model User {
   followRequestsReceived FollowRequest[] @relation("FollowTarget")
 
   boardFollows BoardFollow[] @relation("BoardFollower")
+  interests    UserInterest[]
 
   conversations ConversationParticipant[]
   sentMessages  Message[]
@@ -184,7 +186,19 @@ model Tag {
   name      String
   createdAt DateTime @default(now())
 
-  pins PinTag[]
+  pins      PinTag[]
+  interests UserInterest[]
+}
+
+model UserInterest {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, tagId])
+  @@index([tagId])
 }
 
 model PinTag {

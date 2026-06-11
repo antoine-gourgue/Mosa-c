@@ -11,6 +11,7 @@ import { cn } from "@/lib/cn";
  */
 const TABS = [
   { href: "/settings/profile", key: "tabProfile" },
+  { href: "/settings/interests", key: "tabInterests" },
   { href: "/settings/notifications", key: "tabNotifications" },
   { href: "/settings/privacy", key: "tabPrivacy" },
   { href: "/settings/account", key: "tabAccount" },
