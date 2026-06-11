@@ -46,6 +46,23 @@ describe("updateNotificationPrefs", () => {
     expect(db.user.update).not.toHaveBeenCalled();
   });
 
+  it("defaults every kind to enabled for a malformed payload", async () => {
+    expect((await updateNotificationPrefs(null as unknown as NotificationPrefs)).ok).toBe(true);
+    expect(db.user.update).toHaveBeenCalledWith({
+      where: { id: "u1" },
+      data: {
+        notifPrefs: {
+          FOLLOW: true,
+          LIKE: true,
+          COMMENT: true,
+          REPLY: true,
+          REACTION: true,
+          MENTION: true,
+        },
+      },
+    });
+  });
+
   it("stores the full sanitised preference map", async () => {
     const prefs = {
       FOLLOW: false,

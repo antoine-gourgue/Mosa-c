@@ -44,8 +44,9 @@ export async function updateNotificationPref(
 
 /**
  * Replaces the current user's in-app notification preferences in one write,
- * sanitised to the known kinds (an unknown key is dropped, a missing kind
- * defaults to enabled). Backs the batched Save action of the settings form.
+ * sanitised to the known kinds: an unknown key is dropped, and any missing or
+ * non-boolean entry (including a malformed, non-object payload) defaults to
+ * enabled. Backs the batched Save action of the settings form.
  *
  * @param prefs - The full preference map to store.
  * @returns Whether the update succeeded.
@@ -57,9 +58,11 @@ export async function updateNotificationPrefs(
   if (user === null) {
     return { ok: false, error: await errorMessage("signedOut") };
   }
+  const source: Partial<NotificationPrefs> =
+    typeof prefs === "object" && prefs !== null ? prefs : {};
   const next = {} as NotificationPrefs;
   for (const type of NOTIFICATION_TYPES) {
-    next[type] = prefs[type] !== false;
+    next[type] = source[type] !== false;
   }
   await prisma.user.update({ where: { id: user.id }, data: { notifPrefs: next } });
   revalidatePath("/settings/notifications");
