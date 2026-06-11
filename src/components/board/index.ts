@@ -11,3 +11,5 @@ export { ManageCollaborators } from "./ManageCollaborators";
 export type { ManageCollaboratorsProps } from "./ManageCollaborators";
 export { BoardHeader } from "./BoardHeader";
 export type { BoardHeaderProps } from "./BoardHeader";
+export { BoardFollowButton } from "./BoardFollowButton";
+export type { BoardFollowButtonProps } from "./BoardFollowButton";

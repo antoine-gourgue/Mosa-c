@@ -6,6 +6,7 @@ vi.mock("@/lib/prisma", () => ({
     board: { findMany: vi.fn(), findUnique: vi.fn(), findFirst: vi.fn() },
     boardMember: { findMany: vi.fn(), findUnique: vi.fn() },
     boardPin: { findMany: vi.fn() },
+    boardFollow: { findMany: vi.fn() },
     save: { findMany: vi.fn(), count: vi.fn() },
   },
 }));
@@ -19,6 +20,7 @@ import {
   getBoardsForUser,
   getBoardWithPins,
   getDefaultBoard,
+  getFollowedBoardsWithCovers,
   getUserBoardsWithCovers,
 } from "./boards";
 
@@ -26,6 +28,7 @@ const db = prisma as unknown as {
   board: { findMany: Mock; findUnique: Mock; findFirst: Mock };
   boardMember: { findMany: Mock; findUnique: Mock };
   boardPin: { findMany: Mock };
+  boardFollow: { findMany: Mock };
   save: { findMany: Mock; count: Mock };
 };
 
@@ -219,5 +222,46 @@ describe("getUserBoardsWithCovers", () => {
       { ownerId: "stranger" },
       { members: { some: { userId: "stranger" } } },
     ]);
+  });
+});
+
+describe("getFollowedBoardsWithCovers", () => {
+  it("maps followed public boards with covers and pin counts", async () => {
+    db.boardFollow.findMany.mockResolvedValue([
+      {
+        board: {
+          id: "b1",
+          name: "Ideas",
+          description: null,
+          visibility: "PUBLIC",
+          isDefault: false,
+          ownerId: "owner",
+          _count: { pins: 4 },
+          owner: { username: "ada" },
+        },
+      },
+    ]);
+    db.boardPin.findMany.mockResolvedValue([{ pin: { imageUrl: "/p.png" } }]);
+    const result = await getFollowedBoardsWithCovers("u1");
+    expect(result).toEqual([
+      {
+        id: "b1",
+        name: "Ideas",
+        description: null,
+        visibility: "PUBLIC",
+        isDefault: false,
+        pinCount: 4,
+        coverUrls: ["/p.png"],
+        ownerUsername: "ada",
+      },
+    ]);
+    expect(db.boardFollow.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { userId: "u1", board: { visibility: "PUBLIC" } } }),
+    );
+  });
+
+  it("returns an empty list when the user follows no boards", async () => {
+    db.boardFollow.findMany.mockResolvedValue([]);
+    expect(await getFollowedBoardsWithCovers("u1")).toEqual([]);
   });
 });

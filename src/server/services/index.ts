@@ -21,6 +21,7 @@ export {
   getDefaultBoard,
   getBoardWithPins,
   getUserBoardsWithCovers,
+  getFollowedBoardsWithCovers,
   getBoardMembers,
   getBoardRole,
   canEditBoard,
@@ -34,6 +35,7 @@ export {
   getPendingFollowRequests,
   getPendingFollowRequestCount,
 } from "./follows";
+export { getFollowedBoardIds, isFollowingBoard } from "./board-follows";
 export { getHiddenUserIds, getBlockState, getBlockedUsers } from "./blocks";
 export type { BlockState } from "./blocks";
 export {

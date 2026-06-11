@@ -96,6 +96,8 @@ model User {
   followRequestsSent     FollowRequest[] @relation("FollowRequester")
   followRequestsReceived FollowRequest[] @relation("FollowTarget")
 
+  boardFollows BoardFollow[] @relation("BoardFollower")
+
   conversations ConversationParticipant[]
   sentMessages  Message[]
 }
@@ -308,8 +310,9 @@ model Board {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  pins    BoardPin[]
-  members BoardMember[]
+  pins      BoardPin[]
+  members   BoardMember[]
+  followers BoardFollow[]
 
   @@index([ownerId])
 }
@@ -368,6 +371,17 @@ model FollowRequest {
 
   @@id([requesterId, targetId])
   @@index([targetId])
+}
+
+model BoardFollow {
+  userId    String
+  user      User     @relation("BoardFollower", fields: [userId], references: [id], onDelete: Cascade)
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, boardId])
+  @@index([boardId])
 }
 
 enum ConversationStatus {
