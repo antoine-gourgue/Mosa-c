@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { getStorage } from "@/lib/storage";
 import { slugify } from "@/lib/slug";
+import { embedPin } from "@/server/services/embeddings";
 
 /**
  * Failure outcome of {@link createPin}; a successful call redirects instead of
@@ -117,6 +118,8 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
     });
     await prisma.pinTag.create({ data: { pinId: pin.id, tagId: tag.id } });
   }
+
+  await embedPin(pin.id);
 
   const boardName = (formData.get("board")?.toString() ?? "").trim() || "Quick Saves";
   const board =

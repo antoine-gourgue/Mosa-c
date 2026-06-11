@@ -9,11 +9,22 @@ vi.mock("@/lib/prisma", () => ({
     follow: { findMany: vi.fn().mockResolvedValue([]) },
     boardFollow: { findMany: vi.fn().mockResolvedValue([]) },
     userInterest: { findMany: vi.fn().mockResolvedValue([]) },
+    pinEmbedding: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      findMany: vi.fn().mockResolvedValue([]),
+    },
     user: { findMany: vi.fn().mockResolvedValue([]) },
     block: { findMany: vi.fn().mockResolvedValue([]) },
   },
 }));
+vi.mock("@/lib/ai", () => ({
+  aiAvailable: vi.fn(() => false),
+  embed: vi.fn(),
+  describeImage: vi.fn(),
+  suggestTags: vi.fn(),
+}));
 
+import { aiAvailable, embed } from "@/lib/ai";
 import { prisma } from "@/lib/prisma";
 import {
   getCreatedPins,
@@ -33,6 +44,7 @@ const db = prisma as unknown as {
   follow: { findMany: Mock };
   boardFollow: { findMany: Mock };
   userInterest: { findMany: Mock };
+  pinEmbedding: { findUnique: Mock; findMany: Mock };
   user: { findMany: Mock };
 };
 
@@ -90,6 +102,8 @@ beforeEach(() => {
   db.follow.findMany.mockResolvedValue([]);
   db.boardFollow.findMany.mockResolvedValue([]);
   db.userInterest.findMany.mockResolvedValue([]);
+  db.pinEmbedding.findUnique.mockResolvedValue(null);
+  db.pinEmbedding.findMany.mockResolvedValue([]);
 });
 
 describe("rankForYou", () => {
@@ -241,6 +255,15 @@ describe("getRelatedPins", () => {
     db.pin.findMany.mockResolvedValueOnce([pinRow("filler")]);
     expect((await getRelatedPins("p1", 3)).map((p) => p.id)).toEqual(["filler"]);
   });
+
+  it("ranks semantically similar pins first when the pin has an embedding", async () => {
+    db.pin.findUnique.mockResolvedValue({ tags: [] });
+    db.pinEmbedding.findUnique.mockResolvedValue({ vector: [1, 0] });
+    db.pinEmbedding.findMany.mockResolvedValue([{ pinId: "s1", vector: [1, 0] }]);
+    db.pin.findMany.mockResolvedValueOnce([pinRow("s1")]).mockResolvedValue([]);
+    expect((await getRelatedPins("p1", 16)).map((p) => p.id)).toEqual(["s1"]);
+    expect(db.pinEmbedding.findMany).toHaveBeenCalled();
+  });
 });
 
 describe("getCreatedPins", () => {
@@ -259,5 +282,13 @@ describe("searchPins", () => {
   it("matches by title, tag or creator name", async () => {
     db.pin.findMany.mockResolvedValue([pinRow("p1")]);
     expect((await searchPins("sun", "likes")).map((p) => p.id)).toEqual(["p1"]);
+  });
+
+  it("appends semantic matches after the keyword results when AI is available", async () => {
+    vi.mocked(aiAvailable).mockReturnValue(true);
+    vi.mocked(embed).mockResolvedValue([1, 0]);
+    db.pin.findMany.mockResolvedValueOnce([pinRow("kw")]).mockResolvedValueOnce([pinRow("sem")]);
+    db.pinEmbedding.findMany.mockResolvedValue([{ pinId: "sem", vector: [1, 0] }]);
+    expect((await searchPins("bikes")).map((p) => p.id)).toEqual(["kw", "sem"]);
   });
 });

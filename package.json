@@ -26,6 +26,7 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
+    "ai:backfill": "tsx prisma/backfill-embeddings.ts",
     "postinstall": "prisma generate",
     "prepare": "husky"
   },
