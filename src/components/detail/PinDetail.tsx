@@ -79,7 +79,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
         <div className={cn("relative w-full overflow-hidden rounded-2xl bg-surface", aspectClass)}>
           <Image
             src={pin.imageUrl}
-            alt={pin.title}
+            alt={pin.altText ?? pin.title}
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
             className="object-cover"

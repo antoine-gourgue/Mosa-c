@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import type { ReactElement } from "react";
 import { CreatePin } from "@/components/create";
+import { aiAvailable } from "@/lib/ai";
 import { getCurrentUser } from "@/lib/auth";
 import { getUserBoardsWithCovers } from "@/server/services";
 
@@ -30,6 +31,7 @@ export default async function CreatePage(): Promise<ReactElement> {
   const boards = await getUserBoardsWithCovers(user.id);
   return (
     <CreatePin
+      aiEnabled={aiAvailable()}
       boards={boards.map((board) => ({
         id: board.id,
         name: board.name,

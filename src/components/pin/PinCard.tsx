@@ -156,7 +156,7 @@ export function PinCard({
       >
         <Image
           src={pin.imageUrl}
-          alt={pin.title}
+          alt={pin.altText ?? pin.title}
           width={pin.width}
           height={pin.height}
           sizes="(max-width: 768px) 50vw, 20vw"

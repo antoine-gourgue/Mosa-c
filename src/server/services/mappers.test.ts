@@ -55,6 +55,7 @@ describe("toPin", () => {
     id: "p1",
     title: "Sunset",
     description: null,
+    altText: null,
     imageUrl: "/p.png",
     width: 800,
     height: 600,

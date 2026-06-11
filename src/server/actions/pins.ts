@@ -49,6 +49,7 @@ function parseTagNames(raw: string): { slug: string; name: string }[] {
 const createPinSchema = z.object({
   title: z.string().trim().min(1, "A title is required.").max(120),
   description: z.string().trim().max(2000).optional(),
+  altText: z.string().trim().max(300).optional(),
   link: z.union([z.literal(""), z.url()]).default(""),
   width: z.coerce.number().int().positive(),
   height: z.coerce.number().int().positive(),
@@ -79,6 +80,7 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
   const parsed = createPinSchema.safeParse({
     title: formData.get("title"),
     description: formData.get("description") ?? undefined,
+    altText: formData.get("altText") ?? undefined,
     link: formData.get("link") ?? "",
     width: formData.get("width"),
     height: formData.get("height"),
@@ -94,6 +96,10 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
     data: {
       title: parsed.data.title,
       description: parsed.data.description ?? null,
+      altText:
+        parsed.data.altText === undefined || parsed.data.altText === ""
+          ? null
+          : parsed.data.altText,
       link: parsed.data.link === "" ? null : parsed.data.link,
       imageUrl: stored.url,
       width: parsed.data.width,

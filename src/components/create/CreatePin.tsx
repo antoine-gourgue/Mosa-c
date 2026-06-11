@@ -3,8 +3,11 @@
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import type { ReactElement, ReactNode } from "react";
-import { Button } from "@/components/ui";
+import { Button, Spinner } from "@/components/ui";
+import { SparkleIcon } from "@/icons";
+import { cn } from "@/lib/cn";
 import { compressImage } from "@/lib/image";
+import { analyzePinImage } from "@/server/actions/ai";
 import { createPin } from "@/server/actions/pins";
 import { BoardPicker } from "./BoardPicker";
 import type { BoardOption } from "./BoardPicker";
@@ -22,6 +25,7 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
  */
 export type CreatePinProps = {
   boards: BoardOption[];
+  aiEnabled: boolean;
 };
 
 /**
@@ -45,6 +49,27 @@ const CONTROL_CLASS =
   "mt-0.5 w-full bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-faint";
 
 /**
+ * Builds the form payload for the AI image analysis: the selected image plus any
+ * text the user has already typed, for better tag suggestions.
+ *
+ * @param file - The selected image file.
+ * @param title - The current title.
+ * @param description - The current description.
+ * @returns The analysis form data.
+ */
+function buildAnalysisForm(file: File, title: string, description: string): FormData {
+  const form = new FormData();
+  form.set("image", file);
+  if (title.trim() !== "") {
+    form.set("title", title);
+  }
+  if (description.trim() !== "") {
+    form.set("description", description);
+  }
+  return form;
+}
+
+/**
  * Create Pin form in the Pinterest layout: a tall upload card with a
  * "Save from URL" fallback on the left, and the pin details (title, description,
  * link and board) as inset-label fields on the right, with Publish in the
@@ -53,17 +78,40 @@ const CONTROL_CLASS =
  * @param props - The user's boards for the selector.
  * @returns The create pin form element.
  */
-export function CreatePin({ boards }: CreatePinProps): ReactElement {
+export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
   const t = useTranslations("create");
   const [image, setImage] = useState<SelectedImage | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [link, setLink] = useState("");
   const [tags, setTags] = useState<string[]>([]);
+  const [altText, setAltText] = useState<string | null>(null);
+  const [suggesting, setSuggesting] = useState(false);
   const [boardList, setBoardList] = useState(boards);
   const [board, setBoard] = useState(boards[0]?.name ?? "Quick Saves");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  const onImageChange = (next: SelectedImage | null): void => {
+    setImage(next);
+    setAltText(null);
+  };
+
+  const onSuggest = (): void => {
+    if (image === null) {
+      return;
+    }
+    setSuggesting(true);
+    void analyzePinImage(buildAnalysisForm(image.file, title, description))
+      .then((result) => {
+        setAltText(result.altText);
+        if (result.tags.length > 0) {
+          setTags((current) => (current.length === 0 ? result.tags : current));
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => setSuggesting(false));
+  };
 
   const onPublish = (): void => {
     if (image === null) {
@@ -87,6 +135,7 @@ export function CreatePin({ boards }: CreatePinProps): ReactElement {
         const formData = new FormData();
         formData.set("title", title);
         formData.set("description", description);
+        formData.set("altText", altText ?? "");
         formData.set("link", link);
         formData.set("tags", tags.join(","));
         formData.set("board", board);
@@ -112,7 +161,7 @@ export function CreatePin({ boards }: CreatePinProps): ReactElement {
       </header>
 
       <div className="mx-auto grid max-w-[1000px] grid-cols-1 gap-8 lg:grid-cols-[minmax(0,420px)_1fr]">
-        <UploadDropzone value={image} onChange={setImage} />
+        <UploadDropzone value={image} onChange={onImageChange} />
 
         <div className="flex flex-col gap-3">
           <Field label={t("title")}>
@@ -143,7 +192,28 @@ export function CreatePin({ boards }: CreatePinProps): ReactElement {
             />
           </Field>
 
-          <TagsInput value={tags} onChange={setTags} />
+          <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <TagsInput value={tags} onChange={setTags} />
+            </div>
+            {aiEnabled ? (
+              <button
+                type="button"
+                onClick={onSuggest}
+                disabled={image === null || suggesting}
+                aria-label={t("suggestWithAi")}
+                title={t("suggestWithAi")}
+                className={cn(
+                  "grid size-12 shrink-0 place-items-center rounded-xl bg-surface transition-colors",
+                  image === null || suggesting
+                    ? "cursor-not-allowed text-ink-faint"
+                    : "text-accent hover:bg-surface-2",
+                )}
+              >
+                {suggesting ? <Spinner size={18} /> : <SparkleIcon size={18} />}
+              </button>
+            ) : null}
+          </div>
 
           <BoardPicker
             boards={boardList}
