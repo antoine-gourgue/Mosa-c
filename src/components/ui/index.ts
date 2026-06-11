@@ -16,6 +16,8 @@ export { Select } from "./Select";
 export type { SelectProps } from "./Select";
 export { Pill } from "./Pill";
 export type { PillProps, PillSize } from "./Pill";
+export { Toggle } from "./Toggle";
+export type { ToggleProps } from "./Toggle";
 export { Tag } from "./Tag";
 export type { TagProps } from "./Tag";
 export { ToastProvider, useToast } from "./toast";

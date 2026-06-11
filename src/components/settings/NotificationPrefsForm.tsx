@@ -4,11 +4,10 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import type { ReactElement } from "react";
 import type { NotificationType } from "@/generated/prisma/enums";
-import { CheckIcon } from "@/icons";
-import { cn } from "@/lib/cn";
-import { useToast } from "@/components/ui";
-import { updateNotificationPref } from "@/server/actions/notification-prefs";
+import { Toggle, useToast } from "@/components/ui";
+import { updateNotificationPrefs } from "@/server/actions/notification-prefs";
 import type { NotificationPrefs } from "@/server/services/notification-prefs";
+import { SettingsSaveBar } from "./SettingsSaveBar";
 
 /**
  * Props for the {@link NotificationPrefsForm} component.
@@ -30,9 +29,10 @@ const ROWS = [
 ] as const satisfies readonly { type: NotificationType; key: string }[];
 
 /**
- * In-app notification preferences: a labelled square toggle per notification
- * kind. Each toggle persists immediately and optimistically, reverting on
- * failure. Disabled kinds are skipped at notification-emit time.
+ * In-app notification preferences: a labelled switch per kind. Changes are
+ * batched into a draft and only persisted when the user clicks Save in the
+ * sticky bar (Reset reverts to the last-saved values); disabled kinds are
+ * skipped at notification-emit time.
  *
  * @param props - The current preferences to seed the toggles.
  * @returns The notification preferences form element.
@@ -40,46 +40,49 @@ const ROWS = [
 export function NotificationPrefsForm({ initialPrefs }: NotificationPrefsFormProps): ReactElement {
   const t = useTranslations("settings");
   const { show } = useToast();
-  const [prefs, setPrefs] = useState(initialPrefs);
-  const [, startTransition] = useTransition();
+  const [saved, setSaved] = useState(initialPrefs);
+  const [draft, setDraft] = useState(initialPrefs);
+  const [pending, startTransition] = useTransition();
+
+  const dirty = ROWS.some((row) => draft[row.type] !== saved[row.type]);
 
   const toggle = (type: NotificationType): void => {
-    const next = !prefs[type];
-    setPrefs((current) => ({ ...current, [type]: next }));
+    setDraft((current) => ({ ...current, [type]: !current[type] }));
+  };
+
+  const onSave = (): void => {
     startTransition(async () => {
-      const result = await updateNotificationPref(type, next);
-      if (!result.ok) {
-        setPrefs((current) => ({ ...current, [type]: !next }));
+      const result = await updateNotificationPrefs(draft);
+      if (result.ok) {
+        setSaved(draft);
+        show({ title: t("prefsSaved") });
+      } else {
         show({ title: t("prefFailed"), description: result.error });
       }
     });
   };
 
   return (
-    <ul className="flex flex-col gap-1">
-      {ROWS.map((row) => {
-        const enabled = prefs[row.type];
-        return (
-          <li key={row.type}>
-            <button
-              type="button"
-              onClick={() => toggle(row.type)}
-              aria-pressed={enabled}
-              className="flex w-full items-center justify-between gap-3 rounded-xl py-2 text-left"
-            >
-              <span className="text-[15px] font-medium text-ink">{t(row.key)}</span>
-              <span
-                className={cn(
-                  "grid size-5 shrink-0 place-items-center rounded-md border transition-colors",
-                  enabled ? "border-ink bg-ink text-bg" : "border-line text-transparent",
-                )}
-              >
-                <CheckIcon size={14} />
-              </span>
-            </button>
+    <>
+      <ul className="flex flex-col gap-1">
+        {ROWS.map((row) => (
+          <li key={row.type} className="flex items-center justify-between gap-3 py-2">
+            <span className="text-[15px] font-medium text-ink">{t(row.key)}</span>
+            <Toggle
+              checked={draft[row.type]}
+              onChange={() => toggle(row.type)}
+              disabled={pending}
+              label={t(row.key)}
+            />
           </li>
-        );
-      })}
-    </ul>
+        ))}
+      </ul>
+      <SettingsSaveBar
+        dirty={dirty}
+        pending={pending}
+        onReset={() => setDraft(saved)}
+        onSave={onSave}
+      />
+    </>
   );
 }

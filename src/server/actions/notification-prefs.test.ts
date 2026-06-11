@@ -10,7 +10,8 @@ vi.mock("@/lib/prisma", () => ({
 
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { updateNotificationPref } from "./notification-prefs";
+import type { NotificationPrefs } from "@/server/services/notification-prefs";
+import { updateNotificationPref, updateNotificationPrefs } from "./notification-prefs";
 
 const db = prisma as unknown as { user: { findUnique: Mock; update: Mock } };
 
@@ -34,6 +35,30 @@ describe("updateNotificationPref", () => {
       data: {
         notifPrefs: expect.objectContaining({ LIKE: false, FOLLOW: true, COMMENT: true }),
       },
+    });
+  });
+});
+
+describe("updateNotificationPrefs", () => {
+  it("rejects when signed out", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    expect((await updateNotificationPrefs({} as NotificationPrefs)).ok).toBe(false);
+    expect(db.user.update).not.toHaveBeenCalled();
+  });
+
+  it("stores the full sanitised preference map", async () => {
+    const prefs = {
+      FOLLOW: false,
+      LIKE: true,
+      COMMENT: false,
+      REPLY: true,
+      REACTION: true,
+      MENTION: false,
+    } satisfies NotificationPrefs;
+    expect(await updateNotificationPrefs(prefs)).toEqual({ ok: true });
+    expect(db.user.update).toHaveBeenCalledWith({
+      where: { id: "u1" },
+      data: { notifPrefs: prefs },
     });
   });
 });
