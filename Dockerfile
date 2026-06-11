@@ -15,6 +15,15 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # database and these values are not used at runtime.
 ENV DATABASE_URL="postgresql://localhost:5432/build"
 ENV AUTH_SECRET="placeholder"
+# Public (NEXT_PUBLIC_*) values are inlined into the client bundle at build time,
+# so they must be passed as build args — runtime env cannot change them. Each
+# defaults to empty, which disables the corresponding feature client-side.
+ARG NEXT_PUBLIC_APP_URL=""
+ARG NEXT_PUBLIC_REALTIME_URL=""
+ARG NEXT_PUBLIC_VAPID_PUBLIC_KEY=""
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+ENV NEXT_PUBLIC_REALTIME_URL=$NEXT_PUBLIC_REALTIME_URL
+ENV NEXT_PUBLIC_VAPID_PUBLIC_KEY=$NEXT_PUBLIC_VAPID_PUBLIC_KEY
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
