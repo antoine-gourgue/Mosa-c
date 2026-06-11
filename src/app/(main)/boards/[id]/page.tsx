@@ -5,7 +5,12 @@ import type { ReactElement } from "react";
 import { BoardHeader } from "@/components/board";
 import { PinFeed } from "@/components/pin";
 import { getCurrentUser } from "@/lib/auth";
-import { getBoardWithPins, getLikedPinIds, getSavedPinIds } from "@/server/services";
+import {
+  getBoardWithPins,
+  getLikedPinIds,
+  getSavedPinIds,
+  isFollowingBoard,
+} from "@/server/services";
 
 /**
  * Builds the board page metadata.
@@ -43,15 +48,19 @@ export default async function BoardPage({
     notFound();
   }
   const tp = await getTranslations("page");
-  const [savedIds, likedIds] =
+  const [savedIds, likedIds, following] =
     viewer === null
-      ? [[], []]
-      : await Promise.all([getSavedPinIds(viewer.id), getLikedPinIds(viewer.id)]);
+      ? [[], [], false]
+      : await Promise.all([
+          getSavedPinIds(viewer.id),
+          getLikedPinIds(viewer.id),
+          isFollowingBoard(viewer.id, board.id),
+        ]);
   const count = board.pins.length;
 
   return (
     <div className="mx-auto max-w-[1180px]">
-      <BoardHeader board={board} />
+      <BoardHeader board={board} initialFollowing={following} isAuthed={viewer !== null} />
       {count === 0 ? (
         <p className="py-16 text-center text-ink-soft">{tp("boardEmpty")}</p>
       ) : (

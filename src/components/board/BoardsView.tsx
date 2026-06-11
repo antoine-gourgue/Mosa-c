@@ -14,6 +14,7 @@ import { CreateBoardButton } from "./CreateBoardButton";
  */
 export type BoardsViewProps = {
   boards: BoardSummary[];
+  followedBoards: BoardSummary[];
 };
 
 /**
@@ -24,7 +25,7 @@ export type BoardsViewProps = {
  * @param props - The current user's boards.
  * @returns The boards view element.
  */
-export function BoardsView({ boards }: BoardsViewProps): ReactElement {
+export function BoardsView({ boards, followedBoards }: BoardsViewProps): ReactElement {
   const t = useTranslations("board");
   const [query, setQuery] = useState("");
   const trimmed = query.trim().toLowerCase();
@@ -61,6 +62,13 @@ export function BoardsView({ boards }: BoardsViewProps): ReactElement {
       ) : (
         <BoardsGrid boards={filtered} emptyMessage={t("noBoardsHint")} />
       )}
+
+      {followedBoards.length > 0 && trimmed === "" ? (
+        <section className="mt-12">
+          <h2 className="mb-5 text-2xl font-bold text-ink">{t("followedBoards")}</h2>
+          <BoardsGrid boards={followedBoards} />
+        </section>
+      ) : null}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import type { ReactElement } from "react";
 import { BoardsView } from "@/components/board";
 import { getCurrentUser } from "@/lib/auth";
-import { getUserBoardsWithCovers } from "@/server/services";
+import { getFollowedBoardsWithCovers, getUserBoardsWithCovers } from "@/server/services";
 
 /**
  * Metadata for the boards route.
@@ -27,7 +27,10 @@ export default async function BoardsPage(): Promise<ReactElement> {
   if (user === null) {
     redirect("/login");
   }
-  const boards = await getUserBoardsWithCovers(user.id);
+  const [boards, followedBoards] = await Promise.all([
+    getUserBoardsWithCovers(user.id),
+    getFollowedBoardsWithCovers(user.id),
+  ]);
 
-  return <BoardsView boards={boards} />;
+  return <BoardsView boards={boards} followedBoards={followedBoards} />;
 }

@@ -240,3 +240,35 @@ export async function getUserBoardsWithCovers(
     }),
   );
 }
+
+/**
+ * Fetches the public boards the user follows with a cover image and pin count,
+ * for the "Boards you follow" listing. A board that has since turned secret is
+ * excluded, since only public boards remain followable.
+ *
+ * @param userId - The follower's user id.
+ * @returns The followed board summaries, newest-followed first.
+ */
+export async function getFollowedBoardsWithCovers(userId: string): Promise<BoardSummary[]> {
+  const follows = await prisma.boardFollow.findMany({
+    where: { userId, board: { visibility: "PUBLIC" } },
+    include: {
+      board: {
+        include: { _count: { select: { pins: true } }, owner: { select: { username: true } } },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  return Promise.all(
+    follows.map(async ({ board }) => ({
+      id: board.id,
+      name: board.name,
+      description: board.description,
+      visibility: board.visibility,
+      isDefault: board.isDefault,
+      pinCount: board._count.pins,
+      coverUrls: await boardCovers(board.id, board.ownerId, board.isDefault),
+      ownerUsername: board.owner.username,
+    })),
+  );
+}

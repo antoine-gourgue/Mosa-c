@@ -11,6 +11,7 @@ import { LockIcon, MoreIcon } from "@/icons";
 import { deleteBoard, leaveBoard, updateBoard } from "@/server/actions/boards";
 import type { BoardDetail } from "@/types/domain";
 import { BoardCollaborators } from "./BoardCollaborators";
+import { BoardFollowButton } from "./BoardFollowButton";
 import { BoardFormDialog, type BoardFormValues } from "./BoardFormDialog";
 import { ManageCollaborators } from "./ManageCollaborators";
 
@@ -19,6 +20,8 @@ import { ManageCollaborators } from "./ManageCollaborators";
  */
 export type BoardHeaderProps = {
   board: BoardDetail;
+  initialFollowing: boolean;
+  isAuthed: boolean;
 };
 
 /**
@@ -29,7 +32,7 @@ export type BoardHeaderProps = {
  * @param props - The board detail.
  * @returns The board header element.
  */
-export function BoardHeader({ board }: BoardHeaderProps): ReactElement {
+export function BoardHeader({ board, initialFollowing, isAuthed }: BoardHeaderProps): ReactElement {
   const t = useTranslations("board");
   const router = useRouter();
   const [renameOpen, setRenameOpen] = useState(false);
@@ -43,6 +46,7 @@ export function BoardHeader({ board }: BoardHeaderProps): ReactElement {
   const canEdit = board.viewerRole === "OWNER" || board.viewerRole === "EDITOR";
   const canLeave = board.viewerRole !== null && !isOwner;
   const manageable = !board.isDefault && (canEdit || isOwner || canLeave);
+  const canFollow = board.viewerRole === null && board.visibility === "PUBLIC" && !board.isDefault;
   const pinCount = board.pins.length;
 
   const onEdit = (values: BoardFormValues): void => {
@@ -131,6 +135,14 @@ export function BoardHeader({ board }: BoardHeaderProps): ReactElement {
       ) : null}
 
       <p className="text-sm text-ink-soft">{t("pinCount", { count: pinCount })}</p>
+
+      {canFollow ? (
+        <BoardFollowButton
+          boardId={board.id}
+          initialFollowing={initialFollowing}
+          isAuthed={isAuthed}
+        />
+      ) : null}
 
       {renameOpen ? (
         <BoardFormDialog

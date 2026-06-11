@@ -7,6 +7,7 @@ vi.mock("@/lib/prisma", () => ({
     like: { findMany: vi.fn() },
     save: { findMany: vi.fn() },
     follow: { findMany: vi.fn().mockResolvedValue([]) },
+    boardFollow: { findMany: vi.fn().mockResolvedValue([]) },
     user: { findMany: vi.fn().mockResolvedValue([]) },
     block: { findMany: vi.fn().mockResolvedValue([]) },
   },
@@ -29,6 +30,7 @@ const db = prisma as unknown as {
   like: { findMany: Mock };
   save: { findMany: Mock };
   follow: { findMany: Mock };
+  boardFollow: { findMany: Mock };
   user: { findMany: Mock };
 };
 
@@ -83,6 +85,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   db.user.findMany.mockResolvedValue([]);
   db.follow.findMany.mockResolvedValue([]);
+  db.boardFollow.findMany.mockResolvedValue([]);
 });
 
 describe("rankForYou", () => {
@@ -173,6 +176,23 @@ describe("getHomeFeed", () => {
     await getHomeFeed({ viewerId: null, feed: "following", sort: "recent" });
     expect(db.pin.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: { creatorId: { in: [] } } }),
+    );
+  });
+
+  it("aggregates followed creators and followed boards in the following feed", async () => {
+    db.follow.findMany.mockResolvedValue([{ creatorId: "north" }]);
+    db.boardFollow.findMany.mockResolvedValue([{ boardId: "b1" }]);
+    db.pin.findMany.mockResolvedValue([]);
+    await getHomeFeed({ viewerId: "u1", feed: "following", sort: "recent" });
+    expect(db.pin.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          OR: [
+            { creatorId: { in: ["north"] } },
+            { boardPins: { some: { boardId: { in: ["b1"] } } } },
+          ],
+        },
+      }),
     );
   });
 

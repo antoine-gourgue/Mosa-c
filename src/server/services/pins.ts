@@ -1,6 +1,7 @@
 import type { PinOrderByWithRelationInput, PinWhereInput } from "@/generated/prisma/models";
 import { prisma } from "@/lib/prisma";
 import type { Pin } from "@/types/domain";
+import { getFollowedBoardIds } from "./board-follows";
 import { getHiddenUserIds } from "./blocks";
 import { getFollowedCreatorIds } from "./follows";
 import { PIN_INCLUDE, toPin } from "./mappers";
@@ -105,31 +106,48 @@ type FeedPinsParams = {
   skip: number;
   sort: FeedSort;
   creatorIds: string[] | null;
+  boardIds: string[];
   hiddenIds: string[];
   limit: number;
 };
 
 /**
- * Fetches one offset-paginated page of pins for an optional set of creators,
- * ordered by the given sort, excluding pins from hidden (blocked) users.
+ * Fetches one offset-paginated page of pins for an optional feed source, ordered
+ * by the given sort, excluding pins from hidden (blocked or private non-followed)
+ * users. When `creatorIds` is set the source is those creators, optionally
+ * widened to pins belonging to any of `boardIds` (followed boards), so the
+ * "Following" feed aggregates followed users and followed boards.
  *
- * @param params - The offset, sort, creator filter, hidden filter and page size.
+ * @param params - The offset, sort, source filters, hidden filter and page size.
  * @returns The page of pins and whether more remain.
  */
 async function getFeedPins({
   skip,
   sort,
   creatorIds,
+  boardIds,
   hiddenIds,
   limit,
 }: FeedPinsParams): Promise<FeedPage> {
-  const where: { creatorId?: { in?: string[]; notIn?: string[] } } = {};
+  const filters: PinWhereInput[] = [];
   if (creatorIds !== null) {
-    where.creatorId = { in: creatorIds };
+    filters.push(
+      boardIds.length > 0
+        ? {
+            OR: [
+              { creatorId: { in: creatorIds } },
+              { boardPins: { some: { boardId: { in: boardIds } } } },
+            ],
+          }
+        : { creatorId: { in: creatorIds } },
+    );
   }
   if (hiddenIds.length > 0) {
-    where.creatorId = { ...(where.creatorId ?? {}), notIn: hiddenIds };
+    filters.push({ creatorId: { notIn: hiddenIds } });
   }
+  const [first, ...rest] = filters;
+  const where: PinWhereInput =
+    first === undefined ? {} : rest.length === 0 ? first : { AND: filters };
 
   const rows = await prisma.pin.findMany({
     where,
@@ -342,10 +360,18 @@ export async function getHomeFeed(params: {
     return getForYouFeed({ viewerId, hiddenIds, skip, limit });
   }
   let creatorIds: string[] | null = null;
+  let boardIds: string[] = [];
   if (feed === "following") {
-    creatorIds = viewerId === null ? [] : await getFollowedCreatorIds(viewerId);
+    if (viewerId === null) {
+      creatorIds = [];
+    } else {
+      [creatorIds, boardIds] = await Promise.all([
+        getFollowedCreatorIds(viewerId),
+        getFollowedBoardIds(viewerId),
+      ]);
+    }
   }
-  return getFeedPins({ skip, sort, creatorIds, hiddenIds, limit });
+  return getFeedPins({ skip, sort, creatorIds, boardIds, hiddenIds, limit });
 }
 
 /**
