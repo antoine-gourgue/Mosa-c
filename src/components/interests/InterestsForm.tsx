@@ -62,7 +62,6 @@ export function InterestsForm({ tags, initialSelected, mode }: InterestsFormProp
       }
       if (mode === "onboarding") {
         router.replace("/");
-        router.refresh();
       } else {
         show({ title: t("saved") });
         router.refresh();
