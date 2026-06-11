@@ -28,6 +28,13 @@ services:
     build:
       context: .
       target: runner
+      # NEXT_PUBLIC_* are inlined into the client bundle at build time, so they
+      # are passed as build args (sourced from the shell / compose .env), not via
+      # env_file which only applies at runtime.
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-}
+        NEXT_PUBLIC_REALTIME_URL: ${NEXT_PUBLIC_REALTIME_URL:-}
+        NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY:-}
     restart: unless-stopped
     ports:
       - "${APP_PORT:-3000}:3000"
