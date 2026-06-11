@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.1](https://github.com/antoine-gourgue/Mosa-c/compare/v1.22.0...v1.22.1) (2026-06-11)
+
+
+### Bug Fixes
+
+* **notifications:** keep only the latest like/follow notification ([#387](https://github.com/antoine-gourgue/Mosa-c/issues/387)) ([2d6cd2a](https://github.com/antoine-gourgue/Mosa-c/commit/2d6cd2a683f8ff52d05db7a0cf89b5ab63f3e407))
+
 ## [1.22.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.21.0...v1.22.0) (2026-06-11)
 
 
