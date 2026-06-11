@@ -5,7 +5,7 @@ import type { ReactElement } from "react";
 import { InterestsForm } from "@/components/interests";
 import { SettingsSection } from "@/components/settings";
 import { getCurrentUser } from "@/lib/auth";
-import { getInterestTagIds, getPopularTags } from "@/server/services";
+import { getInterestTags, getPopularTags } from "@/server/services";
 
 /**
  * Metadata for the interests-settings route.
@@ -27,14 +27,14 @@ export default async function InterestsSettingsPage(): Promise<ReactElement> {
   if (user === null) {
     redirect("/login");
   }
-  const [tags, selected, t] = await Promise.all([
-    getPopularTags(40),
-    getInterestTagIds(user.id),
+  const [popularTags, selectedTags, t] = await Promise.all([
+    getPopularTags(50),
+    getInterestTags(user.id),
     getTranslations("settings"),
   ]);
   return (
     <SettingsSection title={t("interestsTitle")} description={t("interestsSubtitle")}>
-      <InterestsForm tags={tags} initialSelected={selected} mode="settings" />
+      <InterestsForm popularTags={popularTags} selectedTags={selectedTags} mode="settings" />
     </SettingsSection>
   );
 }

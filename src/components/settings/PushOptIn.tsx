@@ -3,9 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 import type { ReactElement } from "react";
-import { Button, useToast } from "@/components/ui";
-import { cn } from "@/lib/cn";
-import { CheckIcon } from "@/icons";
+import { Button, Toggle, useToast } from "@/components/ui";
 import { deletePushSubscription, savePushSubscription, sendTestPush } from "@/server/actions/push";
 
 /**
@@ -119,26 +117,18 @@ export function PushOptIn(): ReactElement {
 
   return (
     <div className="flex flex-col gap-3">
-      <button
-        type="button"
-        onClick={enabled ? disable : enable}
-        aria-pressed={enabled}
-        disabled={pending}
-        className="flex w-full items-center justify-between gap-3 rounded-xl py-2 text-left"
-      >
+      <div className="flex items-center justify-between gap-3 py-2">
         <span className="min-w-0">
           <span className="block text-[15px] font-medium text-ink">{t("pushEnable")}</span>
           <span className="block text-sm text-ink-soft">{t("pushHint")}</span>
         </span>
-        <span
-          className={cn(
-            "grid size-5 shrink-0 place-items-center rounded-md border transition-colors",
-            enabled ? "border-ink bg-ink text-bg" : "border-line text-transparent",
-          )}
-        >
-          <CheckIcon size={14} />
-        </span>
-      </button>
+        <Toggle
+          checked={enabled}
+          onChange={enabled ? disable : enable}
+          disabled={pending}
+          label={t("pushEnable")}
+        />
+      </div>
       {enabled ? (
         <div>
           <Button variant="ghost" size="sm" disabled={pending} onClick={test}>

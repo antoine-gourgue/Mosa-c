@@ -9,7 +9,7 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 import { prisma } from "@/lib/prisma";
-import { getPinsByTag, getPopularTags, getTagBySlug } from "./tags";
+import { getPinsByTag, getPopularTags, getTagBySlug, searchTags } from "./tags";
 
 const db = prisma as unknown as {
   tag: { findMany: Mock; findUnique: Mock };
@@ -82,6 +82,21 @@ describe("getPinsByTag", () => {
     expect(pins[0]?.id).toBe("p1");
     expect(db.pin.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: { tags: { some: { tag: { slug: "art" } } } } }),
+    );
+  });
+});
+
+describe("searchTags", () => {
+  it("returns an empty list for a blank query without querying", async () => {
+    expect(await searchTags("  ")).toEqual([]);
+    expect(db.tag.findMany).not.toHaveBeenCalled();
+  });
+
+  it("matches tags by name, case-insensitively", async () => {
+    db.tag.findMany.mockResolvedValue([{ id: "t1", slug: "bikes", name: "Bikes" }]);
+    expect((await searchTags("bik")).map((t) => t.name)).toEqual(["Bikes"]);
+    expect(db.tag.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { name: { contains: "bik", mode: "insensitive" } } }),
     );
   });
 });

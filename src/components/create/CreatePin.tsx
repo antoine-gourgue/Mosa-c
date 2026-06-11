@@ -101,14 +101,21 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
     if (image === null) {
       return;
     }
+    const selected = image;
     setSuggesting(true);
-    void analyzePinImage(buildAnalysisForm(image.file, title, description))
-      .then((result) => {
-        setAltText(result.altText);
-        if (result.tags.length > 0) {
-          setTags((current) => (current.length === 0 ? result.tags : current));
-        }
-      })
+    void (async () => {
+      let file = selected.file;
+      try {
+        file = (await compressImage(selected.file)).file;
+      } catch {
+        file = selected.file;
+      }
+      const result = await analyzePinImage(buildAnalysisForm(file, title, description));
+      setAltText(result.altText);
+      if (result.tags.length > 0) {
+        setTags((current) => (current.length === 0 ? result.tags : current));
+      }
+    })()
       .catch(() => undefined)
       .finally(() => setSuggesting(false));
   };

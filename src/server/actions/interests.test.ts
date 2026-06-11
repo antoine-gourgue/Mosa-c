@@ -13,7 +13,7 @@ vi.mock("@/lib/prisma", () => ({
 
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { saveInterests } from "./interests";
+import { saveInterests, searchInterestTags } from "./interests";
 
 const db = prisma as unknown as {
   tag: { findMany: Mock };
@@ -78,5 +78,12 @@ describe("saveInterests", () => {
       where: { id: "u1" },
       data: { onboardedAt: original },
     });
+  });
+});
+
+describe("searchInterestTags", () => {
+  it("returns tags matching the query", async () => {
+    db.tag.findMany.mockResolvedValue([{ id: "t1", slug: "bikes", name: "Bikes" }]);
+    expect((await searchInterestTags("bik")).map((tag) => tag.name)).toEqual(["Bikes"]);
   });
 });

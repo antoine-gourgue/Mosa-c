@@ -5,7 +5,7 @@ import type { ReactElement } from "react";
 import { InterestsForm } from "@/components/interests";
 import { ToastProvider } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
-import { getInterestTagIds, getPopularTags, hasOnboarded } from "@/server/services";
+import { getInterestTags, getPopularTags, hasOnboarded } from "@/server/services";
 
 /**
  * Metadata for the onboarding route.
@@ -32,9 +32,9 @@ export default async function OnboardingPage(): Promise<ReactElement> {
   if (await hasOnboarded(user.id)) {
     redirect("/");
   }
-  const [tags, selected, t] = await Promise.all([
-    getPopularTags(40),
-    getInterestTagIds(user.id),
+  const [popularTags, selectedTags, t] = await Promise.all([
+    getPopularTags(50),
+    getInterestTags(user.id),
     getTranslations("interests"),
   ]);
   return (
@@ -44,7 +44,7 @@ export default async function OnboardingPage(): Promise<ReactElement> {
         <p className="text-ink-soft">{t("onboardingSubtitle")}</p>
       </header>
       <ToastProvider>
-        <InterestsForm tags={tags} initialSelected={selected} mode="onboarding" />
+        <InterestsForm popularTags={popularTags} selectedTags={selectedTags} mode="onboarding" />
       </ToastProvider>
     </main>
   );

@@ -15,7 +15,7 @@ export {
   getFollowCounts,
   searchMentionUsers,
 } from "./users";
-export { getPopularTags, getTagBySlug, getPinsByTag } from "./tags";
+export { getPopularTags, searchTags, getTagBySlug, getPinsByTag } from "./tags";
 export {
   getBoardsForUser,
   getDefaultBoard,
@@ -36,7 +36,7 @@ export {
   getPendingFollowRequestCount,
 } from "./follows";
 export { getFollowedBoardIds, isFollowingBoard } from "./board-follows";
-export { getInterestTagIds, hasOnboarded } from "./interests";
+export { getInterestTagIds, getInterestTags, hasOnboarded } from "./interests";
 export { getCreatorAnalytics } from "./analytics";
 export { getHiddenUserIds, getBlockState, getBlockedUsers } from "./blocks";
 export type { BlockState } from "./blocks";

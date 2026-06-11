@@ -47,13 +47,14 @@ test("sign up, complete interest onboarding, then land on the feed", async ({ pa
   await page.waitForTimeout(600);
   await page.getByRole("button", { name: "Verify" }).click();
 
-  // Interest onboarding.
+  // Interest onboarding: add a few suggested topics, then continue.
   await page.waitForURL(/\/onboarding/);
   await expect(page.getByRole("heading")).toBeVisible();
-  const chips = page.locator("main ul button[aria-pressed]");
-  for (const index of [0, 1, 2, 3]) {
-    await chips.nth(index).click();
-    await page.waitForTimeout(350);
+  const suggestions = page.locator('[data-testid="interest-suggestion"]');
+  await expect(suggestions.first()).toBeVisible({ timeout: 15_000 });
+  for (let i = 0; i < 3; i += 1) {
+    await suggestions.first().click();
+    await page.waitForTimeout(300);
   }
   await page.getByRole("button", { name: "Continue", exact: true }).click();
 
