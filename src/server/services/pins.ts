@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import type { Pin } from "@/types/domain";
 import { getFollowedBoardIds } from "./board-follows";
 import { getHiddenUserIds } from "./blocks";
+import { embedQuery, findSimilarPinIds, getPinVector } from "./embeddings";
 import { getFollowedCreatorIds } from "./follows";
 import { getInterestTagIds } from "./interests";
 import { PIN_INCLUDE, toPin } from "./mappers";
@@ -401,10 +402,29 @@ export async function getPinById(id: string): Promise<Pin | null> {
 }
 
 /**
+ * Loads pins by id and returns them in the given id order (skipping any that no
+ * longer exist), used to materialise a ranked list of similarity matches.
+ *
+ * @param ids - The pin ids, in the desired order.
+ * @returns The pins in id order.
+ */
+async function pinsByIds(ids: string[]): Promise<Pin[]> {
+  if (ids.length === 0) {
+    return [];
+  }
+  const rows = await prisma.pin.findMany({ where: { id: { in: ids } }, include: PIN_INCLUDE });
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  return ids
+    .map((id) => byId.get(id))
+    .filter((row): row is NonNullable<typeof row> => row !== undefined)
+    .map(toPin);
+}
+
+/**
  * Fetches pins related to the given pin for the detail page's "More like this"
- * section: pins sharing any of the pin's tags first, newest first, topped up
- * with other recent pins when the tags do not have enough. The pin itself is
- * always excluded.
+ * section: the most semantically similar pins first (by embedding cosine), then
+ * topped up with the tag-overlap and recency heuristic. The pin itself and
+ * hidden creators are always excluded.
  *
  * @param pinId - The pin to find neighbours for.
  * @param limit - The maximum number of related pins to return.
@@ -425,6 +445,19 @@ export async function getRelatedPins(
   }
   const hidden = await getFeedExcludedUserIds(viewerId);
   const hiddenWhere: PinWhereInput = hidden.length > 0 ? { creatorId: { notIn: hidden } } : {};
+
+  const vector = await getPinVector(pinId);
+  const related =
+    vector === null
+      ? []
+      : await pinsByIds(
+          await findSimilarPinIds(vector, { excludePinId: pinId, excludeUserIds: hidden, limit }),
+        );
+  if (related.length >= limit) {
+    return related;
+  }
+
+  const exclude = new Set<string>([pinId, ...related.map((pin) => pin.id)]);
   const tagIds = current.tags.map((pinTag) => pinTag.tagId);
   const sameTags =
     tagIds.length === 0
@@ -432,28 +465,31 @@ export async function getRelatedPins(
       : (
           await prisma.pin.findMany({
             where: {
-              id: { not: pinId },
+              id: { notIn: [...exclude] },
               tags: { some: { tagId: { in: tagIds } } },
               ...hiddenWhere,
             },
             include: PIN_INCLUDE,
             orderBy: { createdAt: "desc" },
-            take: limit,
+            take: limit - related.length,
           })
         ).map(toPin);
-  if (sameTags.length >= limit) {
-    return sameTags;
+  for (const pin of sameTags) {
+    exclude.add(pin.id);
   }
-  const excludeIds = [pinId, ...sameTags.map((pin) => pin.id)];
-  const fillers = (
-    await prisma.pin.findMany({
-      where: { id: { notIn: excludeIds }, ...hiddenWhere },
-      include: PIN_INCLUDE,
-      orderBy: { createdAt: "desc" },
-      take: limit - sameTags.length,
-    })
-  ).map(toPin);
-  return [...sameTags, ...fillers];
+  const stillNeeded = limit - related.length - sameTags.length;
+  const fillers =
+    stillNeeded <= 0
+      ? []
+      : (
+          await prisma.pin.findMany({
+            where: { id: { notIn: [...exclude] }, ...hiddenWhere },
+            include: PIN_INCLUDE,
+            orderBy: { createdAt: "desc" },
+            take: stillNeeded,
+          })
+        ).map(toPin);
+  return [...related, ...sameTags, ...fillers];
 }
 
 /**
@@ -502,5 +538,17 @@ export async function searchPins(
     include: PIN_INCLUDE,
     orderBy: feedOrderBy(sort),
   });
-  return rows.map(toPin);
+  const keyword = rows.map(toPin);
+
+  const queryVector = await embedQuery(q);
+  if (queryVector === null) {
+    return keyword;
+  }
+  const semanticIds = await findSimilarPinIds(queryVector, {
+    excludeUserIds: hidden,
+    limit: FEED_PAGE_SIZE,
+  });
+  const seen = new Set(keyword.map((pin) => pin.id));
+  const extra = await pinsByIds(semanticIds.filter((id) => !seen.has(id)));
+  return [...keyword, ...extra];
 }
