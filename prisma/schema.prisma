@@ -100,6 +100,7 @@ model User {
   boardFollows      BoardFollow[]      @relation("BoardFollower")
   interests         UserInterest[]
   pushSubscriptions PushSubscription[]
+  pinViews          PinView[]
 
   conversations ConversationParticipant[]
   sentMessages  Message[]
@@ -245,10 +246,24 @@ model Pin {
   comments  Comment[]
   reports   Report[]
   messages  Message[]
+  views     PinView[]
 
   notifications Notification[]
 
   @@index([creatorId])
+}
+
+model PinView {
+  pinId    String
+  viewerId String
+  viewedOn DateTime
+  pin      Pin      @relation(fields: [pinId], references: [id], onDelete: Cascade)
+  viewer   User     @relation(fields: [viewerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([pinId, viewerId, viewedOn])
+  @@index([pinId])
+  @@index([viewerId])
 }
 
 model Like {

@@ -441,6 +441,8 @@
     "accountSubtitle": "Language and account management.",
     "accountTitle": "Account",
     "actionFailed": "Something went wrong",
+    "analyticsSubtitle": "Views, saves, likes and downloads across your pins.",
+    "analyticsTitle": "Analytics",
     "avatarTooLarge": "Image is too large, even after compression.",
     "bioPlaceholder": "Tell people about yourself",
     "blockedEmpty": "You haven’t blocked anyone.",
@@ -486,6 +488,7 @@
     "save": "Save changes",
     "subtitle": "Manage your profile and account.",
     "tabAccount": "Account",
+    "tabAnalytics": "Analytics",
     "tabInterests": "Interests",
     "tabNotifications": "Notifications",
     "tabPrivacy": "Privacy",
@@ -495,6 +498,16 @@
     "unblocked": "Unblocked {user}",
     "usernamePlaceholder": "yourname",
     "visibilityTitle": "Account visibility"
+  },
+  "analytics": {
+    "downloads": "Downloads",
+    "empty": "Publish your first pin to start seeing analytics.",
+    "likes": "Likes",
+    "perPin": "Per pin",
+    "pin": "Pin",
+    "saves": "Saves",
+    "views": "Views",
+    "viewsTrend": "Views — last 30 days"
   },
   "auth": {
     "continueWithGoogle": "Continue with Google",

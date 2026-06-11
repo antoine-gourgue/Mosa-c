@@ -17,6 +17,7 @@ import type { FollowState } from "@/types/domain";
 import { DetailActions } from "./DetailActions";
 import { CreatorRow } from "./CreatorRow";
 import { Comments } from "./Comments";
+import { RecordView } from "./RecordView";
 
 /**
  * Props for the {@link PinDetail} component.
@@ -61,6 +62,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
 
   return (
     <div className="flex flex-col md:relative md:block">
+      {isOwner ? null : <RecordView pinId={pin.id} />}
       <JsonLd
         data={{
           "@context": "https://schema.org",

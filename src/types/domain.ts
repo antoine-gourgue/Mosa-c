@@ -35,6 +35,37 @@ export type TagWithCount = Tag & {
 };
 
 /**
+ * Engagement stats for a single pin in the creator analytics dashboard.
+ */
+export type PinStat = {
+  id: string;
+  title: string;
+  imageUrl: string;
+  views: number;
+  saves: number;
+  likes: number;
+  downloads: number;
+};
+
+/**
+ * A single day's view count in the analytics trend.
+ */
+export type AnalyticsDay = {
+  day: string;
+  views: number;
+};
+
+/**
+ * A creator's aggregated analytics: totals across all their pins, a per-pin
+ * breakdown and a daily views trend.
+ */
+export type CreatorAnalytics = {
+  totals: { views: number; saves: number; likes: number; downloads: number; pins: number };
+  pins: PinStat[];
+  trend: AnalyticsDay[];
+};
+
+/**
  * A pin with its creator and tags, as surfaced to the UI.
  */
 export type Pin = {
