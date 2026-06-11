@@ -7,8 +7,11 @@ vi.mock("@/lib/prisma", () => ({
     user: { findUnique: vi.fn().mockResolvedValue(null) },
   },
 }));
+vi.mock("@/server/realtime-emit", () => ({ emitToUser: vi.fn() }));
+vi.mock("@/server/push", () => ({ sendPushToUser: vi.fn() }));
 
 import { prisma } from "@/lib/prisma";
+import { sendPushToUser } from "@/server/push";
 import { createNotification } from "./notifications";
 
 const db = prisma as unknown as {
@@ -58,5 +61,15 @@ describe("createNotification", () => {
     });
     expect(db.notification.findFirst).not.toHaveBeenCalled();
     expect(db.notification.create).toHaveBeenCalled();
+  });
+
+  it("sends a push to the recipient with the actor's name and a link", async () => {
+    db.notification.findFirst.mockResolvedValue(null);
+    db.user.findUnique.mockResolvedValue({ name: "Ada" });
+    await createNotification({ type: "LIKE", recipientId: "u1", actorId: "u2", pinId: "p1" });
+    expect(sendPushToUser).toHaveBeenCalledWith(
+      "u1",
+      expect.objectContaining({ body: "Ada liked your pin", url: "/pin/p1" }),
+    );
   });
 });

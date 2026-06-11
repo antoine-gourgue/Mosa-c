@@ -16,10 +16,33 @@ const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: data
 
 const corsOrigin = process.env.REALTIME_CORS_ORIGIN;
 
+const appInternalUrl = process.env.APP_INTERNAL_URL;
+const internalSecret = process.env.REALTIME_INTERNAL_SECRET;
+
+/**
+ * Fans a new message out as a Web Push by posting to the web app's internal push
+ * endpoint, which holds the VAPID keys. Best-effort and disabled unless both the
+ * app URL and the shared secret are configured.
+ *
+ * @param userIds - The offline recipients to notify.
+ * @param payload - The push payload.
+ */
+function notifyPush(userIds: string[], payload: unknown): void {
+  if (appInternalUrl === undefined || internalSecret === undefined) {
+    return;
+  }
+  void fetch(`${appInternalUrl.replace(/\/$/, "")}/api/internal/push`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-internal-secret": internalSecret },
+    body: JSON.stringify({ userIds, payload }),
+  }).catch(() => undefined);
+}
+
 const { io, httpServer } = createRealtimeServer({
   prisma: prisma as unknown as RealtimePrisma,
   cors: { origin: corsOrigin === undefined ? true : corsOrigin, credentials: true },
-  internalSecret: process.env.REALTIME_INTERNAL_SECRET,
+  internalSecret,
+  notifyPush,
   verifyUser: (handshake) =>
     userIdFromCookieHeader(
       typeof handshake.headers.cookie === "string" ? handshake.headers.cookie : undefined,

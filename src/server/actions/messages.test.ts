@@ -101,7 +101,11 @@ beforeEach(() => {
 
 describe("sendMessage", () => {
   it("persists a message for a participant of an accepted conversation", async () => {
-    db.conversation.findFirst.mockResolvedValue({ status: "ACCEPTED", requestedById: null });
+    db.conversation.findFirst.mockResolvedValue({
+      status: "ACCEPTED",
+      requestedById: null,
+      participants: [{ userId: "u1" }],
+    });
     db.$transaction.mockResolvedValue([
       {
         id: "m1",
@@ -133,7 +137,11 @@ describe("sendMessage", () => {
   });
 
   it("lets the requester send the first message of a pending request", async () => {
-    db.conversation.findFirst.mockResolvedValue({ status: "PENDING", requestedById: "u1" });
+    db.conversation.findFirst.mockResolvedValue({
+      status: "PENDING",
+      requestedById: "u1",
+      participants: [{ userId: "u1" }],
+    });
     db.$transaction.mockResolvedValue([
       { id: "m1", conversationId: "c1", senderId: "u1", body: "hi", createdAt: new Date() },
       {},
@@ -370,7 +378,11 @@ describe("searchRecipients", () => {
 
 describe("sendMessage with a shared pin", () => {
   it("attaches an existing pin to the message", async () => {
-    db.conversation.findFirst.mockResolvedValue({ status: "ACCEPTED", requestedById: null });
+    db.conversation.findFirst.mockResolvedValue({
+      status: "ACCEPTED",
+      requestedById: null,
+      participants: [{ userId: "u1" }],
+    });
     db.pin.findUnique.mockResolvedValue({ id: "p1" });
     db.$transaction.mockResolvedValue([
       {
@@ -390,7 +402,11 @@ describe("sendMessage with a shared pin", () => {
   });
 
   it("rejects a pin that no longer exists", async () => {
-    db.conversation.findFirst.mockResolvedValue({ status: "ACCEPTED", requestedById: null });
+    db.conversation.findFirst.mockResolvedValue({
+      status: "ACCEPTED",
+      requestedById: null,
+      participants: [{ userId: "u1" }],
+    });
     db.pin.findUnique.mockResolvedValue(null);
     expect((await sendMessage("c1", "", "missing")).ok).toBe(false);
   });
