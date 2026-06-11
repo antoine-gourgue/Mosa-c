@@ -13,6 +13,7 @@ import { DURATION, REDUCED_MOTION, gsap, useGSAP } from "@/lib/gsap";
 import { useTimeFormat } from "@/hooks/use-time-format";
 import { markAllRead } from "@/server/actions/notifications";
 import type { AppNotification, NotificationKind } from "@/types/domain";
+import { useNotificationsUnread } from "./NotificationsProvider";
 
 /**
  * Props for the {@link NotificationsInbox} component.
@@ -75,18 +76,22 @@ export function NotificationsInbox({ items }: NotificationsInboxProps): ReactEle
   const t = useTranslations("notifications");
   const time = useTimeFormat();
   const router = useRouter();
+  const { clear } = useNotificationsUnread();
   const listRef = useRef<HTMLUListElement>(null);
   const cleared = useRef(false);
   const [pending, setPending] = useState(false);
   const hasUnread = items.some((item) => !item.read);
 
   useEffect(() => {
-    if (cleared.current || !hasUnread) {
+    if (cleared.current) {
       return;
     }
     cleared.current = true;
-    void markAllRead().then(() => router.refresh());
-  }, [hasUnread, router]);
+    clear();
+    if (hasUnread) {
+      void markAllRead().then(() => router.refresh());
+    }
+  }, [hasUnread, router, clear]);
 
   useGSAP(
     () => {

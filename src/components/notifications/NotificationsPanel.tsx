@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import { useNavPanel } from "@/components/layout/NavPanelProvider";
@@ -78,9 +77,8 @@ function typeBadge(kind: NotificationKind): { icon: ReactElement; className: str
 export function NotificationsPanel(): ReactElement {
   const t = useTranslations("notifications");
   const time = useTimeFormat();
-  const router = useRouter();
   const { activePanel, close } = useNavPanel();
-  const { revision } = useNotificationsUnread();
+  const { revision, clear } = useNotificationsUnread();
   const open = activePanel === "notifications";
   const [loaded, setLoaded] = useState(false);
   const [items, setItems] = useState<AppNotification[]>([]);
@@ -91,6 +89,7 @@ export function NotificationsPanel(): ReactElement {
     if (!open || (loaded && loadedRevision.current === revision)) {
       return;
     }
+    clear();
     let cancelled = false;
     void loadNotifications().then((result) => {
       if (cancelled) {
@@ -100,7 +99,11 @@ export function NotificationsPanel(): ReactElement {
         setItems(result.notifications);
         setRequests(result.requests);
         if (result.notifications.some((notification) => !notification.read)) {
-          void markAllRead().then(() => router.refresh());
+          void markAllRead().then(() => {
+            if (!cancelled) {
+              setItems((current) => current.map((item) => ({ ...item, read: true })));
+            }
+          });
         }
       }
       loadedRevision.current = revision;
@@ -109,7 +112,7 @@ export function NotificationsPanel(): ReactElement {
     return () => {
       cancelled = true;
     };
-  }, [open, loaded, revision, router]);
+  }, [open, loaded, revision, clear]);
 
   useEffect(() => {
     if (!open) {
