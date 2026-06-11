@@ -18,13 +18,11 @@ const NotificationsContext = createContext<NotificationsContextValue>({
 
 /**
  * Provides the shared unread-notification state to the navigation bell badge and
- * the notifications panel. Seeds from the server-rendered count and subscribes
- * to the realtime socket so a server-originated `notification:new` event lights
- * the badge live and bumps a revision the open panel watches to refetch.
- *
- * The server value remains authoritative: it re-seeds whenever the prop changes
- * (after a `router.refresh()`, e.g. once the panel marks notifications read), so
- * live increments only bridge the gap between refreshes.
+ * the notifications panel. Seeds once from the server-rendered count, then is
+ * managed on the client: a realtime `notification:new` event lights the badge
+ * (and bumps a revision the open panel watches to refetch), and {@link clear}
+ * resets it when the user opens the panel or the notifications page. Not
+ * re-seeded from the prop, so opening the panel reliably clears the badge.
  *
  * @param props - The initial unread count and the wrapped subtree.
  * @returns The provider element.
@@ -37,13 +35,7 @@ export function NotificationsProvider({
   children: ReactNode;
 }): ReactElement {
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
-  const [seedCount, setSeedCount] = useState(initialUnreadCount);
   const [revision, setRevision] = useState(0);
-
-  if (initialUnreadCount !== seedCount) {
-    setSeedCount(initialUnreadCount);
-    setUnreadCount(initialUnreadCount);
-  }
 
   useEffect(() => {
     const socket = getRealtimeSocket();
