@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.20.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.19.0...v1.20.0) (2026-06-11)
+
+
+### Features
+
+* **analytics:** creator analytics dashboard ([19f4c7f](https://github.com/antoine-gourgue/Mosa-c/commit/19f4c7f0d84d62e02c58e7c641791e91574513a2))
+* **analytics:** creator analytics dashboard ([1499132](https://github.com/antoine-gourgue/Mosa-c/commit/149913216e03c294806ec3dd16be97fdd67ff244)), closes [#356](https://github.com/antoine-gourgue/Mosa-c/issues/356)
+* **boards:** follow a board, not just a user ([4e5b97a](https://github.com/antoine-gourgue/Mosa-c/commit/4e5b97ad0acf6cc9e946e4ebfe7fabb219280194))
+* **boards:** follow a board, not just a user ([65747de](https://github.com/antoine-gourgue/Mosa-c/commit/65747de2f9e642b5793e147925619257050ad4af)), closes [#353](https://github.com/antoine-gourgue/Mosa-c/issues/353)
+* **feed:** interest-based onboarding ([10be3a8](https://github.com/antoine-gourgue/Mosa-c/commit/10be3a8b8a156cbd6da36eaf9a4713dbfceb2949))
+* **feed:** interest-based onboarding ([28ca522](https://github.com/antoine-gourgue/Mosa-c/commit/28ca5228d0972580e9c114e16f163222233bf386)), closes [#354](https://github.com/antoine-gourgue/Mosa-c/issues/354)
+* **notifications:** real-time bell badge and live panel ([41636c9](https://github.com/antoine-gourgue/Mosa-c/commit/41636c9c289c34d090ee620368e6a7a0d3b89d08))
+* **notifications:** web push notifications (PWA) ([d08e325](https://github.com/antoine-gourgue/Mosa-c/commit/d08e3257fcce89c5b4af91db3f8b0ddb500ca54f))
+* **notifications:** web push notifications (PWA) ([47613ab](https://github.com/antoine-gourgue/Mosa-c/commit/47613abfe585a4effe1b94355d29eb53451a63a7)), closes [#355](https://github.com/antoine-gourgue/Mosa-c/issues/355)
+
+
+### Bug Fixes
+
+* **onboarding:** navigate to the feed after picking interests ([12a1c68](https://github.com/antoine-gourgue/Mosa-c/commit/12a1c68cde6544e5e6a8a0a08de085626221746a))
+* **push:** inline NEXT_PUBLIC_VAPID_PUBLIC_KEY at build time ([b32125c](https://github.com/antoine-gourgue/Mosa-c/commit/b32125ce26d648029d0b745e4ed20144a44bd435))
+* **push:** inline NEXT_PUBLIC_VAPID_PUBLIC_KEY at build time ([741c135](https://github.com/antoine-gourgue/Mosa-c/commit/741c1354bc7372916db7920bb172f3385bba2eb6))
+* **pwa:** disable service-worker caching in development ([521167c](https://github.com/antoine-gourgue/Mosa-c/commit/521167cbea26a91a5238349b0318e31f0616cdc3))
+* **pwa:** disable service-worker caching in development ([75c3ae4](https://github.com/antoine-gourgue/Mosa-c/commit/75c3ae45aeeb7e49c7dd85c3fb0e41849b79d0ea))
+
 ## [1.19.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.18.0...v1.19.0) (2026-06-10)
 
 
