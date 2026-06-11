@@ -116,7 +116,7 @@ export async function registerUser(input: RegisterInput): Promise<ActionResult> 
  */
 export async function verifyOtp(email: string, code: string): Promise<ActionResult> {
   try {
-    await signIn("email-otp", { email, code: code.trim(), redirectTo: "/" });
+    await signIn("email-otp", { email, code: code.trim(), redirectTo: "/onboarding" });
     return { ok: true };
   } catch (error) {
     if (error instanceof AuthError) {
@@ -160,7 +160,7 @@ export async function resendOtp(email: string): Promise<ActionResult> {
  * @returns A promise that never resolves on success (it redirects).
  */
 export async function signInWithProvider(provider: "google"): Promise<void> {
-  await signIn(provider, { redirectTo: "/" });
+  await signIn(provider, { redirectTo: "/onboarding" });
 }
 
 /**

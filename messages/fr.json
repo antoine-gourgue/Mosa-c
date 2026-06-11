@@ -16,6 +16,16 @@
     "followingEmpty": "Aucune épingle de personnes que vous suivez — suivez des créateurs pour remplir ce fil.",
     "forYouEmpty": "Aucune épingle à afficher ici pour le moment."
   },
+  "interests": {
+    "continue": "Continuer",
+    "minHint": "Encore {count}",
+    "onboardingSubtitle": "Choisissez quelques thèmes pour personnaliser votre feed. Modifiable à tout moment.",
+    "onboardingTitle": "Qu’est-ce qui vous inspire ?",
+    "save": "Enregistrer",
+    "saveFailed": "Une erreur s’est produite. Veuillez réessayer.",
+    "saved": "Centres d’intérêt mis à jour",
+    "skip": "Passer pour l’instant"
+  },
   "errorPage": {
     "title": "Une erreur est survenue",
     "body": "Une erreur inattendue s’est produite. Réessayez, ou revenez au fil.",
@@ -444,6 +454,8 @@
     "deleteDialogTitle": "Supprimer votre compte ?",
     "deleteFailed": "Impossible de supprimer votre compte",
     "hubTitle": "Paramètres",
+    "interestsSubtitle": "Ajustez ce qui apparaît dans votre feed Pour vous.",
+    "interestsTitle": "Centres d’intérêt",
     "language": "Langue",
     "languageHint": "La langue utilisée dans Mosaic.",
     "namePlaceholder": "Votre nom",
@@ -465,6 +477,7 @@
     "save": "Enregistrer",
     "subtitle": "Gérez votre profil et votre compte.",
     "tabAccount": "Compte",
+    "tabInterests": "Centres d’intérêt",
     "tabNotifications": "Notifications",
     "tabPrivacy": "Confidentialité",
     "tabProfile": "Profil",

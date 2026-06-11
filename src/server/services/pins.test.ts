@@ -8,6 +8,7 @@ vi.mock("@/lib/prisma", () => ({
     save: { findMany: vi.fn() },
     follow: { findMany: vi.fn().mockResolvedValue([]) },
     boardFollow: { findMany: vi.fn().mockResolvedValue([]) },
+    userInterest: { findMany: vi.fn().mockResolvedValue([]) },
     user: { findMany: vi.fn().mockResolvedValue([]) },
     block: { findMany: vi.fn().mockResolvedValue([]) },
   },
@@ -31,6 +32,7 @@ const db = prisma as unknown as {
   save: { findMany: Mock };
   follow: { findMany: Mock };
   boardFollow: { findMany: Mock };
+  userInterest: { findMany: Mock };
   user: { findMany: Mock };
 };
 
@@ -53,6 +55,7 @@ function pin(id: string, over: Partial<TestPin> = {}): TestPin {
 
 const EMPTY: ForYouAffinity = {
   followedCreatorIds: new Set(),
+  interestTagIds: new Set(),
   affineCreatorIds: new Set(),
   affineTagIds: new Set(),
 };
@@ -86,6 +89,7 @@ beforeEach(() => {
   db.user.findMany.mockResolvedValue([]);
   db.follow.findMany.mockResolvedValue([]);
   db.boardFollow.findMany.mockResolvedValue([]);
+  db.userInterest.findMany.mockResolvedValue([]);
 });
 
 describe("rankForYou", () => {
@@ -94,6 +98,13 @@ describe("rankForYou", () => {
     const generic = pin("generic", { creatorId: "other" });
     const affinity: ForYouAffinity = { ...EMPTY, followedCreatorIds: new Set(["north"]) };
     expect(rankForYou([generic, followed], affinity, NOW)[0]?.id).toBe("followed");
+  });
+
+  it("ranks pins matching interest tags above unrelated ones", () => {
+    const interesting = pin("interesting", { tags: [{ tag: { id: "t1" } }] });
+    const unrelated = pin("unrelated", { tags: [{ tag: { id: "t9" } }] });
+    const affinity: ForYouAffinity = { ...EMPTY, interestTagIds: new Set(["t1"]) };
+    expect(rankForYou([unrelated, interesting], affinity, NOW)[0]?.id).toBe("interesting");
   });
 
   it("ranks pins sharing affine tags above unrelated ones", () => {
