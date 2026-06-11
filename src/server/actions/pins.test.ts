@@ -106,6 +106,16 @@ describe("createPin", () => {
     expect(db.save.upsert).toHaveBeenCalled();
     expect(redirect).toHaveBeenCalledWith("/boards/b0");
   });
+
+  it("stores the provided alt text", async () => {
+    db.board.findFirst.mockResolvedValue({ id: "b1", isDefault: false });
+    await createPin(pinForm({ altText: "A red bike against a wall." }));
+    expect(db.pin.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ altText: "A red bike against a wall." }),
+      }),
+    );
+  });
 });
 
 describe("deletePin", () => {

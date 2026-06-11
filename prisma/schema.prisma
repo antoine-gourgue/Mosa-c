@@ -229,6 +229,7 @@ model Pin {
   id            String   @id @default(cuid())
   title         String
   description   String?
+  altText       String?
   imageUrl      String
   width         Int
   height        Int

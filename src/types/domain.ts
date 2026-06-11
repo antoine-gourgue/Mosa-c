@@ -72,6 +72,7 @@ export type Pin = {
   id: string;
   title: string;
   description: string | null;
+  altText: string | null;
   imageUrl: string;
   width: number;
   height: number;

@@ -30,6 +30,7 @@ export type PinRow = {
   id: string;
   title: string;
   description: string | null;
+  altText: string | null;
   imageUrl: string;
   width: number;
   height: number;
@@ -101,6 +102,7 @@ export function toPin(row: PinRow): Pin {
     id: row.id,
     title: row.title,
     description: row.description,
+    altText: row.altText,
     imageUrl: row.imageUrl,
     width: row.width,
     height: row.height,
