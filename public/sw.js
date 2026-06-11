@@ -8,7 +8,16 @@ const VERSION = "v1";
 const CACHE = `mosaic-${VERSION}`;
 const OFFLINE_URL = "/offline";
 
+/* On localhost the service worker exists only to receive Web Push (so opt-in is
+ * testable in dev); its caching is disabled, since cache-first serving of hashed
+ * dev chunks conflicts with Next.js HMR and triggers reload loops. */
+const DEV = self.location.hostname === "localhost" || self.location.hostname === "127.0.0.1";
+
 self.addEventListener("install", (event) => {
+  if (DEV) {
+    event.waitUntil(self.skipWaiting());
+    return;
+  }
   event.waitUntil(
     caches
       .open(CACHE)
@@ -30,6 +39,9 @@ const STATIC_RE = /^\/(?:_next\/static|brand|images|fonts)\//;
 const ASSET_RE = /\.(?:js|css|woff2?|png|jpe?g|svg|gif|webp|avif|ico)$/;
 
 self.addEventListener("fetch", (event) => {
+  if (DEV) {
+    return;
+  }
   const { request } = event;
   if (request.method !== "GET") {
     return;
