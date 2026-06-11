@@ -74,10 +74,10 @@ export type CreateNotificationInput = {
  *
  * Self-directed notifications (where the actor is the recipient) are skipped so
  * users are never notified about their own actions, as are kinds the recipient
- * has turned off in their notification preferences. For follows and likes a
- * duplicate unread notification from the same actor on the same target is
- * collapsed to avoid spamming the inbox when a relationship is toggled
- * repeatedly.
+ * has turned off in their notification preferences. For follows and likes any
+ * earlier notification from the same actor on the same target (read or not) is
+ * removed first, so toggling a like or follow off and on again leaves a single
+ * notification reflecting only the latest action instead of piling up.
  *
  * @param input - The notification details.
  * @returns A promise that resolves once the notification has been handled.
@@ -93,13 +93,9 @@ export async function createNotification(input: CreateNotificationInput): Promis
   }
 
   if (type === "FOLLOW" || type === "LIKE") {
-    const existing = await prisma.notification.findFirst({
-      where: { type, recipientId, actorId, pinId: pinId ?? null, read: false },
-      select: { id: true },
+    await prisma.notification.deleteMany({
+      where: { type, recipientId, actorId, pinId: pinId ?? null },
     });
-    if (existing !== null) {
-      return;
-    }
   }
 
   const created = await prisma.notification.create({

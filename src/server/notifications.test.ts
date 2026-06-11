@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    notification: { findFirst: vi.fn(), create: vi.fn() },
+    notification: { deleteMany: vi.fn(), create: vi.fn() },
     user: { findUnique: vi.fn().mockResolvedValue(null) },
   },
 }));
@@ -15,13 +15,14 @@ import { sendPushToUser } from "@/server/push";
 import { createNotification } from "./notifications";
 
 const db = prisma as unknown as {
-  notification: { findFirst: Mock; create: Mock };
+  notification: { deleteMany: Mock; create: Mock };
   user: { findUnique: Mock };
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
   db.user.findUnique.mockResolvedValue(null);
+  db.notification.deleteMany.mockResolvedValue({ count: 0 });
   db.notification.create.mockResolvedValue({ id: "n1" });
 });
 
@@ -31,14 +32,15 @@ describe("createNotification", () => {
     expect(db.notification.create).not.toHaveBeenCalled();
   });
 
-  it("collapses a duplicate unread FOLLOW/LIKE from the same actor", async () => {
-    db.notification.findFirst.mockResolvedValue({ id: "existing" });
+  it("removes any earlier FOLLOW/LIKE from the same actor before creating the latest", async () => {
     await createNotification({ type: "FOLLOW", recipientId: "u1", actorId: "u2" });
-    expect(db.notification.create).not.toHaveBeenCalled();
+    expect(db.notification.deleteMany).toHaveBeenCalledWith({
+      where: { type: "FOLLOW", recipientId: "u1", actorId: "u2", pinId: null },
+    });
+    expect(db.notification.create).toHaveBeenCalled();
   });
 
-  it("creates a LIKE notification when there is no unread duplicate", async () => {
-    db.notification.findFirst.mockResolvedValue(null);
+  it("creates a LIKE notification carrying the pin", async () => {
     await createNotification({ type: "LIKE", recipientId: "u1", actorId: "u2", pinId: "p1" });
     expect(db.notification.create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ type: "LIKE", pinId: "p1" }) }),
@@ -59,12 +61,11 @@ describe("createNotification", () => {
       pinId: "p1",
       commentId: "c1",
     });
-    expect(db.notification.findFirst).not.toHaveBeenCalled();
+    expect(db.notification.deleteMany).not.toHaveBeenCalled();
     expect(db.notification.create).toHaveBeenCalled();
   });
 
   it("sends a push to the recipient with the actor's name and a link", async () => {
-    db.notification.findFirst.mockResolvedValue(null);
     db.user.findUnique.mockResolvedValue({ name: "Ada" });
     await createNotification({ type: "LIKE", recipientId: "u1", actorId: "u2", pinId: "p1" });
     expect(sendPushToUser).toHaveBeenCalledWith(
