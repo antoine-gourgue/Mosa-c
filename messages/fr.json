@@ -441,6 +441,8 @@
     "accountSubtitle": "Langue et gestion du compte.",
     "accountTitle": "Compte",
     "actionFailed": "Une erreur s’est produite",
+    "analyticsSubtitle": "Vues, enregistrements, j’aime et téléchargements de vos épingles.",
+    "analyticsTitle": "Statistiques",
     "avatarTooLarge": "L’image est trop grande, même après compression.",
     "bioPlaceholder": "Parlez de vous",
     "blockedEmpty": "Vous n’avez bloqué personne.",
@@ -486,6 +488,7 @@
     "save": "Enregistrer",
     "subtitle": "Gérez votre profil et votre compte.",
     "tabAccount": "Compte",
+    "tabAnalytics": "Statistiques",
     "tabInterests": "Centres d’intérêt",
     "tabNotifications": "Notifications",
     "tabPrivacy": "Confidentialité",
@@ -495,6 +498,16 @@
     "unblocked": "{user} débloqué",
     "usernamePlaceholder": "votrenom",
     "visibilityTitle": "Visibilité du compte"
+  },
+  "analytics": {
+    "downloads": "Téléchargements",
+    "empty": "Publiez votre première épingle pour voir vos statistiques.",
+    "likes": "J’aime",
+    "perPin": "Par épingle",
+    "pin": "Épingle",
+    "saves": "Enregistrements",
+    "views": "Vues",
+    "viewsTrend": "Vues — 30 derniers jours"
   },
   "auth": {
     "continueWithGoogle": "Continuer avec Google",
