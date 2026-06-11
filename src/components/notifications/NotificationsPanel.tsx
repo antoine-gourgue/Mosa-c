@@ -99,7 +99,11 @@ export function NotificationsPanel(): ReactElement {
         setItems(result.notifications);
         setRequests(result.requests);
         if (result.notifications.some((notification) => !notification.read)) {
-          void markAllRead();
+          void markAllRead().then(() => {
+            if (!cancelled) {
+              setItems((current) => current.map((item) => ({ ...item, read: true })));
+            }
+          });
         }
       }
       loadedRevision.current = revision;
