@@ -3,15 +3,20 @@
 import { useEffect } from "react";
 
 /**
- * Registers the service worker in production so the app is installable and its
- * static assets are cached. Renders nothing. Skipped in development to avoid
- * stale-cache surprises while iterating.
+ * Registers the service worker so the app is installable, its static assets are
+ * cached and it can receive Web Push. Active in production, and in development
+ * when Web Push is configured (so opt-in can be tested on localhost); otherwise
+ * skipped in dev to avoid stale-cache surprises while iterating.
  *
  * @returns Null — this component has no visual output.
  */
 export function RegisterServiceWorker(): null {
   useEffect(() => {
-    if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) {
+    const pushConfigured = (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "") !== "";
+    if (
+      (process.env.NODE_ENV !== "production" && !pushConfigured) ||
+      !("serviceWorker" in navigator)
+    ) {
       return;
     }
     const register = (): void => {

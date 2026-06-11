@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { errorMessage } from "@/server/error-message";
 import { getCurrentUser } from "@/lib/auth";
 import { getStorage } from "@/lib/storage";
+import { sendPushToUser } from "@/server/push";
 import {
   createGroupConversation,
   getConversations,
@@ -85,6 +86,19 @@ export async function sendMessage(
       data: { updatedAt: new Date() },
     }),
   ]);
+  const recipients = conversation.participants
+    .map((participant) => participant.userId)
+    .filter((id) => id !== user.id);
+  await Promise.all(
+    recipients.map((id) =>
+      sendPushToUser(id, {
+        title: "New message",
+        body: text !== "" ? text.slice(0, 140) : "Sent you a message",
+        url: "/messages",
+        tag: `message:${conversationId}`,
+      }),
+    ),
+  );
   return { ok: true, message: toMessage(row) };
 }
 

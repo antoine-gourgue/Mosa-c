@@ -21,10 +21,16 @@ export type RealtimeMessage = {
  */
 export type RealtimePrisma = {
   conversationParticipant: {
-    findMany(args: {
-      where: { userId: string };
-      select: { conversationId: true };
-    }): Promise<{ conversationId: string }[]>;
+    findMany: {
+      (args: {
+        where: { userId: string };
+        select: { conversationId: true };
+      }): Promise<{ conversationId: string }[]>;
+      (args: {
+        where: { conversationId: string };
+        select: { userId: true };
+      }): Promise<{ userId: string }[]>;
+    };
     findUnique(args: {
       where: { conversationId_userId: { conversationId: string; userId: string } };
     }): Promise<{ userId: string } | null>;
@@ -97,6 +103,12 @@ export type RealtimeDeps = {
    * user's room. The endpoint is disabled when this is unset.
    */
   internalSecret?: string;
+  /**
+   * Optional sink for fanning a new message out as a Web Push to its offline
+   * recipients. Wired in `index.ts` to the web app's internal push endpoint;
+   * left undefined (no push) in tests and when unconfigured.
+   */
+  notifyPush?: (userIds: string[], payload: unknown) => void;
 };
 
 /**
@@ -185,6 +197,8 @@ function readString(payload: unknown, key: string): string | null {
  * @param userId - The authenticated sender id.
  * @param payload - The raw `message:send` payload.
  * @param ack - The optional client acknowledgement callback.
+ * @param push - Optional Web Push sink and the online registry, used to notify
+ *   the conversation's offline recipients of the new message.
  */
 export async function handleSend(
   io: RoomEmitter,
@@ -192,6 +206,7 @@ export async function handleSend(
   userId: string,
   payload: unknown,
   ack: Ack,
+  push?: { notify: (userIds: string[], payload: unknown) => void; online: Map<string, number> },
 ): Promise<void> {
   const conversationId = readString(payload, "conversationId");
   const body = (readString(payload, "body") ?? "").trim();
@@ -246,6 +261,24 @@ export async function handleSend(
   };
   io.to(conversationId).emit("message:new", message);
   ack?.({ ok: true, message });
+
+  if (push !== undefined) {
+    const participants = await prisma.conversationParticipant.findMany({
+      where: { conversationId },
+      select: { userId: true },
+    });
+    const recipients = participants
+      .map((participant) => participant.userId)
+      .filter((id) => id !== userId && !push.online.has(id));
+    if (recipients.length > 0) {
+      push.notify(recipients, {
+        title: "New message",
+        body: body !== "" ? body.slice(0, 140) : "Sent you a message",
+        url: "/messages",
+        tag: `message:${conversationId}`,
+      });
+    }
+  }
 }
 
 /**
@@ -415,10 +448,12 @@ function onConnection(
   socket: Socket,
   prisma: RealtimePrisma,
   online: Map<string, number>,
+  notifyPush?: (userIds: string[], payload: unknown) => void,
 ): void {
   const userId = socket.data.userId as string;
+  const push = notifyPush === undefined ? undefined : { notify: notifyPush, online };
   socket.on("message:send", (payload: unknown, ack: Ack) => {
-    void handleSend(io, prisma, userId, payload, ack);
+    void handleSend(io, prisma, userId, payload, ack, push);
   });
   socket.on("conversation:sync", (payload: unknown) => {
     void handleSync(io, prisma, userId, payload);
@@ -496,7 +531,7 @@ export function createRealtimeServer(deps: RealtimeDeps): { io: Server; httpServ
   });
 
   io.on("connection", (socket) => {
-    onConnection(io, socket, deps.prisma, online);
+    onConnection(io, socket, deps.prisma, online, deps.notifyPush);
   });
 
   return { io, httpServer };

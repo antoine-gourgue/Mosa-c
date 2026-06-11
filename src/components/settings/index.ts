@@ -5,6 +5,7 @@ export { NotificationPrefsForm } from "./NotificationPrefsForm";
 export type { NotificationPrefsFormProps } from "./NotificationPrefsForm";
 export { PrivacyToggle } from "./PrivacyToggle";
 export type { PrivacyToggleProps } from "./PrivacyToggle";
+export { PushOptIn } from "./PushOptIn";
 export { BlockedUsersList } from "./BlockedUsersList";
 export type { BlockedUsersListProps } from "./BlockedUsersList";
 export { LanguageSetting } from "./LanguageSetting";

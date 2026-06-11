@@ -130,6 +130,39 @@ describe("handleSend", () => {
       expect.objectContaining({ imageUrl: "/x.gif", system: true }),
     );
   });
+
+  it("pushes to the offline recipients of the conversation", async () => {
+    prisma.conversationParticipant.findUnique.mockResolvedValue({ userId: "uA" });
+    prisma.message.create.mockResolvedValue({ id: "m1", body: "hi", createdAt: new Date() });
+    prisma.conversation.update.mockResolvedValue({});
+    prisma.conversationParticipant.findMany.mockResolvedValue([
+      { userId: "uA" },
+      { userId: "uB" },
+      { userId: "uC" },
+    ]);
+    const io = makeEmitter();
+    const notify = vi.fn();
+    const online = new Map<string, number>([["uC", 1]]);
+
+    await handleSend(io.mock, db, "uA", { conversationId: "c1", body: "hi" }, vi.fn(), {
+      notify,
+      online,
+    });
+
+    expect(notify).toHaveBeenCalledWith(
+      ["uB"],
+      expect.objectContaining({ url: "/messages", tag: "message:c1" }),
+    );
+  });
+
+  it("does not push when no push sink is provided", async () => {
+    prisma.conversationParticipant.findUnique.mockResolvedValue({ userId: "uA" });
+    prisma.message.create.mockResolvedValue({ id: "m1", body: "hi", createdAt: new Date() });
+    prisma.conversation.update.mockResolvedValue({});
+    const io = makeEmitter();
+    await handleSend(io.mock, db, "uA", { conversationId: "c1", body: "hi" }, vi.fn());
+    expect(prisma.conversationParticipant.findMany).not.toHaveBeenCalled();
+  });
 });
 
 describe("handleSync", () => {

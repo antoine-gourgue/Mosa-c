@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactElement } from "react";
-import { NotificationPrefsForm, SettingsSection } from "@/components/settings";
+import { NotificationPrefsForm, PushOptIn, SettingsSection } from "@/components/settings";
 import { getCurrentUser } from "@/lib/auth";
 import { getNotificationPrefs } from "@/server/services";
 
@@ -33,7 +33,14 @@ export default async function NotificationsSettingsPage(): Promise<ReactElement>
   ]);
   return (
     <SettingsSection title={t("notificationsTitle")} description={t("notificationsSubtitle")}>
-      <NotificationPrefsForm initialPrefs={prefs} />
+      <h2 className="text-lg font-bold text-ink">{t("pushTitle")}</h2>
+      <div className="mt-4">
+        <PushOptIn />
+      </div>
+      <h2 className="mt-8 text-lg font-bold text-ink">{t("inAppTitle")}</h2>
+      <div className="mt-4">
+        <NotificationPrefsForm initialPrefs={prefs} />
+      </div>
     </SettingsSection>
   );
 }

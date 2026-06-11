@@ -36,6 +36,10 @@ const envSchema = z.object({
   NEXT_PUBLIC_REALTIME_URL: optionalUrl,
   REALTIME_INTERNAL_URL: optionalUrl,
   REALTIME_INTERNAL_SECRET: optionalSecret,
+  VAPID_PUBLIC_KEY: optionalSecret,
+  VAPID_PRIVATE_KEY: optionalSecret,
+  VAPID_SUBJECT: optionalSecret,
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: optionalSecret,
 });
 
 /**
