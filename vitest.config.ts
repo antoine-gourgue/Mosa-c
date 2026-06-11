@@ -32,6 +32,7 @@ export default defineConfig({
         "src/lib/image.ts",
         "src/lib/site.ts",
         "src/lib/storage/**",
+        "src/lib/ai/index.ts",
       ],
       // Ratchet set just under the level currently achieved so coverage can only
       // hold or climb. The pre-commit hook blocks any commit that drops below.

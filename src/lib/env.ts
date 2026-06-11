@@ -40,6 +40,7 @@ const envSchema = z.object({
   VAPID_PRIVATE_KEY: optionalSecret,
   VAPID_SUBJECT: optionalSecret,
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: optionalSecret,
+  MISTRAL_API_KEY: optionalSecret,
 });
 
 /**
