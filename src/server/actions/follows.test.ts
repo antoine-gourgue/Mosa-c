@@ -11,7 +11,7 @@ vi.mock("@/lib/prisma", () => ({
       delete: vi.fn(),
       deleteMany: vi.fn(),
     },
-    notification: { findFirst: vi.fn(), create: vi.fn() },
+    notification: { deleteMany: vi.fn(), create: vi.fn() },
     user: { findUnique: vi.fn() },
     $transaction: vi.fn(),
   },
@@ -24,7 +24,7 @@ import { acceptFollowRequest, declineFollowRequest, toggleFollow } from "./follo
 const db = prisma as unknown as {
   follow: { findUnique: Mock; create: Mock; createMany: Mock; delete: Mock };
   followRequest: { findUnique: Mock; create: Mock; delete: Mock; deleteMany: Mock };
-  notification: { findFirst: Mock; create: Mock };
+  notification: { deleteMany: Mock; create: Mock };
   user: { findUnique: Mock };
   $transaction: Mock;
 };
@@ -34,7 +34,7 @@ describe("toggleFollow", () => {
     vi.clearAllMocks();
     db.follow.findUnique.mockResolvedValue(null);
     db.followRequest.findUnique.mockResolvedValue(null);
-    db.notification.findFirst.mockResolvedValue(null);
+    db.notification.deleteMany.mockResolvedValue({ count: 0 });
     db.notification.create.mockResolvedValue({ id: "n1" });
     db.user.findUnique.mockResolvedValue({ isPrivate: false });
     vi.mocked(getCurrentUser).mockResolvedValue({
