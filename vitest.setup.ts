@@ -2,6 +2,9 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 
+process.env.DATABASE_URL ??= "postgresql://localhost:5432/test";
+process.env.AUTH_SECRET ??= "test-secret";
+
 vi.mock("next-intl", async () => {
   const en = (await import("./messages/en.json")).default as unknown as Record<string, unknown>;
   const resolve = (namespace: string, key: string): string => {

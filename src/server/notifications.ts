@@ -1,5 +1,6 @@
 import type { NotificationType } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
+import { emitToUser } from "@/server/realtime-emit";
 import { wantsNotification } from "@/server/services/notification-prefs";
 
 /**
@@ -46,7 +47,8 @@ export async function createNotification(input: CreateNotificationInput): Promis
     }
   }
 
-  await prisma.notification.create({
+  const created = await prisma.notification.create({
     data: { type, recipientId, actorId, pinId, commentId },
   });
+  await emitToUser(recipientId, "notification:new", { id: created.id });
 }

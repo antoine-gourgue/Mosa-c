@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentType, ReactElement } from "react";
 import { useMessagesUnread } from "@/components/messages";
+import { useNotificationsUnread } from "@/components/notifications/NotificationsProvider";
 import type { IconProps } from "@/icons";
 import {
   BellFilledIcon,
@@ -21,13 +22,6 @@ import {
 } from "@/icons";
 import { cn } from "@/lib/cn";
 import { useNavPanel } from "./NavPanelProvider";
-
-/**
- * Props for the {@link SideNav} component.
- */
-export type SideNavProps = {
-  unreadCount: number;
-};
 
 type Item = {
   href: string;
@@ -91,13 +85,13 @@ function RailTooltip({ label }: { label: string }): ReactElement {
  * destinations with an active highlight and unread badges in the middle, and
  * Settings pinned to the bottom.
  *
- * @param props - The unread notification count for the bell badge.
  * @returns The side navigation rail.
  */
-export function SideNav({ unreadCount }: SideNavProps): ReactElement {
+export function SideNav(): ReactElement {
   const t = useTranslations("nav");
   const pathname = usePathname();
   const { unreadCount: unreadMessages } = useMessagesUnread();
+  const { unreadCount } = useNotificationsUnread();
   const { activePanel, toggle, close } = useNavPanel();
 
   const hasBadge = (item: Item): boolean =>

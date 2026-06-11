@@ -4,15 +4,9 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactElement, ReactNode } from "react";
+import { useNotificationsUnread } from "@/components/notifications/NotificationsProvider";
 import { BellIcon, HomeIcon, PlusIcon, SearchIcon, StackIcon } from "@/icons";
 import { cn } from "@/lib/cn";
-
-/**
- * Props for the {@link BottomNav} component.
- */
-export type BottomNavProps = {
-  unreadCount: number;
-};
 
 /**
  * A single tab in the {@link BottomNav}.
@@ -32,12 +26,12 @@ type Tab = {
  * central Create action, highlights the active route with an accent pill and
  * reserves the device safe-area inset.
  *
- * @param props - The unread notification count for the badge.
  * @returns The bottom navigation element.
  */
-export function BottomNav({ unreadCount }: BottomNavProps): ReactElement {
+export function BottomNav(): ReactElement {
   const t = useTranslations("nav");
   const pathname = usePathname();
+  const { unreadCount } = useNotificationsUnread();
 
   const tabs: Tab[] = [
     { href: "/", labelKey: "home", icon: <HomeIcon size={23} />, isActive: (p) => p === "/" },

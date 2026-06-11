@@ -1,4 +1,4 @@
-import { createServer, type Server as HttpServer } from "node:http";
+import { createServer, type IncomingMessage, type Server as HttpServer } from "node:http";
 import { Server, type Socket } from "socket.io";
 
 /**
@@ -91,7 +91,73 @@ export type RealtimeDeps = {
   prisma: RealtimePrisma;
   verifyUser: (handshake: RealtimeHandshake) => Promise<string | null>;
   cors?: { origin: string | string[] | boolean; credentials: boolean };
+  /**
+   * Shared secret authenticating the internal `POST /internal/emit` endpoint the
+   * web process uses to push server-originated events (e.g. notifications) to a
+   * user's room. The endpoint is disabled when this is unset.
+   */
+  internalSecret?: string;
 };
+
+/**
+ * Authenticates and dispatches an internal emit request: the web process posts
+ * `{ room, event, payload }` so a server-originated event (a notification, say)
+ * reaches a user's live sockets. Pure over its inputs so it can be unit-tested
+ * without a live HTTP server.
+ *
+ * @param io - The room-broadcast surface.
+ * @param secret - The configured shared secret, or undefined when disabled.
+ * @param providedSecret - The `x-internal-secret` header from the request.
+ * @param body - The raw JSON request body.
+ * @returns The HTTP status code to respond with.
+ */
+export function dispatchInternalEmit(
+  io: RoomEmitter,
+  secret: string | undefined,
+  providedSecret: string | undefined,
+  body: string,
+): number {
+  if (secret === undefined || secret === "" || providedSecret !== secret) {
+    return 401;
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    return 400;
+  }
+  const room = readString(parsed, "room");
+  const event = readString(parsed, "event");
+  if (room === null || event === null) {
+    return 400;
+  }
+  const payload =
+    typeof parsed === "object" && parsed !== null
+      ? ((parsed as Record<string, unknown>).payload ?? {})
+      : {};
+  io.to(room).emit(event, payload);
+  return 204;
+}
+
+/**
+ * Reads an HTTP request's body into a string, capped so a malformed or hostile
+ * caller cannot exhaust memory.
+ *
+ * @param req - The incoming request.
+ * @returns The body text.
+ */
+async function readBody(req: IncomingMessage): Promise<string> {
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += (chunk as Buffer).length;
+    if (size > 64_000) {
+      throw new Error("body too large");
+    }
+    chunks.push(chunk as Buffer);
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
 
 type Ack = ((response: unknown) => void) | undefined;
 
@@ -387,11 +453,31 @@ function onConnection(
  * @returns The socket.io server and its underlying http server.
  */
 export function createRealtimeServer(deps: RealtimeDeps): { io: Server; httpServer: HttpServer } {
-  const httpServer = createServer();
+  const ref: { io: Server | undefined } = { io: undefined };
+  const httpServer = createServer((req, res) => {
+    if (req.method === "POST" && req.url === "/internal/emit" && ref.io !== undefined) {
+      const provided = req.headers["x-internal-secret"];
+      const emitter = ref.io;
+      readBody(req)
+        .then((body) => {
+          const status = dispatchInternalEmit(
+            emitter,
+            deps.internalSecret,
+            typeof provided === "string" ? provided : undefined,
+            body,
+          );
+          res.writeHead(status).end();
+        })
+        .catch(() => res.writeHead(400).end());
+      return;
+    }
+    res.writeHead(404).end();
+  });
   const io = new Server(httpServer, {
     path: "/socket.io",
     cors: deps.cors ?? { origin: true, credentials: true },
   });
+  ref.io = io;
 
   const online = new Map<string, number>();
 

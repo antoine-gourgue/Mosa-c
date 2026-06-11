@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/server/notifications";
+import { emitToUser } from "@/server/realtime-emit";
 import { AppError } from "@/server/result";
 import type { FollowState } from "@/types/domain";
 
@@ -53,6 +54,7 @@ export async function toggleFollow(creatorId: string): Promise<{ status: FollowS
 
   if (target.isPrivate) {
     await prisma.followRequest.create({ data: { requesterId: user.id, targetId: creatorId } });
+    await emitToUser(creatorId, "notification:new", {});
     return { status: "requested" };
   }
 

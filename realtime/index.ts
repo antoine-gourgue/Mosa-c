@@ -19,6 +19,7 @@ const corsOrigin = process.env.REALTIME_CORS_ORIGIN;
 const { io, httpServer } = createRealtimeServer({
   prisma: prisma as unknown as RealtimePrisma,
   cors: { origin: corsOrigin === undefined ? true : corsOrigin, credentials: true },
+  internalSecret: process.env.REALTIME_INTERNAL_SECRET,
   verifyUser: (handshake) =>
     userIdFromCookieHeader(
       typeof handshake.headers.cookie === "string" ? handshake.headers.cookie : undefined,

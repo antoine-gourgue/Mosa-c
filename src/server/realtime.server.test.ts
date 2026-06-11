@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  dispatchInternalEmit,
   handlePresenceGet,
   handleSend,
   handleSync,
@@ -212,5 +213,51 @@ describe("handleTyping", () => {
     const socket = makeEmitter();
     handleTyping(socket.mock, "uA", { typing: true });
     expect(socket.to).not.toHaveBeenCalled();
+  });
+});
+
+describe("dispatchInternalEmit", () => {
+  const body = JSON.stringify({
+    room: "user:uA",
+    event: "notification:new",
+    payload: { id: "n1" },
+  });
+
+  it("rejects when the endpoint secret is unset", () => {
+    const io = makeEmitter();
+    expect(dispatchInternalEmit(io.mock, undefined, "anything", body)).toBe(401);
+    expect(io.to).not.toHaveBeenCalled();
+  });
+
+  it("rejects a mismatched secret", () => {
+    const io = makeEmitter();
+    expect(dispatchInternalEmit(io.mock, "s3cret", "wrong", body)).toBe(401);
+    expect(io.emit).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed JSON", () => {
+    const io = makeEmitter();
+    expect(dispatchInternalEmit(io.mock, "s3cret", "s3cret", "{not json")).toBe(400);
+  });
+
+  it("rejects a body missing room or event", () => {
+    const io = makeEmitter();
+    expect(
+      dispatchInternalEmit(io.mock, "s3cret", "s3cret", JSON.stringify({ room: "user:uA" })),
+    ).toBe(400);
+  });
+
+  it("emits to the room and returns 204 on a valid request", () => {
+    const io = makeEmitter();
+    expect(dispatchInternalEmit(io.mock, "s3cret", "s3cret", body)).toBe(204);
+    expect(io.to).toHaveBeenCalledWith("user:uA");
+    expect(io.emit).toHaveBeenCalledWith("notification:new", { id: "n1" });
+  });
+
+  it("defaults the payload to an empty object when omitted", () => {
+    const io = makeEmitter();
+    const noPayload = JSON.stringify({ room: "user:uA", event: "notification:new" });
+    expect(dispatchInternalEmit(io.mock, "s3cret", "s3cret", noPayload)).toBe(204);
+    expect(io.emit).toHaveBeenCalledWith("notification:new", {});
   });
 });

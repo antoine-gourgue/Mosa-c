@@ -19,6 +19,7 @@ const db = prisma as unknown as {
 beforeEach(() => {
   vi.clearAllMocks();
   db.user.findUnique.mockResolvedValue(null);
+  db.notification.create.mockResolvedValue({ id: "n1" });
 });
 
 describe("createNotification", () => {
