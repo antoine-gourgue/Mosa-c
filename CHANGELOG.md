@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.21.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.20.0...v1.21.0) (2026-06-11)
+
+
+### Features
+
+* **ai:** auto alt-text and tag suggestions on upload ([d1b9eae](https://github.com/antoine-gourgue/Mosa-c/commit/d1b9eae144450950e5621d30cc63e99d272eca1f))
+* **ai:** auto alt-text and tag suggestions on upload ([ea30111](https://github.com/antoine-gourgue/Mosa-c/commit/ea30111da930234ac560ebd889ec00ec3122fbdb)), closes [#358](https://github.com/antoine-gourgue/Mosa-c/issues/358)
+* **ai:** provider abstraction over Mistral (@/lib/ai) ([2c39f5b](https://github.com/antoine-gourgue/Mosa-c/commit/2c39f5b0e11774d1c2ccd9add94aa63968f219e1))
+* **ai:** provider abstraction over Mistral (@/lib/ai) ([4abaaa0](https://github.com/antoine-gourgue/Mosa-c/commit/4abaaa08b0047a27d70b07a65aa034f848c44d0a)), closes [#357](https://github.com/antoine-gourgue/Mosa-c/issues/357)
+* **ai:** semantic search and similarity-based related pins ([8ad2f50](https://github.com/antoine-gourgue/Mosa-c/commit/8ad2f50510828bb198c715bc8805c48c52ad78d2))
+* **ai:** semantic search and similarity-based related pins ([78ba1b5](https://github.com/antoine-gourgue/Mosa-c/commit/78ba1b56eae8ab70b5bde7acb0cad93c4f2b6d16)), closes [#359](https://github.com/antoine-gourgue/Mosa-c/issues/359)
+
 ## [1.20.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.19.0...v1.20.0) (2026-06-11)
 
 
