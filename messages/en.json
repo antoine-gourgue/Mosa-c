@@ -473,6 +473,7 @@
     "notificationsTitle": "Notifications",
     "prefFailed": "Couldn’t save your preference",
     "prefsSaved": "Notification preferences saved",
+    "privacySaved": "Privacy updated",
     "privacySubtitle": "Manage who can interact with you.",
     "privacyTitle": "Privacy",
     "privateAccount": "Private account",

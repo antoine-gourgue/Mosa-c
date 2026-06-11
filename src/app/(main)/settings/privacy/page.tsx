@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactElement } from "react";
-import { BlockedUsersList, PrivacyToggle, SettingsSection } from "@/components/settings";
+import { BlockedUsersList, PrivacySettings, SettingsSection } from "@/components/settings";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getBlockedUsers } from "@/server/services";
@@ -18,7 +18,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Privacy tab: manage the users the current user has blocked.
+ * Privacy tab: account visibility (private/public) and the blocked-users list,
+ * with a Save/Reset bar governing the visibility change.
  *
  * @returns The privacy settings page.
  */
@@ -34,14 +35,10 @@ export default async function PrivacySettingsPage(): Promise<ReactElement> {
   ]);
   return (
     <SettingsSection title={t("privacyTitle")} description={t("privacySubtitle")}>
-      <h2 className="text-lg font-bold text-ink">{t("visibilityTitle")}</h2>
-      <div className="mt-4">
-        <PrivacyToggle initialPrivate={account?.isPrivate ?? false} />
-      </div>
-      <h2 className="mt-8 text-lg font-bold text-ink">{t("blockedTitle")}</h2>
-      <div className="mt-4">
-        <BlockedUsersList users={blocked} />
-      </div>
+      <PrivacySettings
+        initialPrivate={account?.isPrivate ?? false}
+        blocked={<BlockedUsersList users={blocked} />}
+      />
     </SettingsSection>
   );
 }
