@@ -430,7 +430,12 @@
     "label": "Search",
     "ideasForYou": "Ideas for you",
     "todaysInspiration": "Today’s Inspiration",
-    "noResults": "No ideas matched “{query}”."
+    "noResults": "No ideas matched “{query}”.",
+    "nearby": "Near you",
+    "nearbyCta": "Show pins near you",
+    "nearbyEmpty": "No pins nearby yet.",
+    "nearbyDenied": "Allow location access to see pins near you.",
+    "nearbyAgain": "Refresh"
   },
   "gender": {
     "female": "Female",

@@ -29,6 +29,7 @@ import { prisma } from "@/lib/prisma";
 import {
   getCreatedPins,
   getHomeFeed,
+  getNearbyPins,
   getPinById,
   getPins,
   getPlacedPinsForUser,
@@ -317,5 +318,26 @@ describe("getPlacedPinsForUser", () => {
     ]);
     const result = await getPlacedPinsForUser("u1");
     expect(result.map((pin) => pin.id)).toEqual(["p1"]);
+  });
+});
+
+describe("getNearbyPins", () => {
+  it("keeps pins within the radius and orders them nearest first", async () => {
+    db.pin.findMany.mockResolvedValue([
+      pinRow("far", { lat: 49.2, lng: 2.35 }),
+      pinRow("near", { lat: 48.86, lng: 2.35 }),
+      pinRow("mid", { lat: 48.95, lng: 2.35 }),
+    ]);
+    const pins = await getNearbyPins(null, 48.85, 2.35);
+    expect(pins.map((p) => p.id)).toEqual(["near", "mid"]);
+  });
+
+  it("drops a row that has no coordinates", async () => {
+    db.pin.findMany.mockResolvedValue([
+      pinRow("near", { lat: 48.86, lng: 2.35 }),
+      pinRow("noco", { lat: null, lng: null }),
+    ]);
+    const pins = await getNearbyPins(null, 48.85, 2.35);
+    expect(pins.map((p) => p.id)).toEqual(["near"]);
   });
 });

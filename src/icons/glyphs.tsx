@@ -281,6 +281,21 @@ export function MapPinIcon(props: IconProps): ReactElement {
 }
 
 /**
+ * Circular-arrow glyph for refreshing.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function RefreshIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon {...props}>
+      <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+      <path d="M21 3v6h-6" />
+    </SvgIcon>
+  );
+}
+
+/**
  * At-sign glyph for mentions.
  *
  * @param props - Icon sizing and presentation props.

@@ -6,6 +6,7 @@ export {
   getRelatedPins,
   getHomeFeed,
   getPlacedPinsForUser,
+  getNearbyPins,
   FEED_PAGE_SIZE,
 } from "./pins";
 export type { FeedPage, FeedSource, FeedSort, PlacedPin } from "./pins";
