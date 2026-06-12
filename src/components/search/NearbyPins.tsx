@@ -4,8 +4,8 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import type { ReactElement } from "react";
 import { PinFeed } from "@/components/pin";
-import { Button, Spinner } from "@/components/ui";
-import { MapPinIcon } from "@/icons";
+import { Button, IconButton, Spinner } from "@/components/ui";
+import { MapPinIcon, RefreshIcon } from "@/icons";
 import { loadNearbyPins } from "@/server/actions/feed";
 import type { NearbyResult } from "@/server/actions/feed";
 
@@ -60,9 +60,9 @@ export function NearbyPins({ viewerId }: NearbyPinsProps): ReactElement {
           {t("nearby")}
         </h2>
         {status === "ready" ? (
-          <Button variant="ghost" size="sm" onClick={locate}>
-            {t("nearbyAgain")}
-          </Button>
+          <IconButton label={t("nearbyAgain")} tone="ghost" size="sm" onClick={locate}>
+            <RefreshIcon size={18} />
+          </IconButton>
         ) : null}
       </div>
 

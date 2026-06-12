@@ -40,5 +40,6 @@ export {
   LockIcon,
   BlockIcon,
   MapPinIcon,
+  RefreshIcon,
 } from "./glyphs";
 export { Logo } from "./Logo";
