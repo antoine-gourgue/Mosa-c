@@ -82,6 +82,11 @@ const pinRow = (id: string, over: Record<string, unknown> = {}) => ({
   width: 1,
   height: 1,
   link: null,
+  placeName: null,
+  placeAddress: null,
+  lat: null,
+  lng: null,
+  placeApproximate: false,
   downloadCount: 0,
   createdAt: new Date(NOW),
   creator: {
@@ -284,6 +289,35 @@ describe("searchPins", () => {
   it("matches by title, tag or creator name", async () => {
     db.pin.findMany.mockResolvedValue([pinRow("p1")]);
     expect((await searchPins("sun", "likes")).map((p) => p.id)).toEqual(["p1"]);
+  });
+
+  it("matches pins by their place name or address", async () => {
+    db.pin.findMany.mockResolvedValue([]);
+    await searchPins("stade");
+    expect(db.pin.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          OR: expect.arrayContaining([
+            { placeName: { contains: "stade", mode: "insensitive" } },
+            { placeAddress: { contains: "stade", mode: "insensitive" } },
+          ]),
+        }),
+      }),
+    );
+  });
+
+  it("ranks pins matching the place above the others", async () => {
+    db.pin.findMany.mockResolvedValue([
+      pinRow("other"),
+      pinRow("atplace", {
+        placeName: "Stade de France",
+        placeAddress: "Saint-Denis",
+        lat: 48.92,
+        lng: 2.36,
+        placeApproximate: false,
+      }),
+    ]);
+    expect((await searchPins("stade")).map((p) => p.id)).toEqual(["atplace", "other"]);
   });
 
   it("appends semantic matches after the keyword results when AI is available", async () => {
