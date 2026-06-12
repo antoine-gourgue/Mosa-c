@@ -533,13 +533,20 @@ export async function searchPins(
         { title: { contains: q, mode: "insensitive" } },
         { tags: { some: { tag: { name: { contains: q, mode: "insensitive" } } } } },
         { creator: { name: { contains: q, mode: "insensitive" } } },
+        { placeName: { contains: q, mode: "insensitive" } },
+        { placeAddress: { contains: q, mode: "insensitive" } },
       ],
       ...(hidden.length > 0 ? { creatorId: { notIn: hidden } } : {}),
     },
     include: PIN_INCLUDE,
     orderBy: feedOrderBy(sort),
   });
-  const keyword = rows.map(toPin);
+  const needle = q.toLowerCase();
+  const matchesPlace = (pin: Pin): boolean =>
+    pin.place !== null &&
+    (pin.place.name.toLowerCase().includes(needle) ||
+      (pin.place.address?.toLowerCase().includes(needle) ?? false));
+  const keyword = rows.map(toPin).sort((a, b) => Number(matchesPlace(b)) - Number(matchesPlace(a)));
 
   const queryVector = await embedQuery(q);
   if (queryVector === null) {
