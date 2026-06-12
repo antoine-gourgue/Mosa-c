@@ -221,9 +221,50 @@ describe("updatePin", () => {
     expect(await updatePin("p1", editForm({ tags: "Travel, Food" }))).toEqual({ ok: true });
     expect(db.pin.update).toHaveBeenCalledWith({
       where: { id: "p1" },
-      data: { title: "New title", description: "New description", link: null },
+      data: {
+        title: "New title",
+        description: "New description",
+        link: null,
+        placeName: null,
+        placeAddress: null,
+        lat: null,
+        lng: null,
+      },
     });
     expect(db.pinTag.deleteMany).toHaveBeenCalledWith({ where: { pinId: "p1" } });
     expect(db.pinTag.create).toHaveBeenCalledTimes(2);
+  });
+
+  it("updates the pin's place when valid place fields are provided", async () => {
+    db.pin.findUnique.mockResolvedValue({ creatorId: "u1" });
+    await updatePin(
+      "p1",
+      editForm({
+        placeName: "Café de Flore",
+        placeAddress: "172 Bd Saint-Germain, Paris",
+        lat: "48.854",
+        lng: "2.333",
+      }),
+    );
+    expect(db.pin.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          placeName: "Café de Flore",
+          placeAddress: "172 Bd Saint-Germain, Paris",
+          lat: 48.854,
+          lng: 2.333,
+        }),
+      }),
+    );
+  });
+
+  it("clears the pin's place when the place fields are blank", async () => {
+    db.pin.findUnique.mockResolvedValue({ creatorId: "u1" });
+    await updatePin("p1", editForm({ placeName: "", lat: "", lng: "" }));
+    expect(db.pin.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ placeName: null, lat: null, lng: null }),
+      }),
+    );
   });
 });

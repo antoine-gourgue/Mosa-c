@@ -15,6 +15,7 @@ import { recordDownload } from "@/server/actions/downloads";
 import { deletePin } from "@/server/actions/pins";
 import { reportPin } from "@/server/actions/reports";
 import type { MenuItem } from "@/components/ui";
+import type { PinPlace } from "@/types/domain";
 import { SaveToBoard } from "./SaveToBoard";
 import type { SaveBoardOption } from "./SaveToBoard";
 import { SharePinMenu } from "./SharePinMenu";
@@ -29,6 +30,7 @@ export type DetailActionsProps = {
   tags: string[];
   imageUrl: string;
   link: string | null;
+  place: PinPlace | null;
   initialLiked: boolean;
   likeCount: number;
   downloadCount: number;
@@ -52,6 +54,7 @@ export function DetailActions({
   tags,
   imageUrl,
   link,
+  place,
   initialLiked,
   likeCount,
   downloadCount,
@@ -173,6 +176,7 @@ export function DetailActions({
           initialDescription={description ?? ""}
           initialLink={link ?? ""}
           initialTags={tags}
+          initialPlace={place}
           open={editOpen}
           onClose={() => setEditOpen(false)}
         />
