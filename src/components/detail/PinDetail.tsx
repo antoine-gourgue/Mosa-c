@@ -17,6 +17,7 @@ import type { FollowState } from "@/types/domain";
 import { DetailActions } from "./DetailActions";
 import { CreatorRow } from "./CreatorRow";
 import { Comments } from "./Comments";
+import { PinPlace } from "./PinPlace";
 import { RecordView } from "./RecordView";
 
 /**
@@ -129,6 +130,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
               {pin.description !== null ? (
                 <p className="text-[15px] leading-relaxed text-ink-soft">{pin.description}</p>
               ) : null}
+              {pin.place !== null ? <PinPlace place={pin.place} /> : null}
               <Divider className="mt-2" />
               <CreatorRow
                 creator={pin.creator}

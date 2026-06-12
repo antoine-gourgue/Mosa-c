@@ -271,7 +271,8 @@
     "reportComment": "Signaler le commentaire",
     "reportReceived": "Signalement reçu",
     "reportThanks": "Merci de nous aider à garder Mosaic sûr.",
-    "reportFailed": "Impossible de signaler ce commentaire"
+    "reportFailed": "Impossible de signaler ce commentaire",
+    "directions": "Itinéraire"
   },
   "create": {
     "add": "Ajouter",

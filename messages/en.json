@@ -271,7 +271,8 @@
     "reportComment": "Report comment",
     "reportReceived": "Report received",
     "reportThanks": "Thanks for helping keep Mosaic safe.",
-    "reportFailed": "Couldn’t report this comment"
+    "reportFailed": "Couldn’t report this comment",
+    "directions": "Get directions"
   },
   "create": {
     "add": "Add",
