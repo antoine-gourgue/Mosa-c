@@ -76,3 +76,65 @@
     background-color: transparent;
   }
 }
+
+/* Leaflet map theming — unlayered so it overrides Leaflet's own stylesheet.
+   Reskins the minimal CARTO basemap controls to match the app's tokens. */
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: var(--color-surface);
+}
+
+.leaflet-container .leaflet-bar {
+  border: none;
+  border-radius: 12px;
+  box-shadow: var(--shadow-pop);
+  overflow: hidden;
+}
+
+.leaflet-container .leaflet-bar a {
+  width: 34px;
+  height: 34px;
+  line-height: 34px;
+  color: var(--color-ink);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-line);
+  font-weight: 600;
+}
+
+.leaflet-container .leaflet-bar a:hover {
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+
+.leaflet-container .leaflet-bar a:last-child {
+  border-bottom: none;
+}
+
+.leaflet-container .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--color-ink-faint);
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 8px 0 0 0;
+}
+
+.leaflet-container .leaflet-control-attribution a {
+  color: var(--color-ink-soft);
+}
+
+.leaflet-container .leaflet-popup-content-wrapper {
+  border-radius: 16px;
+  box-shadow: var(--shadow-pop);
+  padding: 6px;
+}
+
+.leaflet-container .leaflet-popup-content {
+  margin: 6px;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  width: 26px;
+  height: 26px;
+  padding: 5px 5px 0 0;
+  color: var(--color-ink-soft);
+}

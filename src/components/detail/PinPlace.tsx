@@ -43,9 +43,10 @@ export function PinPlace({ place }: PinPlaceProps): ReactElement {
         zoomControl: true,
         scrollWheelZoom: false,
       }).setView([place.lat, place.lng], 14);
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap",
-        maxZoom: 19,
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        attribution: "&copy; OpenStreetMap &copy; CARTO",
+        subdomains: "abcd",
+        maxZoom: 20,
       }).addTo(map);
       const icon = L.divIcon({
         className: "rounded-full bg-accent shadow ring-2 ring-bg",
@@ -83,7 +84,7 @@ export function PinPlace({ place }: PinPlaceProps): ReactElement {
         ref={containerRef}
         role="img"
         aria-label={place.name}
-        className="z-0 h-44 w-full overflow-hidden rounded-2xl bg-surface"
+        className="z-0 h-44 w-full overflow-hidden rounded-2xl border border-line bg-surface"
       />
       <a
         href={directionsUrl}
