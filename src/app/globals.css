@@ -137,3 +137,9 @@
 .leaflet-container .leaflet-popup-tip-container {
   display: none;
 }
+
+/* Keep the scrollable popup (many pins at one spot) borderless and tidy. */
+.leaflet-container .leaflet-popup-scrolled {
+  border: none;
+  padding-right: 2px;
+}

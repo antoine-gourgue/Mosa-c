@@ -115,7 +115,13 @@ export function PlacesMap({ pins }: PlacesMapProps): ReactElement {
             card.append(link);
           }
         }
-        marker.bindPopup(card, { closeButton: false, offset: [0, -6], minWidth: 0, maxWidth: 240 });
+        marker.bindPopup(card, {
+          closeButton: false,
+          offset: [0, -6],
+          minWidth: 0,
+          maxWidth: 240,
+          maxHeight: 280,
+        });
         points.push([first.lat, first.lng]);
       }
       if (points.length > 0) {
