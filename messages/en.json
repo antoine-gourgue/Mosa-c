@@ -190,7 +190,10 @@
     "unavailableBody": "You can’t view this profile.",
     "unavailableTitle": "This account is unavailable",
     "unblock": "Unblock",
-    "unblocked": "Unblocked {user}"
+    "unblocked": "Unblocked {user}",
+    "map": "Map",
+    "placesHeading": "Places",
+    "closeMap": "Close map"
   },
   "messages": {
     "title": "Messages",

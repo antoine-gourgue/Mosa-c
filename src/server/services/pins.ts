@@ -552,3 +552,36 @@ export async function searchPins(
   const extra = await pinsByIds(semanticIds.filter((id) => !seen.has(id)));
   return [...keyword, ...extra];
 }
+
+/**
+ * A creator's geotagged pin reduced to the fields a places map needs.
+ */
+export type PlacedPin = {
+  id: string;
+  lat: number;
+  lng: number;
+  title: string;
+  imageUrl: string;
+};
+
+/**
+ * Fetches a user's geotagged pins (those with coordinates) for the profile
+ * places map, newest first and bounded. Pins without coordinates are excluded
+ * at the query, and the flatMap narrows away the nullable columns.
+ *
+ * @param userId - The creator's id.
+ * @returns The user's placed pins.
+ */
+export async function getPlacedPinsForUser(userId: string): Promise<PlacedPin[]> {
+  const rows = await prisma.pin.findMany({
+    where: { creatorId: userId, lat: { not: null }, lng: { not: null } },
+    select: { id: true, lat: true, lng: true, title: true, imageUrl: true },
+    orderBy: { createdAt: "desc" },
+    take: 500,
+  });
+  return rows.flatMap((row) =>
+    row.lat === null || row.lng === null
+      ? []
+      : [{ id: row.id, lat: row.lat, lng: row.lng, title: row.title, imageUrl: row.imageUrl }],
+  );
+}

@@ -190,7 +190,10 @@
     "unavailableBody": "Vous ne pouvez pas voir ce profil.",
     "unavailableTitle": "Ce compte est indisponible",
     "unblock": "Débloquer",
-    "unblocked": "{user} débloqué"
+    "unblocked": "{user} débloqué",
+    "map": "Carte",
+    "placesHeading": "Lieux",
+    "closeMap": "Fermer la carte"
   },
   "messages": {
     "title": "Messages",

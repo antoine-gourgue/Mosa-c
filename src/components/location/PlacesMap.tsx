@@ -5,9 +5,9 @@ import { useEffect, useRef } from "react";
 import type { ReactElement } from "react";
 
 /**
- * A geotagged pin reduced to what the board map needs.
+ * A geotagged pin reduced to what a places map needs.
  */
-export type BoardMapPin = {
+export type PlacesMapPin = {
   id: string;
   lat: number;
   lng: number;
@@ -16,23 +16,23 @@ export type BoardMapPin = {
 };
 
 /**
- * Props for the {@link BoardMap} component.
+ * Props for the {@link PlacesMap} component.
  */
-export type BoardMapProps = {
-  pins: BoardMapPin[];
+export type PlacesMapProps = {
+  pins: PlacesMapPin[];
 };
 
 /**
- * A full-bleed Leaflet map plotting a board's geotagged pins as markers on
- * OpenStreetMap tiles, fitted to their bounds. Each marker opens a popup with
- * the pin's thumbnail and title linking to its detail. Leaflet is imported
- * lazily inside an effect so it never runs on the server; popup content is built
- * as DOM nodes (text via textContent) so a pin title can never inject markup.
+ * A full-bleed Leaflet map plotting geotagged pins as markers on OpenStreetMap
+ * tiles, fitted to their bounds. Each marker opens a popup with the pin's
+ * thumbnail and title linking to its detail. Leaflet is imported lazily inside
+ * an effect so it never runs on the server; popup content is built as DOM nodes
+ * (text via textContent) so a pin title can never inject markup.
  *
- * @param props - The board's geotagged pins.
+ * @param props - The geotagged pins to plot.
  * @returns The map element.
  */
-export function BoardMap({ pins }: BoardMapProps): ReactElement {
+export function PlacesMap({ pins }: PlacesMapProps): ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

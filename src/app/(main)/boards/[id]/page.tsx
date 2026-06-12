@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import type { ReactElement } from "react";
-import { BoardHeader, BoardMapButton } from "@/components/board";
+import { BoardHeader } from "@/components/board";
+import { PlacesMapButton } from "@/components/location";
 import { PinFeed } from "@/components/pin";
 import { getCurrentUser } from "@/lib/auth";
 import {
@@ -47,7 +48,7 @@ export default async function BoardPage({
   if (board === null) {
     notFound();
   }
-  const tp = await getTranslations("page");
+  const [tp, tb] = await Promise.all([getTranslations("page"), getTranslations("board")]);
   const [savedIds, likedIds, following] =
     viewer === null
       ? [[], [], false]
@@ -76,7 +77,12 @@ export default async function BoardPage({
       <BoardHeader board={board} initialFollowing={following} isAuthed={viewer !== null} />
       {placedPins.length > 0 ? (
         <div className="mb-4 flex justify-end px-1">
-          <BoardMapButton pins={placedPins} />
+          <PlacesMapButton
+            pins={placedPins}
+            label={tb("map")}
+            heading={tb("placesHeading")}
+            closeLabel={tb("closeMap")}
+          />
         </div>
       ) : null}
       {count === 0 ? (
