@@ -122,8 +122,8 @@ export function PlacePicker({ value, onChange }: PlacePickerProps): ReactElement
             <p className="px-4 py-3 text-sm text-ink-soft">{t("placeNoResults")}</p>
           ) : (
             <ul>
-              {results.map((place) => (
-                <li key={`${place.lat},${place.lng},${place.name}`}>
+              {results.map((place, index) => (
+                <li key={`${index}:${place.lat},${place.lng}`}>
                   <button
                     type="button"
                     onMouseDown={(event) => event.preventDefault()}
