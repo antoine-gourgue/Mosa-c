@@ -1,6 +1,7 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
 import { useEffect, useRef } from "react";
 import type { ReactElement } from "react";
 
@@ -42,7 +43,7 @@ export function PlacesMap({ pins }: PlacesMapProps): ReactElement {
     }
     let map: import("leaflet").Map | null = null;
     let cancelled = false;
-    void import("leaflet").then((L) => {
+    void Promise.all([import("leaflet"), import("leaflet.markercluster")]).then(([L]) => {
       if (cancelled || containerRef.current === null) {
         return;
       }
@@ -52,6 +53,23 @@ export function PlacesMap({ pins }: PlacesMapProps): ReactElement {
         subdomains: "abcd",
         maxZoom: 20,
       }).addTo(map);
+      const clusterGroup = L.markerClusterGroup({
+        showCoverageOnHover: false,
+        maxClusterRadius: 48,
+        iconCreateFunction: (cluster) => {
+          const total = cluster
+            .getAllChildMarkers()
+            .reduce(
+              (sum, child) => sum + ((child.options as { pinCount?: number }).pinCount ?? 1),
+              0,
+            );
+          return L.divIcon({
+            className: "",
+            html: `<span class="grid size-9 place-items-center rounded-full bg-accent text-[12px] font-bold text-bg shadow ring-2 ring-bg">${total}</span>`,
+            iconSize: [36, 36],
+          });
+        },
+      });
       const groups = new Map<string, PlacesMapPin[]>();
       for (const pin of pins) {
         const key = `${pin.lat},${pin.lng}`;
@@ -81,7 +99,8 @@ export function PlacesMap({ pins }: PlacesMapProps): ReactElement {
                 iconSize: [12, 12],
                 iconAnchor: [6, 6],
               });
-        const marker = L.marker([first.lat, first.lng], { icon }).addTo(map);
+        const marker = L.marker([first.lat, first.lng], { icon });
+        (marker.options as { pinCount?: number }).pinCount = group.length;
         const card = document.createElement("div");
         if (group.length === 1) {
           card.className = "w-44";
@@ -122,8 +141,10 @@ export function PlacesMap({ pins }: PlacesMapProps): ReactElement {
           maxWidth: 240,
           maxHeight: 280,
         });
+        clusterGroup.addLayer(marker);
         points.push([first.lat, first.lng]);
       }
+      map.addLayer(clusterGroup);
       if (points.length > 0) {
         map.fitBounds(L.latLngBounds(points), { padding: [48, 48], maxZoom: 15 });
       }
