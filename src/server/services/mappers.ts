@@ -1,4 +1,4 @@
-import type { Board, Creator, Pin, Tag } from "@/types/domain";
+import type { Board, Creator, Pin, PinPlace, Tag } from "@/types/domain";
 
 /**
  * Structural shape of a creator row read from the database.
@@ -35,6 +35,10 @@ export type PinRow = {
   width: number;
   height: number;
   link: string | null;
+  placeName: string | null;
+  placeAddress: string | null;
+  lat: number | null;
+  lng: number | null;
   downloadCount: number;
   creator: CreatorRow;
   tags: { tag: TagRow }[];
@@ -92,6 +96,21 @@ export function toTag(row: TagRow): Tag {
 }
 
 /**
+ * Builds the geotagged place from a pin row, or null when the pin has no
+ * coordinates. A place is only surfaced once both its name and coordinates are
+ * present, so half-saved rows never render a broken map.
+ *
+ * @param row - The pin row.
+ * @returns The mapped place, or null.
+ */
+function toPlace(row: PinRow): PinPlace | null {
+  if (row.placeName === null || row.lat === null || row.lng === null) {
+    return null;
+  }
+  return { name: row.placeName, address: row.placeAddress, lat: row.lat, lng: row.lng };
+}
+
+/**
  * Maps a pin row (with relations) to the UI pin type.
  *
  * @param row - The pin row.
@@ -107,6 +126,7 @@ export function toPin(row: PinRow): Pin {
     width: row.width,
     height: row.height,
     link: row.link,
+    place: toPlace(row),
     creator: toCreator(row.creator),
     tags: row.tags.map((pinTag) => toTag(pinTag.tag)),
     likeCount: row._count.likes,

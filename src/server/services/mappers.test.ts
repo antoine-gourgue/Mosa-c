@@ -60,6 +60,10 @@ describe("toPin", () => {
     width: 800,
     height: 600,
     link: "https://example.com",
+    placeName: null,
+    placeAddress: null,
+    lat: null,
+    lng: null,
     downloadCount: 7,
     creator: creatorRow,
     tags: [{ tag: { id: "t1", slug: "art", name: "Art" } }],
@@ -77,6 +81,30 @@ describe("toPin", () => {
 
   it("handles a pin with no tags", () => {
     expect(toPin({ ...pinRow, tags: [] }).tags).toEqual([]);
+  });
+
+  it("leaves place null when the pin has no coordinates", () => {
+    expect(toPin(pinRow).place).toBeNull();
+  });
+
+  it("maps a place when name and coordinates are present", () => {
+    const pin = toPin({
+      ...pinRow,
+      placeName: "Café de Flore",
+      placeAddress: "172 Bd Saint-Germain, Paris",
+      lat: 48.854,
+      lng: 2.333,
+    });
+    expect(pin.place).toEqual({
+      name: "Café de Flore",
+      address: "172 Bd Saint-Germain, Paris",
+      lat: 48.854,
+      lng: 2.333,
+    });
+  });
+
+  it("treats a place with a name but missing coordinates as no place", () => {
+    expect(toPin({ ...pinRow, placeName: "Somewhere", lat: null, lng: null }).place).toBeNull();
   });
 });
 
