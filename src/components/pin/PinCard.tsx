@@ -16,6 +16,7 @@ import {
   HeartFilledIcon,
   HeartIcon,
   LinkIcon,
+  MapPinIcon,
   MoreIcon,
   StackIcon,
   TrashIcon,
@@ -229,6 +230,12 @@ export function PinCard({
             <span className="text-[13px] text-ink-soft">{pin.creator.name}</span>
           </div>
         )}
+        {pin.place !== null ? (
+          <div className="mt-1 flex items-center gap-1 text-[13px] text-ink-soft">
+            <MapPinIcon size={13} className="shrink-0" />
+            <span className="truncate">{pin.place.name}</span>
+          </div>
+        ) : null}
         {likes > 0 || comments > 0 || downloads > 0 ? (
           <div className="mt-1 flex items-center gap-3 text-[13px] text-ink-soft">
             {likes > 0 ? (
