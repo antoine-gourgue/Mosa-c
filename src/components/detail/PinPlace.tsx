@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import type { ReactElement } from "react";
-import { MapPinIcon } from "@/icons";
+import { Logo, MapPinIcon } from "@/icons";
 import { slugify } from "@/lib/slug";
 import type { PinPlace as Place } from "@/types/domain";
 
@@ -45,14 +45,16 @@ export function PinPlace({ place }: PinPlaceProps): ReactElement {
         zoomControl: true,
         scrollWheelZoom: false,
       }).setView([place.lat, place.lng], 14);
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap",
-        maxZoom: 19,
+      map.attributionControl.setPrefix(false);
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        attribution: "&copy; OpenStreetMap &copy; CARTO",
+        subdomains: "abcd",
+        maxZoom: 20,
       }).addTo(map);
       const icon = L.divIcon({
         className: "rounded-full bg-accent shadow ring-2 ring-bg",
-        iconSize: [14, 14],
-        iconAnchor: [7, 7],
+        iconSize: [12, 12],
+        iconAnchor: [6, 6],
       });
       L.marker([place.lat, place.lng], { icon, keyboard: false }).addTo(map);
       setTimeout(() => map?.invalidateSize(), 0);
@@ -86,12 +88,17 @@ export function PinPlace({ place }: PinPlaceProps): ReactElement {
           ) : null}
         </div>
       </div>
-      <div
-        ref={containerRef}
-        role="img"
-        aria-label={place.name}
-        className="z-0 h-44 w-full overflow-hidden rounded-2xl bg-surface"
-      />
+      <div className="relative">
+        <div
+          ref={containerRef}
+          role="img"
+          aria-label={place.name}
+          className="z-0 h-44 w-full overflow-hidden rounded-2xl border border-line bg-surface"
+        />
+        <div className="pointer-events-none absolute bottom-2 left-2 z-[500] text-ink/45">
+          <Logo size={18} />
+        </div>
+      </div>
       <a
         href={directionsUrl}
         target="_blank"
