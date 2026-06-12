@@ -176,7 +176,7 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
         <h1 className="text-2xl font-bold text-ink">{t("createPin")}</h1>
       </header>
 
-      <div className="mx-auto grid max-w-[1000px] grid-cols-1 gap-8 lg:grid-cols-[minmax(0,420px)_1fr]">
+      <div className="mx-auto grid max-w-[1000px] grid-cols-1 gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
         <UploadDropzone value={image} onChange={onImageChange} />
 
         <div className="flex flex-col gap-3">

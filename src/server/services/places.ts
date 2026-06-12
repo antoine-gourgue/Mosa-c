@@ -54,6 +54,25 @@ function delay(ms: number): Promise<void> {
 }
 
 /**
+ * Trims a Nominatim `display_name` (which can run to nine comma-separated
+ * segments) down to a short, readable address: the leading segment is dropped
+ * when it merely repeats the place name, and at most the next three segments are
+ * kept.
+ *
+ * @param display - The full Nominatim display name.
+ * @param name - The resolved place name.
+ * @returns The shortened address.
+ */
+function shortenAddress(display: string, name: string): string {
+  const parts = display
+    .split(",")
+    .map((part) => part.trim())
+    .filter((part) => part !== "");
+  const start = parts[0] === name ? 1 : 0;
+  return parts.slice(start, start + 3).join(", ");
+}
+
+/**
  * Parses a Nominatim JSON response into clean place suggestions, dropping any
  * entry without finite coordinates or a label and capping at the limit.
  *
@@ -76,7 +95,7 @@ function parsePlaces(data: unknown, limit: number): PlaceResult[] {
     }
     const named = typeof item.name === "string" ? item.name.trim() : "";
     const name = named !== "" ? named : (display.split(",")[0] ?? display).trim();
-    out.push({ name, address: display, lat, lng });
+    out.push({ name, address: shortenAddress(display, name), lat, lng });
     if (out.length >= limit) {
       break;
     }

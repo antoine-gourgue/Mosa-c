@@ -31,11 +31,26 @@ describe("createPlaceSearch", () => {
     expect(await search("flore")).toEqual([
       {
         name: "Café de Flore",
-        address: "Café de Flore, 172, Bd Saint-Germain, Paris",
+        address: "172, Bd Saint-Germain, Paris",
         lat: 48.854,
         lng: 2.333,
       },
     ]);
+  });
+
+  it("shortens an overly long address and drops a leading segment that repeats the name", async () => {
+    const fetchImpl = okJson([
+      {
+        name: "Stade de France",
+        display_name:
+          "Stade de France, Avenue du Stade de France, Saint-Denis, Seine-Saint-Denis, Île-de-France, France, 93200",
+        lat: "48.92",
+        lon: "2.36",
+      },
+    ]);
+    const search = createPlaceSearch({ fetchImpl, minIntervalMs: 0 });
+    const [place] = await search("stade");
+    expect(place?.address).toBe("Avenue du Stade de France, Saint-Denis, Seine-Saint-Denis");
   });
 
   it("falls back to the first address segment when there is no name", async () => {
