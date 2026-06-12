@@ -1,7 +1,6 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import type { ReactElement } from "react";
 
@@ -35,7 +34,6 @@ export type PlacesMapProps = {
  */
 export function PlacesMap({ pins }: PlacesMapProps): ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   useEffect(() => {
     const node = containerRef.current;
@@ -84,26 +82,40 @@ export function PlacesMap({ pins }: PlacesMapProps): ReactElement {
                 iconAnchor: [6, 6],
               });
         const marker = L.marker([first.lat, first.lng], { icon }).addTo(map);
+        const card = document.createElement("div");
         if (group.length === 1) {
-          marker.on("click", () => router.push(`/pin/${first.id}`));
+          card.className = "w-44";
+          const link = document.createElement("a");
+          link.href = `/pin/${first.id}`;
+          link.title = first.title;
+          link.className = "group block cursor-pointer";
+          const img = document.createElement("img");
+          img.src = first.imageUrl;
+          img.alt = first.title;
+          img.loading = "lazy";
+          img.className = "h-32 w-full rounded-xl object-cover transition group-hover:opacity-90";
+          const title = document.createElement("span");
+          title.textContent = first.title;
+          title.className = "mt-1.5 block truncate px-0.5 text-[13px] font-semibold text-ink";
+          link.append(img, title);
+          card.append(link);
         } else {
-          const strip = document.createElement("div");
-          strip.className = "flex max-w-[212px] gap-2 overflow-x-auto p-0.5";
+          card.className = "grid w-48 grid-cols-2 gap-1.5";
           for (const pin of group) {
             const link = document.createElement("a");
             link.href = `/pin/${pin.id}`;
             link.title = pin.title;
-            link.className = "block shrink-0 cursor-pointer";
+            link.className = "block cursor-pointer";
             const img = document.createElement("img");
             img.src = pin.imageUrl;
             img.alt = pin.title;
             img.loading = "lazy";
-            img.className = "size-16 rounded-xl object-cover transition hover:opacity-80";
+            img.className = "h-20 w-full rounded-lg object-cover transition hover:opacity-85";
             link.append(img);
-            strip.append(link);
+            card.append(link);
           }
-          marker.bindPopup(strip, { closeButton: false, offset: [0, -6] });
         }
+        marker.bindPopup(card, { closeButton: false, offset: [0, -6], minWidth: 0, maxWidth: 240 });
         points.push([first.lat, first.lng]);
       }
       if (points.length > 0) {
@@ -117,7 +129,7 @@ export function PlacesMap({ pins }: PlacesMapProps): ReactElement {
         map.remove();
       }
     };
-  }, [pins, router]);
+  }, [pins]);
 
   return <div ref={containerRef} className="z-0 h-full w-full" />;
 }
