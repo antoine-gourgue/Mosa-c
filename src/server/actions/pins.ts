@@ -47,6 +47,45 @@ function parseTagNames(raw: string): { slug: string; name: string }[] {
   return result;
 }
 
+/**
+ * The persisted place columns for a pin, or all-null when no place was attached.
+ */
+type PinPlaceColumns = {
+  placeName: string | null;
+  placeAddress: string | null;
+  lat: number | null;
+  lng: number | null;
+};
+
+/**
+ * Reads the optional place fields from the form. A place is only kept when it
+ * has a name and finite, in-range coordinates, so an empty field never persists
+ * a null-island (0, 0) point; the address is optional. Coordinates are read
+ * directly (not via {@link z.coerce}, which would turn an empty string into 0).
+ *
+ * @param formData - The submitted form data.
+ * @returns The place columns, all null when no valid place was provided.
+ */
+function parsePlace(formData: FormData): PinPlaceColumns {
+  const empty: PinPlaceColumns = { placeName: null, placeAddress: null, lat: null, lng: null };
+  const name = (formData.get("placeName")?.toString() ?? "").trim();
+  const lat = Number(formData.get("lat")?.toString() ?? "");
+  const lng = Number(formData.get("lng")?.toString() ?? "");
+  if (name === "" || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return empty;
+  }
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    return empty;
+  }
+  const address = (formData.get("placeAddress")?.toString() ?? "").trim();
+  return {
+    placeName: name.slice(0, 200),
+    placeAddress: address === "" ? null : address.slice(0, 500),
+    lat,
+    lng,
+  };
+}
+
 const createPinSchema = z.object({
   title: z.string().trim().min(1, "A title is required.").max(120),
   description: z.string().trim().max(2000).optional(),
@@ -93,6 +132,7 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
   const buffer = Buffer.from(await file.arrayBuffer());
   const stored = await getStorage().put(buffer, { filename: file.name, contentType: file.type });
 
+  const place = parsePlace(formData);
   const pin = await prisma.pin.create({
     data: {
       title: parsed.data.title,
@@ -102,6 +142,10 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
           ? null
           : parsed.data.altText,
       link: parsed.data.link === "" ? null : parsed.data.link,
+      placeName: place.placeName,
+      placeAddress: place.placeAddress,
+      lat: place.lat,
+      lng: place.lng,
       imageUrl: stored.url,
       width: parsed.data.width,
       height: parsed.data.height,

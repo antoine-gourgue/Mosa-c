@@ -116,6 +116,54 @@ describe("createPin", () => {
       }),
     );
   });
+
+  it("attaches a place when a name and coordinates are provided", async () => {
+    db.board.findFirst.mockResolvedValue({ id: "b1", isDefault: false });
+    await createPin(
+      pinForm({
+        placeName: "Café de Flore",
+        placeAddress: "172 Bd Saint-Germain, Paris",
+        lat: "48.854",
+        lng: "2.333",
+      }),
+    );
+    expect(db.pin.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          placeName: "Café de Flore",
+          placeAddress: "172 Bd Saint-Germain, Paris",
+          lat: 48.854,
+          lng: 2.333,
+        }),
+      }),
+    );
+  });
+
+  it("stores a null place when no place fields are provided", async () => {
+    db.board.findFirst.mockResolvedValue({ id: "b1", isDefault: false });
+    await createPin(pinForm());
+    expect(db.pin.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ placeName: null, lat: null, lng: null }),
+      }),
+    );
+  });
+
+  it("drops a place that has coordinates but no name", async () => {
+    db.board.findFirst.mockResolvedValue({ id: "b1", isDefault: false });
+    await createPin(pinForm({ placeName: "  ", lat: "48.8", lng: "2.3" }));
+    expect(db.pin.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ placeName: null, lat: null }) }),
+    );
+  });
+
+  it("drops a place with out-of-range coordinates", async () => {
+    db.board.findFirst.mockResolvedValue({ id: "b1", isDefault: false });
+    await createPin(pinForm({ placeName: "Nowhere", lat: "200", lng: "2.3" }));
+    expect(db.pin.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ placeName: null, lat: null }) }),
+    );
+  });
 });
 
 describe("deletePin", () => {

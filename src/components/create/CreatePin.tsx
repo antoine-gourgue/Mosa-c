@@ -9,8 +9,10 @@ import { cn } from "@/lib/cn";
 import { compressImage } from "@/lib/image";
 import { analyzePinImage } from "@/server/actions/ai";
 import { createPin } from "@/server/actions/pins";
+import type { PinPlace } from "@/types/domain";
 import { BoardPicker } from "./BoardPicker";
 import type { BoardOption } from "./BoardPicker";
+import { PlacePicker } from "./PlacePicker";
 import { TagsInput } from "./TagsInput";
 import { UploadDropzone } from "./UploadDropzone";
 import type { SelectedImage } from "./UploadDropzone";
@@ -84,6 +86,7 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [link, setLink] = useState("");
+  const [place, setPlace] = useState<PinPlace | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [altText, setAltText] = useState<string | null>(null);
   const [suggesting, setSuggesting] = useState(false);
@@ -144,6 +147,10 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
         formData.set("description", description);
         formData.set("altText", altText ?? "");
         formData.set("link", link);
+        formData.set("placeName", place?.name ?? "");
+        formData.set("placeAddress", place?.address ?? "");
+        formData.set("lat", place !== null ? String(place.lat) : "");
+        formData.set("lng", place !== null ? String(place.lng) : "");
         formData.set("tags", tags.join(","));
         formData.set("board", board);
         formData.set("width", String(upload.width));
@@ -198,6 +205,8 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
               className={CONTROL_CLASS}
             />
           </Field>
+
+          <PlacePicker value={place} onChange={setPlace} />
 
           <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
