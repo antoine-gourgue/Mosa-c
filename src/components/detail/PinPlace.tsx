@@ -70,9 +70,9 @@ export function PinPlace({ place }: PinPlaceProps): ReactElement {
       <div className="flex items-start gap-2">
         <MapPinIcon size={18} className="mt-0.5 shrink-0 text-accent" />
         <div className="min-w-0">
-          <p className="text-[15px] font-medium text-ink">{place.name}</p>
+          <p className="truncate text-[15px] font-medium text-ink">{place.name}</p>
           {place.address !== null ? (
-            <p className="text-[13px] leading-snug text-ink-soft">{place.address}</p>
+            <p className="line-clamp-2 text-[13px] leading-snug text-ink-soft">{place.address}</p>
           ) : null}
           {place.approximate ? (
             <p className="text-[12px] text-ink-faint">{t("approximateNote")}</p>
