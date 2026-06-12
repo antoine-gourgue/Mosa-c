@@ -1,6 +1,7 @@
 import type { PinOrderByWithRelationInput, PinWhereInput } from "@/generated/prisma/models";
 import { haversineKm } from "@/lib/geo";
 import { prisma } from "@/lib/prisma";
+import { slugify } from "@/lib/slug";
 import type { Pin } from "@/types/domain";
 import { getFollowedBoardIds } from "./board-follows";
 import { getHiddenUserIds } from "./blocks";
@@ -642,4 +643,73 @@ export async function getNearbyPins(
     .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, NEARBY_LIMIT)
     .map((entry) => toPin(entry.row));
+}
+
+/**
+ * A place page's display name and the pins tagged there.
+ */
+export type PlacePins = {
+  name: string;
+  pins: Pin[];
+};
+
+/**
+ * Loads the pins for a public place page, grouped by the slug of their place
+ * name. Pins from accounts the viewer cannot see are excluded, and approximate
+ * pins surface at their stored (fuzzed) coordinates. Returns null when no
+ * visible pin matches the slug.
+ *
+ * @param slug - The slugified place name.
+ * @param viewerId - The current viewer id, or null when signed out.
+ * @returns The place's display name and pins, or null when none match.
+ */
+export async function getPinsByPlaceSlug(
+  slug: string,
+  viewerId: string | null = null,
+): Promise<PlacePins | null> {
+  const hidden = await getFeedExcludedUserIds(viewerId);
+  const rows = await prisma.pin.findMany({
+    where: {
+      placeName: { not: null },
+      ...(hidden.length > 0 ? { creatorId: { notIn: hidden } } : {}),
+    },
+    include: PIN_INCLUDE,
+    orderBy: { createdAt: "desc" },
+  });
+  const pins = rows
+    .map(toPin)
+    .filter((pin) => pin.place !== null && slugify(pin.place.name) === slug);
+  if (pins.length === 0) {
+    return null;
+  }
+  return { name: pins[0]?.place?.name ?? slug, pins };
+}
+
+/**
+ * Lists the distinct place slugs that have at least one publicly visible pin,
+ * for the sitemap. Private accounts are excluded so unindexable places are not
+ * advertised.
+ *
+ * @returns The unique place slugs.
+ */
+export async function getPlaceSlugs(): Promise<string[]> {
+  const hidden = await getFeedExcludedUserIds(null);
+  const rows = await prisma.pin.findMany({
+    where: {
+      placeName: { not: null },
+      ...(hidden.length > 0 ? { creatorId: { notIn: hidden } } : {}),
+    },
+    select: { placeName: true },
+    take: 5000,
+  });
+  const slugs = new Set<string>();
+  for (const row of rows) {
+    if (row.placeName !== null) {
+      const slug = slugify(row.placeName);
+      if (slug !== "") {
+        slugs.add(slug);
+      }
+    }
+  }
+  return [...slugs];
 }
