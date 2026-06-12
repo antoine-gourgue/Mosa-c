@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import { useEffect, useRef } from "react";
 import type { ReactElement } from "react";
+import { Logo } from "@/icons";
 
 /**
  * A geotagged pin reduced to what a places map needs.
@@ -43,11 +44,18 @@ export function PlacesMap({ pins }: PlacesMapProps): ReactElement {
     }
     let map: import("leaflet").Map | null = null;
     let cancelled = false;
-    void Promise.all([import("leaflet"), import("leaflet.markercluster")]).then(([L]) => {
+    void import("leaflet").then(async (leaflet) => {
+      if (cancelled || containerRef.current === null) {
+        return;
+      }
+      const L = Object.assign({}, leaflet) as typeof leaflet;
+      (globalThis as unknown as { L: typeof L }).L = L;
+      await import("leaflet.markercluster");
       if (cancelled || containerRef.current === null) {
         return;
       }
       map = L.map(node, { scrollWheelZoom: true });
+      map.attributionControl.setPrefix(false);
       L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
         attribution: "&copy; OpenStreetMap &copy; CARTO",
         subdomains: "abcd",
@@ -158,5 +166,12 @@ export function PlacesMap({ pins }: PlacesMapProps): ReactElement {
     };
   }, [pins]);
 
-  return <div ref={containerRef} className="z-0 h-full w-full" />;
+  return (
+    <div className="relative h-full w-full">
+      <div ref={containerRef} className="z-0 h-full w-full" />
+      <div className="pointer-events-none absolute bottom-2.5 left-2.5 z-[500] text-ink/45">
+        <Logo size={22} />
+      </div>
+    </div>
+  );
 }

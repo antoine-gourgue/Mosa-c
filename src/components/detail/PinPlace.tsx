@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import type { ReactElement } from "react";
-import { MapPinIcon } from "@/icons";
+import { Logo, MapPinIcon } from "@/icons";
 import type { PinPlace as Place } from "@/types/domain";
 
 /**
@@ -43,6 +43,7 @@ export function PinPlace({ place }: PinPlaceProps): ReactElement {
         zoomControl: true,
         scrollWheelZoom: false,
       }).setView([place.lat, place.lng], 14);
+      map.attributionControl.setPrefix(false);
       L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
         attribution: "&copy; OpenStreetMap &copy; CARTO",
         subdomains: "abcd",
@@ -80,12 +81,17 @@ export function PinPlace({ place }: PinPlaceProps): ReactElement {
           ) : null}
         </div>
       </div>
-      <div
-        ref={containerRef}
-        role="img"
-        aria-label={place.name}
-        className="z-0 h-44 w-full overflow-hidden rounded-2xl border border-line bg-surface"
-      />
+      <div className="relative">
+        <div
+          ref={containerRef}
+          role="img"
+          aria-label={place.name}
+          className="z-0 h-44 w-full overflow-hidden rounded-2xl border border-line bg-surface"
+        />
+        <div className="pointer-events-none absolute bottom-2 left-2 z-[500] text-ink/45">
+          <Logo size={18} />
+        </div>
+      </div>
       <a
         href={directionsUrl}
         target="_blank"
