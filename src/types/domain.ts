@@ -94,6 +94,7 @@ export type PinPlace = {
   address: string | null;
   lat: number;
   lng: number;
+  approximate: boolean;
 };
 
 /**

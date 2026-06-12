@@ -64,6 +64,7 @@ describe("toPin", () => {
     placeAddress: null,
     lat: null,
     lng: null,
+    placeApproximate: false,
     downloadCount: 7,
     creator: creatorRow,
     tags: [{ tag: { id: "t1", slug: "art", name: "Art" } }],
@@ -100,7 +101,20 @@ describe("toPin", () => {
       address: "172 Bd Saint-Germain, Paris",
       lat: 48.854,
       lng: 2.333,
+      approximate: false,
     });
+  });
+
+  it("carries the approximate flag through to the place", () => {
+    const pin = toPin({
+      ...pinRow,
+      placeName: "Paris",
+      placeAddress: null,
+      lat: 48.85,
+      lng: 2.35,
+      placeApproximate: true,
+    });
+    expect(pin.place?.approximate).toBe(true);
   });
 
   it("treats a place with a name but missing coordinates as no place", () => {

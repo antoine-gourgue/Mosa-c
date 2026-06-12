@@ -41,6 +41,13 @@ const db = prisma as unknown as {
   boardPin: { upsert: Mock };
 };
 
+type PlaceData = {
+  lat: number | null;
+  lng: number | null;
+  placeAddress: string | null;
+  placeApproximate: boolean;
+};
+
 const imageFile = () => new File(["x"], "a.png", { type: "image/png" });
 
 const pinForm = (over: Record<string, string> = {}): FormData => {
@@ -164,6 +171,25 @@ describe("createPin", () => {
       expect.objectContaining({ data: expect.objectContaining({ placeName: null, lat: null }) }),
     );
   });
+
+  it("fuzzes the coordinates and drops the address for an approximate place", async () => {
+    db.board.findFirst.mockResolvedValue({ id: "b1", isDefault: false });
+    await createPin(
+      pinForm({
+        placeName: "Home",
+        placeAddress: "1 Secret Street",
+        lat: "48.8000",
+        lng: "2.3000",
+        placeApproximate: "true",
+      }),
+    );
+    const data = (db.pin.create.mock.calls[0]?.[0] as { data: PlaceData }).data;
+    expect(data.placeApproximate).toBe(true);
+    expect(data.placeAddress).toBeNull();
+    expect(data.lat).not.toBe(48.8);
+    expect(Math.abs((data.lat ?? 0) - 48.8)).toBeLessThan(0.02);
+    expect(Math.abs((data.lng ?? 0) - 2.3)).toBeLessThan(0.05);
+  });
 });
 
 describe("deletePin", () => {
@@ -229,6 +255,7 @@ describe("updatePin", () => {
         placeAddress: null,
         lat: null,
         lng: null,
+        placeApproximate: false,
       },
     });
     expect(db.pinTag.deleteMany).toHaveBeenCalledWith({ where: { pinId: "p1" } });
@@ -266,5 +293,38 @@ describe("updatePin", () => {
         data: expect.objectContaining({ placeName: null, lat: null, lng: null }),
       }),
     );
+  });
+
+  it("does not re-fuzz an unchanged approximate place on save", async () => {
+    db.pin.findUnique.mockResolvedValue({
+      creatorId: "u1",
+      lat: 10.5,
+      lng: 20.5,
+      placeApproximate: true,
+    });
+    await updatePin(
+      "p1",
+      editForm({ placeName: "Home", lat: "10.5", lng: "20.5", placeApproximate: "true" }),
+    );
+    const data = (db.pin.update.mock.calls[0]?.[0] as { data: PlaceData }).data;
+    expect(data.lat).toBe(10.5);
+    expect(data.lng).toBe(20.5);
+    expect(data.placeApproximate).toBe(true);
+  });
+
+  it("fuzzes a place that just became approximate on save", async () => {
+    db.pin.findUnique.mockResolvedValue({
+      creatorId: "u1",
+      lat: null,
+      lng: null,
+      placeApproximate: false,
+    });
+    await updatePin(
+      "p1",
+      editForm({ placeName: "Home", lat: "10.5", lng: "20.5", placeApproximate: "true" }),
+    );
+    const data = (db.pin.update.mock.calls[0]?.[0] as { data: PlaceData }).data;
+    expect(data.lat).not.toBe(10.5);
+    expect(data.placeApproximate).toBe(true);
   });
 });

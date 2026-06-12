@@ -275,12 +275,15 @@
     "reportReceived": "Signalement reçu",
     "reportThanks": "Merci de nous aider à garder Mosaic sûr.",
     "reportFailed": "Impossible de signaler ce commentaire",
-    "directions": "Itinéraire"
+    "directions": "Itinéraire",
+    "approximateNote": "Lieu approximatif"
   },
   "create": {
     "add": "Ajouter",
     "addImage": "Veuillez ajouter une image.",
     "allBoards": "Tous les tableaux",
+    "approximate": "Lieu approximatif",
+    "approximateHint": "Floute le point exact à ~1 km et masque la rue",
     "boardNamePlaceholder": "Comme « Lieux à visiter » ou « Recettes à essayer »",
     "cancel": "Annuler",
     "chooseBoard": "Choisir un tableau",

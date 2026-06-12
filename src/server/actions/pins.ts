@@ -55,7 +55,50 @@ type PinPlaceColumns = {
   placeAddress: string | null;
   lat: number | null;
   lng: number | null;
+  placeApproximate: boolean;
 };
+
+/**
+ * The raw place a user submitted, with exact coordinates and their privacy
+ * intent, before any approximation is applied.
+ */
+type ParsedPlace = {
+  placeName: string | null;
+  placeAddress: string | null;
+  lat: number | null;
+  lng: number | null;
+  approximate: boolean;
+};
+
+/**
+ * The existing pin's place, used to avoid re-fuzzing an unchanged approximate
+ * location on every save.
+ */
+type ExistingPlace = { lat: number | null; lng: number | null; placeApproximate: boolean };
+
+/**
+ * Roughly one kilometre expressed in degrees of latitude.
+ */
+const FUZZ_DEGREES = 0.009;
+
+/**
+ * Offsets a coordinate by a random vector of up to ~1 km, scaling the longitude
+ * by latitude so the blur stays roughly circular. Used to hide a pin's exact
+ * spot when the creator marks its location approximate.
+ *
+ * @param lat - The exact latitude.
+ * @param lng - The exact longitude.
+ * @returns The fuzzed coordinates, rounded to 5 decimals.
+ */
+function fuzzCoords(lat: number, lng: number): { lat: number; lng: number } {
+  const dLat = (Math.random() * 2 - 1) * FUZZ_DEGREES;
+  const scale = Math.max(Math.cos((lat * Math.PI) / 180), 0.01);
+  const dLng = ((Math.random() * 2 - 1) * FUZZ_DEGREES) / scale;
+  return {
+    lat: Math.round((lat + dLat) * 1e5) / 1e5,
+    lng: Math.round((lng + dLng) * 1e5) / 1e5,
+  };
+}
 
 /**
  * Reads the optional place fields from the form. A place is only kept when it
@@ -64,10 +107,16 @@ type PinPlaceColumns = {
  * directly (not via {@link z.coerce}, which would turn an empty string into 0).
  *
  * @param formData - The submitted form data.
- * @returns The place columns, all null when no valid place was provided.
+ * @returns The raw place, all null when no valid place was provided.
  */
-function parsePlace(formData: FormData): PinPlaceColumns {
-  const empty: PinPlaceColumns = { placeName: null, placeAddress: null, lat: null, lng: null };
+function parsePlace(formData: FormData): ParsedPlace {
+  const empty: ParsedPlace = {
+    placeName: null,
+    placeAddress: null,
+    lat: null,
+    lng: null,
+    approximate: false,
+  };
   const name = (formData.get("placeName")?.toString() ?? "").trim();
   const lat = Number(formData.get("lat")?.toString() ?? "");
   const lng = Number(formData.get("lng")?.toString() ?? "");
@@ -83,6 +132,47 @@ function parsePlace(formData: FormData): PinPlaceColumns {
     placeAddress: address === "" ? null : address.slice(0, 500),
     lat,
     lng,
+    approximate: formData.get("placeApproximate")?.toString() === "true",
+  };
+}
+
+/**
+ * Resolves the place columns to persist. For an approximate location the street
+ * address is dropped and the coordinates are fuzzed to ~1 km, unless they are
+ * unchanged from an already-approximate pin (so editing other fields does not
+ * drift the point on every save).
+ *
+ * @param parsed - The raw submitted place.
+ * @param existing - The pin's current place, when editing.
+ * @returns The columns to write.
+ */
+function finalizePlace(parsed: ParsedPlace, existing?: ExistingPlace): PinPlaceColumns {
+  if (parsed.placeName === null || parsed.lat === null || parsed.lng === null) {
+    return { placeName: null, placeAddress: null, lat: null, lng: null, placeApproximate: false };
+  }
+  if (!parsed.approximate) {
+    return {
+      placeName: parsed.placeName,
+      placeAddress: parsed.placeAddress,
+      lat: parsed.lat,
+      lng: parsed.lng,
+      placeApproximate: false,
+    };
+  }
+  const unchanged =
+    existing !== undefined &&
+    existing.placeApproximate &&
+    existing.lat === parsed.lat &&
+    existing.lng === parsed.lng;
+  const coords = unchanged
+    ? { lat: parsed.lat, lng: parsed.lng }
+    : fuzzCoords(parsed.lat, parsed.lng);
+  return {
+    placeName: parsed.placeName,
+    placeAddress: null,
+    lat: coords.lat,
+    lng: coords.lng,
+    placeApproximate: true,
   };
 }
 
@@ -132,7 +222,7 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
   const buffer = Buffer.from(await file.arrayBuffer());
   const stored = await getStorage().put(buffer, { filename: file.name, contentType: file.type });
 
-  const place = parsePlace(formData);
+  const place = finalizePlace(parsePlace(formData));
   const pin = await prisma.pin.create({
     data: {
       title: parsed.data.title,
@@ -146,6 +236,7 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
       placeAddress: place.placeAddress,
       lat: place.lat,
       lng: place.lng,
+      placeApproximate: place.placeApproximate,
       imageUrl: stored.url,
       width: parsed.data.width,
       height: parsed.data.height,
@@ -243,7 +334,10 @@ export async function updatePin(pinId: string, formData: FormData): Promise<Upda
   if (user === null) {
     return { ok: false, error: t("signedOut") };
   }
-  const pin = await prisma.pin.findUnique({ where: { id: pinId }, select: { creatorId: true } });
+  const pin = await prisma.pin.findUnique({
+    where: { id: pinId },
+    select: { creatorId: true, lat: true, lng: true, placeApproximate: true },
+  });
   if (pin === null) {
     return { ok: false, error: t("pinNotFound") };
   }
@@ -264,7 +358,11 @@ export async function updatePin(pinId: string, formData: FormData): Promise<Upda
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? t("checkForm") };
   }
-  const place = parsePlace(formData);
+  const place = finalizePlace(parsePlace(formData), {
+    lat: pin.lat,
+    lng: pin.lng,
+    placeApproximate: pin.placeApproximate,
+  });
   await prisma.pin.update({
     where: { id: pinId },
     data: {
@@ -275,6 +373,7 @@ export async function updatePin(pinId: string, formData: FormData): Promise<Upda
       placeAddress: place.placeAddress,
       lat: place.lat,
       lng: place.lng,
+      placeApproximate: place.placeApproximate,
     },
   });
   const tags = parseTagNames(formData.get("tags")?.toString() ?? "");

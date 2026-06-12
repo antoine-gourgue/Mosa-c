@@ -275,12 +275,15 @@
     "reportReceived": "Report received",
     "reportThanks": "Thanks for helping keep Mosaic safe.",
     "reportFailed": "Couldn’t report this comment",
-    "directions": "Get directions"
+    "directions": "Get directions",
+    "approximateNote": "Approximate location"
   },
   "create": {
     "add": "Add",
     "addImage": "Please add an image.",
     "allBoards": "All boards",
+    "approximate": "Approximate location",
+    "approximateHint": "Blurs the exact spot to about 1 km and hides the street",
     "boardNamePlaceholder": "Like “Places to Go” or “Recipes to Try”",
     "cancel": "Cancel",
     "chooseBoard": "Choose a board",

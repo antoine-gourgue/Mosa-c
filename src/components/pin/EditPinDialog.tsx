@@ -21,6 +21,7 @@ export type EditPinDialogProps = {
   initialLink: string;
   initialTags: string[];
   initialPlace: PinPlace | null;
+  initialApproximate: boolean;
   open: boolean;
   onClose: () => void;
 };
@@ -40,6 +41,7 @@ export function EditPinDialog({
   initialLink,
   initialTags,
   initialPlace,
+  initialApproximate,
   open,
   onClose,
 }: EditPinDialogProps): ReactElement | null {
@@ -50,6 +52,7 @@ export function EditPinDialog({
   const [link, setLink] = useState(initialLink);
   const [tags, setTags] = useState(initialTags);
   const [place, setPlace] = useState<PinPlace | null>(initialPlace);
+  const [placeApproximate, setPlaceApproximate] = useState(initialApproximate);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -81,6 +84,7 @@ export function EditPinDialog({
       formData.set("placeAddress", place?.address ?? "");
       formData.set("lat", place !== null ? String(place.lat) : "");
       formData.set("lng", place !== null ? String(place.lng) : "");
+      formData.set("placeApproximate", String(place !== null && placeApproximate));
       formData.set("tags", tags.join(","));
       const result = await updatePin(pinId, formData);
       if (result.ok) {
@@ -128,7 +132,17 @@ export function EditPinDialog({
             placeholder={t("linkPlaceholder")}
           />
           <TagsInput value={tags} onChange={setTags} />
-          <PlacePicker value={place} onChange={setPlace} />
+          <PlacePicker
+            value={place}
+            onChange={(next) => {
+              setPlace(next);
+              if (next === null) {
+                setPlaceApproximate(false);
+              }
+            }}
+            approximate={placeApproximate}
+            onApproximateChange={setPlaceApproximate}
+          />
         </div>
 
         {error !== null ? (

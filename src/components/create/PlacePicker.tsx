@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import { Spinner } from "@/components/ui";
+import { Spinner, Toggle } from "@/components/ui";
 import { CloseIcon, MapPinIcon } from "@/icons";
 import { searchPlaces } from "@/server/actions/places";
 import type { PlaceResult } from "@/server/services/places";
@@ -20,6 +20,8 @@ const MIN_QUERY = 3;
 export type PlacePickerProps = {
   value: PinPlace | null;
   onChange: (place: PinPlace | null) => void;
+  approximate: boolean;
+  onApproximateChange: (approximate: boolean) => void;
 };
 
 /**
@@ -31,7 +33,12 @@ export type PlacePickerProps = {
  * @param props - The current place and a change handler.
  * @returns The place picker element.
  */
-export function PlacePicker({ value, onChange }: PlacePickerProps): ReactElement {
+export function PlacePicker({
+  value,
+  onChange,
+  approximate,
+  onApproximateChange,
+}: PlacePickerProps): ReactElement {
   const t = useTranslations("create");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PlaceResult[]>([]);
@@ -69,7 +76,13 @@ export function PlacePicker({ value, onChange }: PlacePickerProps): ReactElement
   }, [query]);
 
   const select = (place: PlaceResult): void => {
-    onChange({ name: place.name, address: place.address, lat: place.lat, lng: place.lng });
+    onChange({
+      name: place.name,
+      address: place.address,
+      lat: place.lat,
+      lng: place.lng,
+      approximate,
+    });
     setQuery("");
     setResults([]);
     setOpen(false);
@@ -77,22 +90,31 @@ export function PlacePicker({ value, onChange }: PlacePickerProps): ReactElement
 
   if (value !== null) {
     return (
-      <div className="flex items-center gap-3 rounded-xl bg-surface px-4 py-2.5">
-        <MapPinIcon size={18} className="shrink-0 text-accent" />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-[15px] text-ink">{value.name}</span>
-          {value.address !== null ? (
-            <span className="block truncate text-[13px] text-ink-soft">{value.address}</span>
-          ) : null}
-        </span>
-        <button
-          type="button"
-          onClick={() => onChange(null)}
-          aria-label={t("removePlace")}
-          className="grid size-7 shrink-0 place-items-center rounded-full text-ink-soft transition-colors hover:bg-surface-2 hover:text-ink"
-        >
-          <CloseIcon size={16} />
-        </button>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-3 rounded-xl bg-surface px-4 py-2.5">
+          <MapPinIcon size={18} className="shrink-0 text-accent" />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[15px] text-ink">{value.name}</span>
+            {value.address !== null ? (
+              <span className="block truncate text-[13px] text-ink-soft">{value.address}</span>
+            ) : null}
+          </span>
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            aria-label={t("removePlace")}
+            className="grid size-7 shrink-0 place-items-center rounded-xl text-ink-soft transition-colors hover:bg-surface-2 hover:text-ink"
+          >
+            <CloseIcon size={16} />
+          </button>
+        </div>
+        <label className="flex items-center justify-between gap-3 px-1">
+          <span className="min-w-0">
+            <span className="block text-[14px] font-medium text-ink">{t("approximate")}</span>
+            <span className="block text-[12px] text-ink-soft">{t("approximateHint")}</span>
+          </span>
+          <Toggle checked={approximate} onChange={onApproximateChange} label={t("approximate")} />
+        </label>
       </div>
     );
   }

@@ -39,6 +39,7 @@ export type PinRow = {
   placeAddress: string | null;
   lat: number | null;
   lng: number | null;
+  placeApproximate: boolean;
   downloadCount: number;
   creator: CreatorRow;
   tags: { tag: TagRow }[];
@@ -107,7 +108,13 @@ function toPlace(row: PinRow): PinPlace | null {
   if (row.placeName === null || row.lat === null || row.lng === null) {
     return null;
   }
-  return { name: row.placeName, address: row.placeAddress, lat: row.lat, lng: row.lng };
+  return {
+    name: row.placeName,
+    address: row.placeAddress,
+    lat: row.lat,
+    lng: row.lng,
+    approximate: row.placeApproximate,
+  };
 }
 
 /**
