@@ -123,18 +123,17 @@
 }
 
 .leaflet-container .leaflet-popup-content-wrapper {
-  border-radius: 16px;
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
   box-shadow: var(--shadow-pop);
   padding: 6px;
 }
 
 .leaflet-container .leaflet-popup-content {
-  margin: 6px;
+  margin: 0;
 }
 
-.leaflet-container a.leaflet-popup-close-button {
-  width: 26px;
-  height: 26px;
-  padding: 5px 5px 0 0;
-  color: var(--color-ink-soft);
+/* Drop Leaflet's speech-bubble tail so the popup reads as a clean floating card. */
+.leaflet-container .leaflet-popup-tip-container {
+  display: none;
 }

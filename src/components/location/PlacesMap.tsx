@@ -1,6 +1,7 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import type { ReactElement } from "react";
 
@@ -34,6 +35,7 @@ export type PlacesMapProps = {
  */
 export function PlacesMap({ pins }: PlacesMapProps): ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const node = containerRef.current;
@@ -82,22 +84,26 @@ export function PlacesMap({ pins }: PlacesMapProps): ReactElement {
                 iconAnchor: [6, 6],
               });
         const marker = L.marker([first.lat, first.lng], { icon }).addTo(map);
-        const strip = document.createElement("div");
-        strip.className = "flex max-w-[200px] gap-1.5 overflow-x-auto";
-        for (const pin of group) {
-          const link = document.createElement("a");
-          link.href = `/pin/${pin.id}`;
-          link.title = pin.title;
-          link.className = "block shrink-0";
-          const img = document.createElement("img");
-          img.src = pin.imageUrl;
-          img.alt = pin.title;
-          img.loading = "lazy";
-          img.className = "size-14 rounded-lg object-cover";
-          link.append(img);
-          strip.append(link);
+        if (group.length === 1) {
+          marker.on("click", () => router.push(`/pin/${first.id}`));
+        } else {
+          const strip = document.createElement("div");
+          strip.className = "flex max-w-[212px] gap-2 overflow-x-auto p-0.5";
+          for (const pin of group) {
+            const link = document.createElement("a");
+            link.href = `/pin/${pin.id}`;
+            link.title = pin.title;
+            link.className = "block shrink-0 cursor-pointer";
+            const img = document.createElement("img");
+            img.src = pin.imageUrl;
+            img.alt = pin.title;
+            img.loading = "lazy";
+            img.className = "size-16 rounded-xl object-cover transition hover:opacity-80";
+            link.append(img);
+            strip.append(link);
+          }
+          marker.bindPopup(strip, { closeButton: false, offset: [0, -6] });
         }
-        marker.bindPopup(strip);
         points.push([first.lat, first.lng]);
       }
       if (points.length > 0) {
@@ -111,7 +117,7 @@ export function PlacesMap({ pins }: PlacesMapProps): ReactElement {
         map.remove();
       }
     };
-  }, [pins]);
+  }, [pins, router]);
 
   return <div ref={containerRef} className="z-0 h-full w-full" />;
 }
