@@ -2,9 +2,11 @@
 
 import "leaflet/dist/leaflet.css";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import type { ReactElement } from "react";
 import { Logo, MapPinIcon } from "@/icons";
+import { slugify } from "@/lib/slug";
 import type { PinPlace as Place } from "@/types/domain";
 
 /**
@@ -72,7 +74,12 @@ export function PinPlace({ place }: PinPlaceProps): ReactElement {
       <div className="flex items-start gap-2">
         <MapPinIcon size={18} className="mt-0.5 shrink-0 text-accent" />
         <div className="min-w-0">
-          <p className="truncate text-[15px] font-medium text-ink">{place.name}</p>
+          <Link
+            href={`/place/${slugify(place.name)}`}
+            className="block truncate text-[15px] font-medium text-ink hover:underline"
+          >
+            {place.name}
+          </Link>
           {place.address !== null ? (
             <p className="line-clamp-2 text-[13px] leading-snug text-ink-soft">{place.address}</p>
           ) : null}

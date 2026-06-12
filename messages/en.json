@@ -63,7 +63,8 @@
     "offline": "You’re offline",
     "pinNotFound": "Pin not found",
     "board": "Board",
-    "tagNotFound": "Tag not found"
+    "tagNotFound": "Tag not found",
+    "placeNotFound": "Place not found"
   },
   "ui": {
     "verified": "Verified",

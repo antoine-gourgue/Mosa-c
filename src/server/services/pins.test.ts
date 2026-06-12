@@ -32,7 +32,9 @@ import {
   getNearbyPins,
   getPinById,
   getPins,
+  getPinsByPlaceSlug,
   getPlacedPinsForUser,
+  getPlaceSlugs,
   getRelatedPins,
   rankForYou,
   searchPins,
@@ -373,5 +375,36 @@ describe("getNearbyPins", () => {
     ]);
     const pins = await getNearbyPins(null, 48.85, 2.35);
     expect(pins.map((p) => p.id)).toEqual(["near"]);
+  });
+});
+
+describe("getPinsByPlaceSlug", () => {
+  it("groups the visible pins whose place name slugifies to the slug", async () => {
+    db.pin.findMany.mockResolvedValue([
+      pinRow("a", { placeName: "Stade de France", lat: 48.9, lng: 2.3 }),
+      pinRow("b", { placeName: "Central Park", lat: 40.7, lng: -73.9 }),
+      pinRow("c", { placeName: "Stade de France", lat: 48.9, lng: 2.3 }),
+    ]);
+    const result = await getPinsByPlaceSlug("stade-de-france");
+    expect(result?.name).toBe("Stade de France");
+    expect(result?.pins.map((p) => p.id)).toEqual(["a", "c"]);
+  });
+
+  it("returns null when no pin matches the slug", async () => {
+    db.pin.findMany.mockResolvedValue([
+      pinRow("a", { placeName: "Central Park", lat: 40.7, lng: -73.9 }),
+    ]);
+    expect(await getPinsByPlaceSlug("nowhere")).toBeNull();
+  });
+});
+
+describe("getPlaceSlugs", () => {
+  it("returns the distinct slugs of places that have pins", async () => {
+    db.pin.findMany.mockResolvedValue([
+      { placeName: "Stade de France" },
+      { placeName: "Central Park" },
+      { placeName: "stade de france" },
+    ]);
+    expect((await getPlaceSlugs()).sort()).toEqual(["central-park", "stade-de-france"]);
   });
 });

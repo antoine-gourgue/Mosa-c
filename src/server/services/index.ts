@@ -7,9 +7,11 @@ export {
   getHomeFeed,
   getPlacedPinsForUser,
   getNearbyPins,
+  getPinsByPlaceSlug,
+  getPlaceSlugs,
   FEED_PAGE_SIZE,
 } from "./pins";
-export type { FeedPage, FeedSource, FeedSort, PlacedPin } from "./pins";
+export type { FeedPage, FeedSource, FeedSort, PlacedPin, PlacePins } from "./pins";
 export {
   getCreatorById,
   getSuggestedCreators,

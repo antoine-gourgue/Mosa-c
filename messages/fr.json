@@ -63,7 +63,8 @@
     "offline": "Vous êtes hors ligne",
     "pinNotFound": "Épingle introuvable",
     "board": "Tableau",
-    "tagNotFound": "Tag introuvable"
+    "tagNotFound": "Tag introuvable",
+    "placeNotFound": "Lieu introuvable"
   },
   "ui": {
     "verified": "Vérifié",
