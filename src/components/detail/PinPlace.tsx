@@ -74,6 +74,9 @@ export function PinPlace({ place }: PinPlaceProps): ReactElement {
           {place.address !== null ? (
             <p className="text-[13px] leading-snug text-ink-soft">{place.address}</p>
           ) : null}
+          {place.approximate ? (
+            <p className="text-[12px] text-ink-faint">{t("approximateNote")}</p>
+          ) : null}
         </div>
       </div>
       <div

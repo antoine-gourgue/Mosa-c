@@ -279,6 +279,7 @@ export function PinCard({
           initialLink={pin.link ?? ""}
           initialTags={pin.tags.map((tag) => tag.name)}
           initialPlace={pin.place}
+          initialApproximate={pin.place?.approximate ?? false}
           open={editOpen}
           onClose={() => setEditOpen(false)}
         />

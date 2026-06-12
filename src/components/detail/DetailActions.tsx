@@ -177,6 +177,7 @@ export function DetailActions({
           initialLink={link ?? ""}
           initialTags={tags}
           initialPlace={place}
+          initialApproximate={place?.approximate ?? false}
           open={editOpen}
           onClose={() => setEditOpen(false)}
         />

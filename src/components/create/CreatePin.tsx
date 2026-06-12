@@ -87,6 +87,7 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
   const [description, setDescription] = useState("");
   const [link, setLink] = useState("");
   const [place, setPlace] = useState<PinPlace | null>(null);
+  const [placeApproximate, setPlaceApproximate] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [altText, setAltText] = useState<string | null>(null);
   const [suggesting, setSuggesting] = useState(false);
@@ -151,6 +152,7 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
         formData.set("placeAddress", place?.address ?? "");
         formData.set("lat", place !== null ? String(place.lat) : "");
         formData.set("lng", place !== null ? String(place.lng) : "");
+        formData.set("placeApproximate", String(place !== null && placeApproximate));
         formData.set("tags", tags.join(","));
         formData.set("board", board);
         formData.set("width", String(upload.width));
@@ -206,7 +208,17 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
             />
           </Field>
 
-          <PlacePicker value={place} onChange={setPlace} />
+          <PlacePicker
+            value={place}
+            onChange={(next) => {
+              setPlace(next);
+              if (next === null) {
+                setPlaceApproximate(false);
+              }
+            }}
+            approximate={placeApproximate}
+            onApproximateChange={setPlaceApproximate}
+          />
 
           <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
