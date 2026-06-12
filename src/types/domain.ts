@@ -77,11 +77,23 @@ export type Pin = {
   width: number;
   height: number;
   link: string | null;
+  place: PinPlace | null;
   creator: Creator;
   tags: Tag[];
   likeCount: number;
   commentCount: number;
   downloadCount: number;
+};
+
+/**
+ * A geotagged place attached to a pin: a human-readable label, an optional
+ * formatted address, and the coordinates used to render it on a map.
+ */
+export type PinPlace = {
+  name: string;
+  address: string | null;
+  lat: number;
+  lng: number;
 };
 
 /**

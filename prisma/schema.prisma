@@ -234,6 +234,10 @@ model Pin {
   width         Int
   height        Int
   link          String?
+  placeName     String?
+  placeAddress  String?
+  lat           Float?
+  lng           Float?
   downloadCount Int      @default(0)
   createdAt     DateTime @default(now())
 
