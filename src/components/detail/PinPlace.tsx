@@ -50,8 +50,8 @@ export function PinPlace({ place }: PinPlaceProps): ReactElement {
       }).addTo(map);
       const icon = L.divIcon({
         className: "rounded-full bg-accent shadow ring-2 ring-bg",
-        iconSize: [14, 14],
-        iconAnchor: [7, 7],
+        iconSize: [12, 12],
+        iconAnchor: [6, 6],
       });
       L.marker([place.lat, place.lng], { icon, keyboard: false }).addTo(map);
       setTimeout(() => map?.invalidateSize(), 0);
