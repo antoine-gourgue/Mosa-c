@@ -1,31 +1,38 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ReactElement } from "react";
 import { IconButton } from "@/components/ui";
 import { CloseIcon, MapPinIcon } from "@/icons";
-import { BoardMap } from "./BoardMap";
-import type { BoardMapPin } from "./BoardMap";
+import { PlacesMap } from "./PlacesMap";
+import type { PlacesMapPin } from "./PlacesMap";
 
 /**
- * Props for the {@link BoardMapButton} component.
+ * Props for the {@link PlacesMapButton} component.
  */
-export type BoardMapButtonProps = {
-  pins: BoardMapPin[];
+export type PlacesMapButtonProps = {
+  pins: PlacesMapPin[];
+  label: string;
+  heading: string;
+  closeLabel: string;
 };
 
 /**
- * A "Map" button that opens a full-screen modal plotting the board's geotagged
- * pins on a {@link BoardMap}. Closes on Escape or backdrop click. The caller only
- * renders it when the board has at least one geotagged pin.
+ * An icon button that opens a full-screen modal plotting a set of geotagged
+ * pins on a {@link PlacesMap}. Labels are passed in so the same control serves
+ * boards and profiles. Closes on Escape or backdrop click. The caller only
+ * renders it when there is at least one geotagged pin.
  *
- * @param props - The board's geotagged pins.
+ * @param props - The pins to plot and the localized labels.
  * @returns The button (and modal when open).
  */
-export function BoardMapButton({ pins }: BoardMapButtonProps): ReactElement {
-  const t = useTranslations("board");
+export function PlacesMapButton({
+  pins,
+  label,
+  heading,
+  closeLabel,
+}: PlacesMapButtonProps): ReactElement {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -43,7 +50,7 @@ export function BoardMapButton({ pins }: BoardMapButtonProps): ReactElement {
 
   return (
     <>
-      <IconButton label={t("map")} tone="ghost" onClick={() => setOpen(true)}>
+      <IconButton label={label} tone="ghost" onClick={() => setOpen(true)}>
         <MapPinIcon size={18} />
       </IconButton>
 
@@ -56,15 +63,15 @@ export function BoardMapButton({ pins }: BoardMapButtonProps): ReactElement {
               <div
                 role="dialog"
                 aria-modal="true"
-                aria-label={t("placesHeading")}
+                aria-label={heading}
                 onClick={(event) => event.stopPropagation()}
                 className="mx-auto flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-bg shadow-pop"
               >
                 <div className="flex items-center justify-between border-b border-line px-5 py-3">
-                  <h2 className="text-lg font-bold text-ink">{t("placesHeading")}</h2>
+                  <h2 className="text-lg font-bold text-ink">{heading}</h2>
                   <button
                     type="button"
-                    aria-label={t("closeMap")}
+                    aria-label={closeLabel}
                     onClick={() => setOpen(false)}
                     className="grid size-9 place-items-center rounded-xl text-ink-soft transition-colors hover:bg-surface hover:text-ink"
                   >
@@ -72,7 +79,7 @@ export function BoardMapButton({ pins }: BoardMapButtonProps): ReactElement {
                   </button>
                 </div>
                 <div className="min-h-0 flex-1">
-                  <BoardMap pins={pins} />
+                  <PlacesMap pins={pins} />
                 </div>
               </div>
             </div>,

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactElement } from "react";
 import { BoardsGrid } from "@/components/board";
+import { PlacesMapButton } from "@/components/location";
 import { PinFeed } from "@/components/pin";
 import { ProfileHeader, ProfileTabs } from "@/components/profile";
 import type { ProfileTab } from "@/components/profile";
@@ -18,6 +19,7 @@ import {
   getFollowState,
   getLikedPinIds,
   getLikedPins,
+  getPlacedPinsForUser,
   getSavedPinIds,
   getSavedPins,
   getUserBoardsWithCovers,
@@ -253,6 +255,10 @@ export default async function ProfilePage({
   const requestedTab = resolveTab(tab);
   const active = requestedTab === "liked" && !isOwnProfile ? "created" : requestedTab;
   const canViewContent = isOwnProfile || !user.isPrivate || followState === "following";
+  const [placedPins, tProfile] = await Promise.all([
+    canViewContent ? getPlacedPinsForUser(user.id) : Promise.resolve([]),
+    getTranslations("profile"),
+  ]);
 
   return (
     <div className="mx-auto max-w-[1180px]">
@@ -281,7 +287,19 @@ export default async function ProfilePage({
         <PrivateNotice />
       ) : (
         <>
-          <ProfileTabs username={username} active={active} isOwnProfile={isOwnProfile} />
+          <div className="relative">
+            <ProfileTabs username={username} active={active} isOwnProfile={isOwnProfile} />
+            {placedPins.length > 0 ? (
+              <div className="absolute right-1 top-1/2 -translate-y-1/2">
+                <PlacesMapButton
+                  pins={placedPins}
+                  label={tProfile("map")}
+                  heading={tProfile("placesHeading")}
+                  closeLabel={tProfile("closeMap")}
+                />
+              </div>
+            ) : null}
+          </div>
           <div className="mt-6">
             {active === "created" ? (
               <CreatedView

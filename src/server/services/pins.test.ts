@@ -31,6 +31,7 @@ import {
   getHomeFeed,
   getPinById,
   getPins,
+  getPlacedPinsForUser,
   getRelatedPins,
   rankForYou,
   searchPins,
@@ -290,5 +291,31 @@ describe("searchPins", () => {
     db.pin.findMany.mockResolvedValueOnce([pinRow("kw")]).mockResolvedValueOnce([pinRow("sem")]);
     db.pinEmbedding.findMany.mockResolvedValue([{ pinId: "sem", vector: [1, 0] }]);
     expect((await searchPins("bikes")).map((p) => p.id)).toEqual(["kw", "sem"]);
+  });
+});
+
+describe("getPlacedPinsForUser", () => {
+  it("queries only the user's geotagged pins and maps them", async () => {
+    db.pin.findMany.mockResolvedValue([
+      { id: "p1", lat: 48.85, lng: 2.35, title: "Paris", imageUrl: "/p1.png" },
+    ]);
+    const result = await getPlacedPinsForUser("u1");
+    expect(db.pin.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { creatorId: "u1", lat: { not: null }, lng: { not: null } },
+      }),
+    );
+    expect(result).toEqual([
+      { id: "p1", lat: 48.85, lng: 2.35, title: "Paris", imageUrl: "/p1.png" },
+    ]);
+  });
+
+  it("drops any row whose coordinates came back null", async () => {
+    db.pin.findMany.mockResolvedValue([
+      { id: "p1", lat: 48.85, lng: 2.35, title: "Paris", imageUrl: "/p1.png" },
+      { id: "p2", lat: null, lng: null, title: "Ghost", imageUrl: "/p2.png" },
+    ]);
+    const result = await getPlacedPinsForUser("u1");
+    expect(result.map((pin) => pin.id)).toEqual(["p1"]);
   });
 });

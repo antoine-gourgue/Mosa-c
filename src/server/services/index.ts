@@ -5,9 +5,10 @@ export {
   getCreatedPins,
   getRelatedPins,
   getHomeFeed,
+  getPlacedPinsForUser,
   FEED_PAGE_SIZE,
 } from "./pins";
-export type { FeedPage, FeedSource, FeedSort } from "./pins";
+export type { FeedPage, FeedSource, FeedSort, PlacedPin } from "./pins";
 export {
   getCreatorById,
   getSuggestedCreators,
