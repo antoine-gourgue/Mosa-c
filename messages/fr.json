@@ -371,7 +371,10 @@
     "secretHint": "Seuls vous et les collaborateurs peuvent le voir.",
     "usernamePlaceholder": "nom d’utilisateur",
     "viewer": "Lecteur",
-    "yourBoards": "Vos tableaux"
+    "yourBoards": "Vos tableaux",
+    "map": "Carte",
+    "placesHeading": "Lieux de ce tableau",
+    "closeMap": "Fermer la carte"
   },
   "pin": {
     "linkCopied": "Lien copié",

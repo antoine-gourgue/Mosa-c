@@ -371,7 +371,10 @@
     "secretHint": "Only you and collaborators can see it.",
     "usernamePlaceholder": "username",
     "viewer": "Viewer",
-    "yourBoards": "Your boards"
+    "yourBoards": "Your boards",
+    "map": "Map",
+    "placesHeading": "Places on this board",
+    "closeMap": "Close map"
   },
   "pin": {
     "linkCopied": "Link copied",

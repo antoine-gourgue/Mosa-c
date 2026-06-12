@@ -13,3 +13,5 @@ export { BoardHeader } from "./BoardHeader";
 export type { BoardHeaderProps } from "./BoardHeader";
 export { BoardFollowButton } from "./BoardFollowButton";
 export type { BoardFollowButtonProps } from "./BoardFollowButton";
+export { BoardMapButton } from "./BoardMapButton";
+export type { BoardMapButtonProps } from "./BoardMapButton";

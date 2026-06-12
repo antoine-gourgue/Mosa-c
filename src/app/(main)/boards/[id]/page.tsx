@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import type { ReactElement } from "react";
-import { BoardHeader } from "@/components/board";
+import { BoardHeader, BoardMapButton } from "@/components/board";
 import { PinFeed } from "@/components/pin";
 import { getCurrentUser } from "@/lib/auth";
 import {
@@ -57,10 +57,28 @@ export default async function BoardPage({
           isFollowingBoard(viewer.id, board.id),
         ]);
   const count = board.pins.length;
+  const placedPins = board.pins.flatMap((pin) =>
+    pin.place === null
+      ? []
+      : [
+          {
+            id: pin.id,
+            lat: pin.place.lat,
+            lng: pin.place.lng,
+            title: pin.title,
+            imageUrl: pin.imageUrl,
+          },
+        ],
+  );
 
   return (
     <div className="mx-auto max-w-[1180px]">
       <BoardHeader board={board} initialFollowing={following} isAuthed={viewer !== null} />
+      {placedPins.length > 0 ? (
+        <div className="mb-4 flex justify-end px-1">
+          <BoardMapButton pins={placedPins} />
+        </div>
+      ) : null}
       {count === 0 ? (
         <p className="py-16 text-center text-ink-soft">{tp("boardEmpty")}</p>
       ) : (
