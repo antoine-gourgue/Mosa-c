@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import type { ReactElement } from "react";
+import { PlacePicker } from "@/components/create/PlacePicker";
 import { TagsInput } from "@/components/create/TagsInput";
 import { Button, Input, Textarea } from "@/components/ui";
 import { updatePin } from "@/server/actions/pins";
+import type { PinPlace } from "@/types/domain";
 
 /**
  * Props for the {@link EditPinDialog} component.
@@ -18,6 +20,7 @@ export type EditPinDialogProps = {
   initialDescription: string;
   initialLink: string;
   initialTags: string[];
+  initialPlace: PinPlace | null;
   open: boolean;
   onClose: () => void;
 };
@@ -36,6 +39,7 @@ export function EditPinDialog({
   initialDescription,
   initialLink,
   initialTags,
+  initialPlace,
   open,
   onClose,
 }: EditPinDialogProps): ReactElement | null {
@@ -45,6 +49,7 @@ export function EditPinDialog({
   const [description, setDescription] = useState(initialDescription);
   const [link, setLink] = useState(initialLink);
   const [tags, setTags] = useState(initialTags);
+  const [place, setPlace] = useState<PinPlace | null>(initialPlace);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -72,6 +77,10 @@ export function EditPinDialog({
       formData.set("title", title);
       formData.set("description", description);
       formData.set("link", link);
+      formData.set("placeName", place?.name ?? "");
+      formData.set("placeAddress", place?.address ?? "");
+      formData.set("lat", place !== null ? String(place.lat) : "");
+      formData.set("lng", place !== null ? String(place.lng) : "");
       formData.set("tags", tags.join(","));
       const result = await updatePin(pinId, formData);
       if (result.ok) {
@@ -119,6 +128,7 @@ export function EditPinDialog({
             placeholder={t("linkPlaceholder")}
           />
           <TagsInput value={tags} onChange={setTags} />
+          <PlacePicker value={place} onChange={setPlace} />
         </div>
 
         {error !== null ? (

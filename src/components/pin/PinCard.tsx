@@ -278,6 +278,7 @@ export function PinCard({
           initialDescription={pin.description ?? ""}
           initialLink={pin.link ?? ""}
           initialTags={pin.tags.map((tag) => tag.name)}
+          initialPlace={pin.place}
           open={editOpen}
           onClose={() => setEditOpen(false)}
         />

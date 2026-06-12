@@ -264,12 +264,17 @@ export async function updatePin(pinId: string, formData: FormData): Promise<Upda
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? t("checkForm") };
   }
+  const place = parsePlace(formData);
   await prisma.pin.update({
     where: { id: pinId },
     data: {
       title: parsed.data.title,
       description: parsed.data.description ?? null,
       link: parsed.data.link === "" ? null : parsed.data.link,
+      placeName: place.placeName,
+      placeAddress: place.placeAddress,
+      lat: place.lat,
+      lng: place.lng,
     },
   });
   const tags = parseTagNames(formData.get("tags")?.toString() ?? "");
