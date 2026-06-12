@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.23.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.22.1...v1.23.0) (2026-06-12)
+
+
+### Features
+
+* **location:** add a place to a pin on create ([#404](https://github.com/antoine-gourgue/Mosa-c/issues/404)) ([bc08d37](https://github.com/antoine-gourgue/Mosa-c/commit/bc08d372ee5aed924fe87f26579b32ca1d1838c1))
+* **location:** add place fields to the Pin model ([#401](https://github.com/antoine-gourgue/Mosa-c/issues/401)) ([9f2f4ae](https://github.com/antoine-gourgue/Mosa-c/commit/9f2f4ae0b20058f29e42f18a47dc330035f4c1f1)), closes [#389](https://github.com/antoine-gourgue/Mosa-c/issues/389)
+* **location:** approximate a pin's location for privacy ([#410](https://github.com/antoine-gourgue/Mosa-c/issues/410)) ([bc285b1](https://github.com/antoine-gourgue/Mosa-c/commit/bc285b1f6ec2643e2125cb709eb68e085f5cb8e3))
+* **location:** discover pins near you ([#411](https://github.com/antoine-gourgue/Mosa-c/issues/411)) ([b740d4a](https://github.com/antoine-gourgue/Mosa-c/commit/b740d4ab127aa56d05d1f81b58169f69353236cc))
+* **location:** edit a pin's place ([#407](https://github.com/antoine-gourgue/Mosa-c/issues/407)) ([1b215ba](https://github.com/antoine-gourgue/Mosa-c/commit/1b215bac9f902df657ce8c4a1b66fd18ab3acda7)), closes [#392](https://github.com/antoine-gourgue/Mosa-c/issues/392)
+* **location:** map of pinned places on the profile ([#409](https://github.com/antoine-gourgue/Mosa-c/issues/409)) ([db54ef8](https://github.com/antoine-gourgue/Mosa-c/commit/db54ef84ad1ab015e4e1b3f21d37a6e3698da0ba)), closes [#398](https://github.com/antoine-gourgue/Mosa-c/issues/398)
+* **location:** map view of a board ([#408](https://github.com/antoine-gourgue/Mosa-c/issues/408)) ([dfd6ee2](https://github.com/antoine-gourgue/Mosa-c/commit/dfd6ee2e015e11935c1f81cc38d21a2486067c95))
+* **location:** place autocomplete over OpenStreetMap ([#403](https://github.com/antoine-gourgue/Mosa-c/issues/403)) ([4140123](https://github.com/antoine-gourgue/Mosa-c/commit/41401236deadb56620b77262c6acbc87a4670184)), closes [#390](https://github.com/antoine-gourgue/Mosa-c/issues/390)
+* **location:** show a pin's place on a map ([#405](https://github.com/antoine-gourgue/Mosa-c/issues/405)) ([b6e221f](https://github.com/antoine-gourgue/Mosa-c/commit/b6e221fccb44a7f63365992943f9ffbd10f10836)), closes [#393](https://github.com/antoine-gourgue/Mosa-c/issues/393)
+* **location:** show a place badge on pin cards ([#406](https://github.com/antoine-gourgue/Mosa-c/issues/406)) ([738454a](https://github.com/antoine-gourgue/Mosa-c/commit/738454aeba2d3f41f9403405dc889591d87e4b70)), closes [#394](https://github.com/antoine-gourgue/Mosa-c/issues/394)
+* **search:** match and rank pins by their place ([#412](https://github.com/antoine-gourgue/Mosa-c/issues/412)) ([7cf0a1d](https://github.com/antoine-gourgue/Mosa-c/commit/7cf0a1dc782edbaeb405e44ede87e6d4fa2760ae)), closes [#396](https://github.com/antoine-gourgue/Mosa-c/issues/396)
+* **seo:** public place pages ([#413](https://github.com/antoine-gourgue/Mosa-c/issues/413)) ([aeaaaa9](https://github.com/antoine-gourgue/Mosa-c/commit/aeaaaa9f9f061cdf80f6b08e0e72f06c6b1691bf)), closes [#399](https://github.com/antoine-gourgue/Mosa-c/issues/399)
+
 ## [1.22.1](https://github.com/antoine-gourgue/Mosa-c/compare/v1.22.0...v1.22.1) (2026-06-11)
 
 
