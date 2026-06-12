@@ -1,4 +1,5 @@
 import type { PinOrderByWithRelationInput, PinWhereInput } from "@/generated/prisma/models";
+import { haversineKm } from "@/lib/geo";
 import { prisma } from "@/lib/prisma";
 import type { Pin } from "@/types/domain";
 import { getFollowedBoardIds } from "./board-follows";
@@ -584,4 +585,54 @@ export async function getPlacedPinsForUser(userId: string): Promise<PlacedPin[]>
       ? []
       : [{ id: row.id, lat: row.lat, lng: row.lng, title: row.title, imageUrl: row.imageUrl }],
   );
+}
+
+/**
+ * Default search radius and result cap for the "near you" discovery view.
+ */
+const NEARBY_RADIUS_KM = 30;
+const NEARBY_LIMIT = 60;
+const KM_PER_DEGREE = 111;
+
+/**
+ * Finds geotagged pins near a coordinate, nearest first. A bounding box on
+ * lat/lng prefilters at the database, then the exact great-circle distance is
+ * computed in Node to drop the box corners and rank the results. Pins from
+ * accounts the viewer cannot see are excluded, and approximate pins are already
+ * stored fuzzed so their exact spot is never revealed here.
+ *
+ * @param viewerId - The current viewer id, or null when signed out.
+ * @param lat - The viewer's latitude.
+ * @param lng - The viewer's longitude.
+ * @param radiusKm - The search radius in kilometres.
+ * @returns The nearby pins, nearest first.
+ */
+export async function getNearbyPins(
+  viewerId: string | null,
+  lat: number,
+  lng: number,
+  radiusKm: number = NEARBY_RADIUS_KM,
+): Promise<Pin[]> {
+  const hidden = await getFeedExcludedUserIds(viewerId);
+  const latDelta = radiusKm / KM_PER_DEGREE;
+  const lngDelta = radiusKm / (KM_PER_DEGREE * Math.max(Math.cos((lat * Math.PI) / 180), 0.01));
+  const rows = await prisma.pin.findMany({
+    where: {
+      lat: { gte: lat - latDelta, lte: lat + latDelta },
+      lng: { gte: lng - lngDelta, lte: lng + lngDelta },
+      ...(hidden.length > 0 ? { creatorId: { notIn: hidden } } : {}),
+    },
+    include: PIN_INCLUDE,
+  });
+  return rows
+    .flatMap((row) => {
+      if (row.lat === null || row.lng === null) {
+        return [];
+      }
+      const distanceKm = haversineKm(lat, lng, row.lat, row.lng);
+      return distanceKm <= radiusKm ? [{ row, distanceKm }] : [];
+    })
+    .sort((a, b) => a.distanceKm - b.distanceKm)
+    .slice(0, NEARBY_LIMIT)
+    .map((entry) => toPin(entry.row));
 }

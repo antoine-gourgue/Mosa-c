@@ -5,3 +5,5 @@ export { SearchResults } from "./SearchResults";
 export type { SearchResultsProps } from "./SearchResults";
 export { SearchField } from "./SearchField";
 export type { SearchFieldProps } from "./SearchField";
+export { NearbyPins } from "./NearbyPins";
+export type { NearbyPinsProps } from "./NearbyPins";

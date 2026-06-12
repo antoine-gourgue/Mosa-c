@@ -430,7 +430,12 @@
     "label": "Rechercher",
     "ideasForYou": "Idées pour vous",
     "todaysInspiration": "Inspiration du jour",
-    "noResults": "Aucune idée ne correspond à « {query} »."
+    "noResults": "Aucune idée ne correspond à « {query} ».",
+    "nearby": "Près de vous",
+    "nearbyCta": "Voir les épingles près de vous",
+    "nearbyEmpty": "Aucune épingle à proximité pour l'instant.",
+    "nearbyDenied": "Autorise la localisation pour voir les épingles proches.",
+    "nearbyAgain": "Actualiser"
   },
   "gender": {
     "female": "Femme",
