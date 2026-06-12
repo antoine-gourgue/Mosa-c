@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ReactElement } from "react";
+import { Button } from "@/components/ui";
 import { CloseIcon, MapPinIcon } from "@/icons";
 import { BoardMap } from "./BoardMap";
 import type { BoardMapPin } from "./BoardMap";
@@ -42,14 +43,14 @@ export function BoardMapButton({ pins }: BoardMapButtonProps): ReactElement {
 
   return (
     <>
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="sm"
+        leftIcon={<MapPinIcon size={16} />}
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface"
       >
-        <MapPinIcon size={16} />
         {t("map")}
-      </button>
+      </Button>
 
       {open
         ? createPortal(
