@@ -321,6 +321,7 @@
     "removePlace": "Remove place",
     "removeTag": "Remove {tag}",
     "save": "Save",
+    "saveDraft": "Save as draft",
     "saveFromUrl": "Save from URL",
     "search": "Search",
     "searchBoards": "Search boards",

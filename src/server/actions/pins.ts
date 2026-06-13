@@ -219,6 +219,7 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Please check the form." };
   }
 
+  const isDraft = formData.get("status")?.toString() === "draft";
   const buffer = Buffer.from(await file.arrayBuffer());
   const stored = await getStorage().put(buffer, { filename: file.name, contentType: file.type });
 
@@ -237,6 +238,7 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
       lat: place.lat,
       lng: place.lng,
       placeApproximate: place.placeApproximate,
+      status: isDraft ? "DRAFT" : "PUBLISHED",
       imageUrl: stored.url,
       width: parsed.data.width,
       height: parsed.data.height,
@@ -255,6 +257,17 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
   }
 
   await embedPin(pin.id);
+
+  if (isDraft) {
+    const me = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { username: true },
+    });
+    revalidatePath("/");
+    return redirect(
+      me?.username !== null && me?.username !== undefined ? `/u/${me.username}?tab=drafts` : "/",
+    );
+  }
 
   const boardName = (formData.get("board")?.toString() ?? "").trim() || "Quick Saves";
   const board =

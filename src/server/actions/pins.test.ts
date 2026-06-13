@@ -21,6 +21,7 @@ vi.mock("@/lib/prisma", () => ({
     pinTag: { create: vi.fn(), deleteMany: vi.fn() },
     board: { findFirst: vi.fn(), create: vi.fn() },
     boardPin: { upsert: vi.fn() },
+    user: { findUnique: vi.fn() },
   },
 }));
 vi.mock("@/lib/storage", () => ({
@@ -39,6 +40,7 @@ const db = prisma as unknown as {
   pinTag: { create: Mock; deleteMany: Mock };
   board: { findFirst: Mock; create: Mock };
   boardPin: { upsert: Mock };
+  user: { findUnique: Mock };
 };
 
 type PlaceData = {
@@ -93,6 +95,24 @@ describe("createPin", () => {
     const fd = pinForm();
     fd.delete("title");
     expect((await createPin(fd)).ok).toBe(false);
+  });
+
+  it("saves a draft, skips the board and redirects to the drafts tab", async () => {
+    db.user.findUnique.mockResolvedValue({ username: "ada" });
+    await createPin(pinForm({ status: "draft" }));
+    expect(db.pin.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ status: "DRAFT" }) }),
+    );
+    expect(db.board.findFirst).not.toHaveBeenCalled();
+    expect(redirect).toHaveBeenCalledWith("/u/ada?tab=drafts");
+  });
+
+  it("publishes with status PUBLISHED by default", async () => {
+    db.board.findFirst.mockResolvedValue({ id: "b1", isDefault: false });
+    await createPin(pinForm());
+    expect(db.pin.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ status: "PUBLISHED" }) }),
+    );
   });
 
   it("creates the pin with tags into an existing board and redirects", async () => {

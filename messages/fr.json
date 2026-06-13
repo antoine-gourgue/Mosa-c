@@ -321,6 +321,7 @@
     "removePlace": "Retirer le lieu",
     "removeTag": "Retirer {tag}",
     "save": "Enregistrer",
+    "saveDraft": "Enregistrer comme brouillon",
     "saveFromUrl": "Enregistrer depuis une URL",
     "search": "Rechercher",
     "searchBoards": "Rechercher des tableaux",
