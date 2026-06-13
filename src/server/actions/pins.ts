@@ -219,7 +219,17 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Please check the form." };
   }
 
-  const isDraft = formData.get("status")?.toString() === "draft";
+  const intent = formData.get("status")?.toString();
+  const isDraft = intent === "draft";
+  const isScheduled = intent === "scheduled";
+  let publishAt: Date | null = null;
+  if (isScheduled) {
+    const when = new Date(formData.get("publishAt")?.toString() ?? "");
+    if (Number.isNaN(when.getTime()) || when.getTime() <= Date.now()) {
+      return { ok: false, error: await errorMessage("scheduleFuture") };
+    }
+    publishAt = when;
+  }
   const buffer = Buffer.from(await file.arrayBuffer());
   const stored = await getStorage().put(buffer, { filename: file.name, contentType: file.type });
 
@@ -238,7 +248,8 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
       lat: place.lat,
       lng: place.lng,
       placeApproximate: place.placeApproximate,
-      status: isDraft ? "DRAFT" : "PUBLISHED",
+      status: isDraft ? "DRAFT" : isScheduled ? "SCHEDULED" : "PUBLISHED",
+      publishAt,
       imageUrl: stored.url,
       width: parsed.data.width,
       height: parsed.data.height,
@@ -258,7 +269,7 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
 
   await embedPin(pin.id);
 
-  if (isDraft) {
+  if (isDraft || isScheduled) {
     const me = await prisma.user.findUnique({
       where: { id: user.id },
       select: { username: true },

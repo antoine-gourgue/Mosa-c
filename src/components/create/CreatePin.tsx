@@ -93,6 +93,10 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
   const [suggesting, setSuggesting] = useState(false);
   const [boardList, setBoardList] = useState(boards);
   const [board, setBoard] = useState(boards[0]?.name ?? "Quick Saves");
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [minScheduledAt] = useState(() =>
+    new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
+  );
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -124,7 +128,7 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
       .finally(() => setSuggesting(false));
   };
 
-  const submit = (status: "publish" | "draft"): void => {
+  const submit = (status: "publish" | "draft" | "scheduled"): void => {
     if (image === null) {
       setError(t("addImage"));
       return;
@@ -156,6 +160,7 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
         formData.set("tags", tags.join(","));
         formData.set("board", board);
         formData.set("status", status);
+        formData.set("publishAt", scheduledAt);
         formData.set("width", String(upload.width));
         formData.set("height", String(upload.height));
         formData.set("image", upload.file);
@@ -251,6 +256,16 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
             onCreated={(created) => setBoardList((prev) => [...prev, created])}
           />
 
+          <Field label={t("scheduleLabel")}>
+            <input
+              type="datetime-local"
+              value={scheduledAt}
+              min={minScheduledAt}
+              onChange={(event) => setScheduledAt(event.target.value)}
+              className={CONTROL_CLASS}
+            />
+          </Field>
+
           {error !== null ? (
             <p role="alert" className="text-sm font-medium text-accent">
               {error}
@@ -270,9 +285,9 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
               fullWidth
               loading={pending}
               disabled={!canPublish}
-              onClick={() => submit("publish")}
+              onClick={() => submit(scheduledAt !== "" ? "scheduled" : "publish")}
             >
-              {t("publish")}
+              {scheduledAt !== "" ? t("schedule") : t("publish")}
             </Button>
           </div>
         </div>
