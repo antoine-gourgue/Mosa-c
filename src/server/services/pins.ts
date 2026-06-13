@@ -535,6 +535,27 @@ export async function getCreatedPins(userId: string): Promise<Pin[]> {
 }
 
 /**
+ * Fetches the owner's unpublished pins for their drafts management view: every
+ * draft plus scheduled pins that are still upcoming. A scheduled pin that is
+ * already due counts as published and appears in the normal created tab, so it
+ * is excluded here. Newest first.
+ *
+ * @param userId - The owner's user id.
+ * @returns The owner's drafts and upcoming scheduled pins.
+ */
+export async function getDraftAndScheduledPins(userId: string): Promise<Pin[]> {
+  const rows = await prisma.pin.findMany({
+    where: {
+      creatorId: userId,
+      OR: [{ status: "DRAFT" }, { status: "SCHEDULED", publishAt: { gt: new Date() } }],
+    },
+    include: PIN_INCLUDE,
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map(toPin);
+}
+
+/**
  * Searches pins by title, tag name or creator name, case-insensitively,
  * ordered by the given sort.
  *

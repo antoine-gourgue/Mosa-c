@@ -28,6 +28,7 @@ import { aiAvailable, embed } from "@/lib/ai";
 import { prisma } from "@/lib/prisma";
 import {
   getCreatedPins,
+  getDraftAndScheduledPins,
   getHomeFeed,
   getNearbyPins,
   getPinById,
@@ -449,5 +450,20 @@ describe("getPlaceSlugs", () => {
       { placeName: "stade de france" },
     ]);
     expect((await getPlaceSlugs()).sort()).toEqual(["central-park", "stade-de-france"]);
+  });
+});
+
+describe("getDraftAndScheduledPins", () => {
+  it("queries the owner's drafts and upcoming scheduled pins", async () => {
+    db.pin.findMany.mockResolvedValue([]);
+    await getDraftAndScheduledPins("u1");
+    expect(db.pin.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          creatorId: "u1",
+          OR: [{ status: "DRAFT" }, { status: "SCHEDULED", publishAt: { gt: expect.any(Date) } }],
+        },
+      }),
+    );
   });
 });

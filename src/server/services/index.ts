@@ -3,6 +3,7 @@ export {
   getPinById,
   searchPins,
   getCreatedPins,
+  getDraftAndScheduledPins,
   getRelatedPins,
   getHomeFeed,
   getPlacedPinsForUser,
