@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.24.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.23.0...v1.24.0) (2026-06-13)
+
+
+### Features
+
+* **create:** save a pin as a draft ([#421](https://github.com/antoine-gourgue/Mosa-c/issues/421)) ([08a60b4](https://github.com/antoine-gourgue/Mosa-c/commit/08a60b4e5e7af81f288e1e560595aa943e0cd6e3)), closes [#416](https://github.com/antoine-gourgue/Mosa-c/issues/416)
+* **create:** schedule a pin for later ([#422](https://github.com/antoine-gourgue/Mosa-c/issues/422)) ([77140ef](https://github.com/antoine-gourgue/Mosa-c/commit/77140ef2090980823836cca2c0013f0fd626e141))
+* **pins:** publish status and scheduled time on the Pin model ([#419](https://github.com/antoine-gourgue/Mosa-c/issues/419)) ([4ea1b26](https://github.com/antoine-gourgue/Mosa-c/commit/4ea1b2686e7000cc5016d0018aca6769fac6ff3b)), closes [#415](https://github.com/antoine-gourgue/Mosa-c/issues/415)
+* **profile:** a drafts and scheduled management tab ([#423](https://github.com/antoine-gourgue/Mosa-c/issues/423)) ([5a29b58](https://github.com/antoine-gourgue/Mosa-c/commit/5a29b586c07247232b7b410698ee01d52ae3f612)), closes [#418](https://github.com/antoine-gourgue/Mosa-c/issues/418)
+
 ## [1.23.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.22.1...v1.23.0) (2026-06-12)
 
 
