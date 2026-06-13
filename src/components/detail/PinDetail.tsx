@@ -50,6 +50,12 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
   ]);
 
   const isOwner = user?.id === pin.creator.id;
+  const isPublic =
+    pin.status === "PUBLISHED" ||
+    (pin.status === "SCHEDULED" && pin.publishAt !== null && pin.publishAt <= new Date());
+  if (!isPublic && !isOwner) {
+    notFound();
+  }
   if (pin.creator.isPrivate && !isOwner && followState !== "following") {
     notFound();
   }

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { Pin, Tag, TagWithCount } from "@/types/domain";
 import { PIN_INCLUDE, toPin, toTag } from "./mappers";
+import { publishedPinWhere } from "./pins";
 
 /**
  * Fetches the most-used tags for the discovery grid, busiest first.
@@ -63,7 +64,7 @@ export async function getTagBySlug(slug: string): Promise<Tag | null> {
  */
 export async function getPinsByTag(slug: string): Promise<Pin[]> {
   const rows = await prisma.pin.findMany({
-    where: { tags: { some: { tag: { slug } } } },
+    where: { tags: { some: { tag: { slug } } }, ...publishedPinWhere() },
     include: PIN_INCLUDE,
     orderBy: { createdAt: "desc" },
   });

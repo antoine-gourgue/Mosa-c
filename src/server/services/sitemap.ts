@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { publishedPinWhere } from "./pins";
 
 /**
  * Public URLs to include in the sitemap.
@@ -16,6 +17,7 @@ export type SitemapEntries = {
 export async function getSitemapEntries(): Promise<SitemapEntries> {
   const [pins, profiles] = await Promise.all([
     prisma.pin.findMany({
+      where: publishedPinWhere(),
       select: { id: true, createdAt: true },
       orderBy: { createdAt: "desc" },
       take: 5000,

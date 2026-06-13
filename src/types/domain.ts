@@ -68,6 +68,12 @@ export type CreatorAnalytics = {
 /**
  * A pin with its creator and tags, as surfaced to the UI.
  */
+/**
+ * Publication state of a pin: a private draft, scheduled to go live at a future
+ * time, or publicly published.
+ */
+export type PinStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED";
+
 export type Pin = {
   id: string;
   title: string;
@@ -78,6 +84,8 @@ export type Pin = {
   height: number;
   link: string | null;
   place: PinPlace | null;
+  status: PinStatus;
+  publishAt: Date | null;
   creator: Creator;
   tags: Tag[];
   likeCount: number;

@@ -46,8 +46,23 @@ async function getFeedExcludedUserIds(viewerId: string | null): Promise<string[]
 }
 
 /**
+ * The visibility filter for every public pin surface: a pin shows once it is
+ * published, or scheduled with its publish time already passed. Drafts and
+ * not-yet-due scheduled pins are therefore hidden everywhere except their
+ * owner's management views.
+ *
+ * @returns The Prisma where fragment restricting to publicly visible pins.
+ */
+export function publishedPinWhere(): PinWhereInput {
+  return {
+    OR: [{ status: "PUBLISHED" }, { status: "SCHEDULED", publishAt: { lte: new Date() } }],
+  };
+}
+
+/**
  * Fetches all pins for the feed, newest first, excluding pins from users the
- * viewer cannot see (blocked either way, or private accounts they do not follow).
+ * viewer cannot see (blocked either way, or private accounts they do not follow)
+ * and any pin that is not yet publicly visible (draft or pending schedule).
  *
  * @param viewerId - The current viewer id, or null when signed out.
  * @returns The list of pins.
@@ -55,7 +70,10 @@ async function getFeedExcludedUserIds(viewerId: string | null): Promise<string[]
 export async function getPins(viewerId: string | null = null): Promise<Pin[]> {
   const hidden = await getFeedExcludedUserIds(viewerId);
   const rows = await prisma.pin.findMany({
-    where: hidden.length > 0 ? { creatorId: { notIn: hidden } } : {},
+    where: {
+      ...publishedPinWhere(),
+      ...(hidden.length > 0 ? { creatorId: { notIn: hidden } } : {}),
+    },
     include: PIN_INCLUDE,
     orderBy: { createdAt: "desc" },
   });
@@ -133,7 +151,7 @@ async function getFeedPins({
   hiddenIds,
   limit,
 }: FeedPinsParams): Promise<FeedPage> {
-  const filters: PinWhereInput[] = [];
+  const filters: PinWhereInput[] = [publishedPinWhere()];
   if (creatorIds !== null) {
     filters.push(
       boardIds.length > 0
@@ -345,7 +363,10 @@ async function getForYouFeed(params: {
   const [affinity, rows] = await Promise.all([
     viewerId === null ? Promise.resolve(emptyAffinity) : getForYouAffinity(viewerId),
     prisma.pin.findMany({
-      where: hiddenIds.length > 0 ? { creatorId: { notIn: hiddenIds } } : {},
+      where: {
+        ...publishedPinWhere(),
+        ...(hiddenIds.length > 0 ? { creatorId: { notIn: hiddenIds } } : {}),
+      },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: FOR_YOU_WINDOW,
       include: PIN_INCLUDE,
@@ -414,7 +435,10 @@ async function pinsByIds(ids: string[]): Promise<Pin[]> {
   if (ids.length === 0) {
     return [];
   }
-  const rows = await prisma.pin.findMany({ where: { id: { in: ids } }, include: PIN_INCLUDE });
+  const rows = await prisma.pin.findMany({
+    where: { id: { in: ids }, ...publishedPinWhere() },
+    include: PIN_INCLUDE,
+  });
   const byId = new Map(rows.map((row) => [row.id, row]));
   return ids
     .map((id) => byId.get(id))
@@ -470,6 +494,7 @@ export async function getRelatedPins(
               id: { notIn: [...exclude] },
               tags: { some: { tagId: { in: tagIds } } },
               ...hiddenWhere,
+              ...publishedPinWhere(),
             },
             include: PIN_INCLUDE,
             orderBy: { createdAt: "desc" },
@@ -485,7 +510,7 @@ export async function getRelatedPins(
       ? []
       : (
           await prisma.pin.findMany({
-            where: { id: { notIn: [...exclude] }, ...hiddenWhere },
+            where: { id: { notIn: [...exclude] }, ...hiddenWhere, ...publishedPinWhere() },
             include: PIN_INCLUDE,
             orderBy: { createdAt: "desc" },
             take: stillNeeded,
@@ -502,7 +527,7 @@ export async function getRelatedPins(
  */
 export async function getCreatedPins(userId: string): Promise<Pin[]> {
   const rows = await prisma.pin.findMany({
-    where: { creatorId: userId },
+    where: { creatorId: userId, ...publishedPinWhere() },
     include: PIN_INCLUDE,
     orderBy: { createdAt: "desc" },
   });
@@ -530,12 +555,17 @@ export async function searchPins(
   const hidden = await getFeedExcludedUserIds(viewerId);
   const rows = await prisma.pin.findMany({
     where: {
-      OR: [
-        { title: { contains: q, mode: "insensitive" } },
-        { tags: { some: { tag: { name: { contains: q, mode: "insensitive" } } } } },
-        { creator: { name: { contains: q, mode: "insensitive" } } },
-        { placeName: { contains: q, mode: "insensitive" } },
-        { placeAddress: { contains: q, mode: "insensitive" } },
+      AND: [
+        {
+          OR: [
+            { title: { contains: q, mode: "insensitive" } },
+            { tags: { some: { tag: { name: { contains: q, mode: "insensitive" } } } } },
+            { creator: { name: { contains: q, mode: "insensitive" } } },
+            { placeName: { contains: q, mode: "insensitive" } },
+            { placeAddress: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        publishedPinWhere(),
       ],
       ...(hidden.length > 0 ? { creatorId: { notIn: hidden } } : {}),
     },
@@ -583,7 +613,12 @@ export type PlacedPin = {
  */
 export async function getPlacedPinsForUser(userId: string): Promise<PlacedPin[]> {
   const rows = await prisma.pin.findMany({
-    where: { creatorId: userId, lat: { not: null }, lng: { not: null } },
+    where: {
+      creatorId: userId,
+      lat: { not: null },
+      lng: { not: null },
+      ...publishedPinWhere(),
+    },
     select: { id: true, lat: true, lng: true, title: true, imageUrl: true },
     orderBy: { createdAt: "desc" },
     take: 500,
@@ -628,6 +663,7 @@ export async function getNearbyPins(
     where: {
       lat: { gte: lat - latDelta, lte: lat + latDelta },
       lng: { gte: lng - lngDelta, lte: lng + lngDelta },
+      ...publishedPinWhere(),
       ...(hidden.length > 0 ? { creatorId: { notIn: hidden } } : {}),
     },
     include: PIN_INCLUDE,
@@ -671,6 +707,7 @@ export async function getPinsByPlaceSlug(
   const rows = await prisma.pin.findMany({
     where: {
       placeName: { not: null },
+      ...publishedPinWhere(),
       ...(hidden.length > 0 ? { creatorId: { notIn: hidden } } : {}),
     },
     include: PIN_INCLUDE,
@@ -697,6 +734,7 @@ export async function getPlaceSlugs(): Promise<string[]> {
   const rows = await prisma.pin.findMany({
     where: {
       placeName: { not: null },
+      ...publishedPinWhere(),
       ...(hidden.length > 0 ? { creatorId: { notIn: hidden } } : {}),
     },
     select: { placeName: true },

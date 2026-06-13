@@ -81,7 +81,9 @@ describe("getPinsByTag", () => {
     expect(pins).toHaveLength(1);
     expect(pins[0]?.id).toBe("p1");
     expect(db.pin.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { tags: { some: { tag: { slug: "art" } } } } }),
+      expect.objectContaining({
+        where: expect.objectContaining({ tags: { some: { tag: { slug: "art" } } } }),
+      }),
     );
   });
 });

@@ -55,6 +55,11 @@ const db = prisma as unknown as {
 const NOW = new Date("2026-06-09T00:00:00Z").getTime();
 const DAY = 86_400_000;
 
+const PUBLISHED_OR = [
+  { status: "PUBLISHED" },
+  { status: "SCHEDULED", publishAt: { lte: expect.any(Date) } },
+];
+
 type TestPin = Parameters<typeof rankForYou>[0][number];
 
 function pin(id: string, over: Partial<TestPin> = {}): TestPin {
@@ -89,6 +94,8 @@ const pinRow = (id: string, over: Record<string, unknown> = {}) => ({
   lat: null,
   lng: null,
   placeApproximate: false,
+  status: "PUBLISHED",
+  publishAt: null,
   downloadCount: 0,
   createdAt: new Date(NOW),
   creator: {
@@ -160,13 +167,30 @@ describe("getPins", () => {
     expect((await getPins()).map((p) => p.id)).toEqual(["p1"]);
   });
 
+  it("restricts to published or due-scheduled pins", async () => {
+    db.pin.findMany.mockResolvedValue([]);
+    await getPins();
+    expect(db.pin.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          OR: [
+            { status: "PUBLISHED" },
+            { status: "SCHEDULED", publishAt: { lte: expect.any(Date) } },
+          ],
+        }),
+      }),
+    );
+  });
+
   it("excludes pins from private accounts the viewer does not follow", async () => {
     db.user.findMany.mockResolvedValue([{ id: "priv" }]);
     db.follow.findMany.mockResolvedValue([]);
     db.pin.findMany.mockResolvedValue([]);
     await getPins("viewer");
     expect(db.pin.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { creatorId: { notIn: ["priv"] } } }),
+      expect.objectContaining({
+        where: expect.objectContaining({ creatorId: { notIn: ["priv"] } }),
+      }),
     );
   });
 
@@ -175,7 +199,9 @@ describe("getPins", () => {
     db.follow.findMany.mockResolvedValue([{ creatorId: "priv" }]);
     db.pin.findMany.mockResolvedValue([]);
     await getPins("viewer");
-    expect(db.pin.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: {} }));
+    expect(db.pin.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { OR: PUBLISHED_OR } }),
+    );
   });
 });
 
@@ -201,7 +227,9 @@ describe("getHomeFeed", () => {
     db.pin.findMany.mockResolvedValue([pinRow("p1")]);
     await getHomeFeed({ viewerId: "u1", feed: "following", sort: "likes" });
     expect(db.pin.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { creatorId: { in: ["north"] } } }),
+      expect.objectContaining({
+        where: { AND: [{ OR: PUBLISHED_OR }, { creatorId: { in: ["north"] } }] },
+      }),
     );
   });
 
@@ -209,7 +237,9 @@ describe("getHomeFeed", () => {
     db.pin.findMany.mockResolvedValue([]);
     await getHomeFeed({ viewerId: null, feed: "following", sort: "recent" });
     expect(db.pin.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { creatorId: { in: [] } } }),
+      expect.objectContaining({
+        where: { AND: [{ OR: PUBLISHED_OR }, { creatorId: { in: [] } }] },
+      }),
     );
   });
 
@@ -221,9 +251,14 @@ describe("getHomeFeed", () => {
     expect(db.pin.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
-          OR: [
-            { creatorId: { in: ["north"] } },
-            { boardPins: { some: { boardId: { in: ["b1"] } } } },
+          AND: [
+            { OR: PUBLISHED_OR },
+            {
+              OR: [
+                { creatorId: { in: ["north"] } },
+                { boardPins: { some: { boardId: { in: ["b1"] } } } },
+              ],
+            },
           ],
         },
       }),
@@ -299,9 +334,13 @@ describe("searchPins", () => {
     expect(db.pin.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          OR: expect.arrayContaining([
-            { placeName: { contains: "stade", mode: "insensitive" } },
-            { placeAddress: { contains: "stade", mode: "insensitive" } },
+          AND: expect.arrayContaining([
+            expect.objectContaining({
+              OR: expect.arrayContaining([
+                { placeName: { contains: "stade", mode: "insensitive" } },
+                { placeAddress: { contains: "stade", mode: "insensitive" } },
+              ]),
+            }),
           ]),
         }),
       }),
@@ -339,7 +378,11 @@ describe("getPlacedPinsForUser", () => {
     const result = await getPlacedPinsForUser("u1");
     expect(db.pin.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { creatorId: "u1", lat: { not: null }, lng: { not: null } },
+        where: expect.objectContaining({
+          creatorId: "u1",
+          lat: { not: null },
+          lng: { not: null },
+        }),
       }),
     );
     expect(result).toEqual([
