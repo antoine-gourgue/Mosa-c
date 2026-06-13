@@ -65,6 +65,8 @@ describe("toPin", () => {
     lat: null,
     lng: null,
     placeApproximate: false,
+    status: "PUBLISHED",
+    publishAt: null,
     downloadCount: 7,
     creator: creatorRow,
     tags: [{ tag: { id: "t1", slug: "art", name: "Art" } }],
@@ -103,6 +105,17 @@ describe("toPin", () => {
       lng: 2.333,
       approximate: false,
     });
+  });
+
+  it("projects the publish status and scheduled time", () => {
+    expect(toPin(pinRow).status).toBe("PUBLISHED");
+    const scheduled = toPin({
+      ...pinRow,
+      status: "SCHEDULED",
+      publishAt: new Date("2026-07-01T00:00:00Z"),
+    });
+    expect(scheduled.status).toBe("SCHEDULED");
+    expect(scheduled.publishAt).toEqual(new Date("2026-07-01T00:00:00Z"));
   });
 
   it("carries the approximate flag through to the place", () => {

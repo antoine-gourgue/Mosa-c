@@ -1,4 +1,4 @@
-import type { Board, Creator, Pin, PinPlace, Tag } from "@/types/domain";
+import type { Board, Creator, Pin, PinPlace, PinStatus, Tag } from "@/types/domain";
 
 /**
  * Structural shape of a creator row read from the database.
@@ -40,6 +40,8 @@ export type PinRow = {
   lat: number | null;
   lng: number | null;
   placeApproximate: boolean;
+  status: PinStatus;
+  publishAt: Date | null;
   downloadCount: number;
   creator: CreatorRow;
   tags: { tag: TagRow }[];
@@ -134,6 +136,8 @@ export function toPin(row: PinRow): Pin {
     height: row.height,
     link: row.link,
     place: toPlace(row),
+    status: row.status,
+    publishAt: row.publishAt,
     creator: toCreator(row.creator),
     tags: row.tags.map((pinTag) => toTag(pinTag.tag)),
     likeCount: row._count.likes,
