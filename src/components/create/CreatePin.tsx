@@ -124,7 +124,7 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
       .finally(() => setSuggesting(false));
   };
 
-  const onPublish = (): void => {
+  const submit = (status: "publish" | "draft"): void => {
     if (image === null) {
       setError(t("addImage"));
       return;
@@ -155,6 +155,7 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
         formData.set("placeApproximate", String(place !== null && placeApproximate));
         formData.set("tags", tags.join(","));
         formData.set("board", board);
+        formData.set("status", status);
         formData.set("width", String(upload.width));
         formData.set("height", String(upload.height));
         formData.set("image", upload.file);
@@ -256,15 +257,24 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
             </p>
           ) : null}
 
-          <Button
-            fullWidth
-            className="mt-1"
-            loading={pending}
-            disabled={!canPublish}
-            onClick={onPublish}
-          >
-            {t("publish")}
-          </Button>
+          <div className="mt-1 flex gap-2">
+            <Button
+              variant="ghost"
+              className="shrink-0"
+              disabled={!canPublish || pending}
+              onClick={() => submit("draft")}
+            >
+              {t("saveDraft")}
+            </Button>
+            <Button
+              fullWidth
+              loading={pending}
+              disabled={!canPublish}
+              onClick={() => submit("publish")}
+            >
+              {t("publish")}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
