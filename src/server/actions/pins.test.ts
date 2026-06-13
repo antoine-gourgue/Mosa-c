@@ -31,7 +31,7 @@ vi.mock("@/lib/storage", () => ({
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { createPin, deletePin, updatePin } from "./pins";
+import { createPin, deletePin, publishPinNow, updatePin } from "./pins";
 
 const db = prisma as unknown as {
   pin: { create: Mock; findUnique: Mock; delete: Mock; update: Mock };
@@ -365,5 +365,27 @@ describe("updatePin", () => {
     const data = (db.pin.update.mock.calls[0]?.[0] as { data: PlaceData }).data;
     expect(data.lat).not.toBe(10.5);
     expect(data.placeApproximate).toBe(true);
+  });
+});
+
+describe("publishPinNow", () => {
+  it("rejects when signed out", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    expect((await publishPinNow("p1")).ok).toBe(false);
+  });
+
+  it("refuses to publish another user's pin", async () => {
+    db.pin.findUnique.mockResolvedValue({ creatorId: "other" });
+    expect((await publishPinNow("p1")).ok).toBe(false);
+    expect(db.pin.update).not.toHaveBeenCalled();
+  });
+
+  it("publishes the owner's pin and clears the schedule", async () => {
+    db.pin.findUnique.mockResolvedValue({ creatorId: "u1" });
+    expect(await publishPinNow("p1")).toEqual({ ok: true });
+    expect(db.pin.update).toHaveBeenCalledWith({
+      where: { id: "p1" },
+      data: { status: "PUBLISHED", publishAt: null },
+    });
   });
 });

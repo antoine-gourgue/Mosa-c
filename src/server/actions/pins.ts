@@ -411,3 +411,33 @@ export async function updatePin(pinId: string, formData: FormData): Promise<Upda
   revalidatePath("/boards");
   return { ok: true };
 }
+
+/**
+ * Publishes a draft or scheduled pin owned by the current user immediately,
+ * clearing any scheduled time so it goes live everywhere at once.
+ *
+ * @param pinId - The id of the pin to publish.
+ * @returns A success result, or a failure with an error message.
+ */
+export async function publishPinNow(
+  pinId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: await errorMessage("signedOut") };
+  }
+  const pin = await prisma.pin.findUnique({ where: { id: pinId }, select: { creatorId: true } });
+  if (pin === null) {
+    return { ok: false, error: await errorMessage("pinNotFound") };
+  }
+  if (pin.creatorId !== user.id) {
+    return { ok: false, error: await errorMessage("editOwnPins") };
+  }
+  await prisma.pin.update({
+    where: { id: pinId },
+    data: { status: "PUBLISHED", publishAt: null },
+  });
+  revalidatePath("/");
+  revalidatePath("/boards");
+  return { ok: true };
+}

@@ -8,3 +8,5 @@ export { ProfileTabs } from "./ProfileTabs";
 export type { ProfileTab, ProfileTabsProps } from "./ProfileTabs";
 export { EditProfile } from "./EditProfile";
 export type { EditProfileProps } from "./EditProfile";
+export { DraftsManager } from "./DraftsManager";
+export type { DraftsManagerProps } from "./DraftsManager";

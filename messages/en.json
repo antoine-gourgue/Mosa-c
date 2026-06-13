@@ -195,7 +195,13 @@
     "unblocked": "Unblocked {user}",
     "map": "Map",
     "placesHeading": "Places",
-    "closeMap": "Close map"
+    "closeMap": "Close map",
+    "tabDrafts": "Drafts",
+    "draftBadge": "Draft",
+    "scheduledBadge": "Scheduled",
+    "publishNow": "Publish now",
+    "noDrafts": "No drafts or scheduled pins yet.",
+    "scheduledFor": "Goes live {when}"
   },
   "messages": {
     "title": "Messages",

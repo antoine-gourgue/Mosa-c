@@ -195,7 +195,13 @@
     "unblocked": "{user} débloqué",
     "map": "Carte",
     "placesHeading": "Lieux",
-    "closeMap": "Fermer la carte"
+    "closeMap": "Fermer la carte",
+    "tabDrafts": "Brouillons",
+    "draftBadge": "Brouillon",
+    "scheduledBadge": "Programmé",
+    "publishNow": "Publier maintenant",
+    "noDrafts": "Aucun brouillon ni pin programmé pour l'instant.",
+    "scheduledFor": "En ligne {when}"
   },
   "messages": {
     "title": "Messages",
