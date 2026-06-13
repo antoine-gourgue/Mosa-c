@@ -107,6 +107,25 @@ describe("createPin", () => {
     expect(redirect).toHaveBeenCalledWith("/u/ada?tab=drafts");
   });
 
+  it("schedules a pin with a future publish time and skips the board", async () => {
+    db.user.findUnique.mockResolvedValue({ username: "ada" });
+    const future = new Date(Date.now() + 86_400_000).toISOString();
+    await createPin(pinForm({ status: "scheduled", publishAt: future }));
+    const data = (db.pin.create.mock.calls[0]?.[0] as { data: { status: string; publishAt: Date } })
+      .data;
+    expect(data.status).toBe("SCHEDULED");
+    expect(data.publishAt).toEqual(new Date(future));
+    expect(db.board.findFirst).not.toHaveBeenCalled();
+    expect(redirect).toHaveBeenCalledWith("/u/ada?tab=drafts");
+  });
+
+  it("rejects a schedule time that is not in the future", async () => {
+    const past = new Date(Date.now() - 86_400_000).toISOString();
+    const result = await createPin(pinForm({ status: "scheduled", publishAt: past }));
+    expect(result.ok).toBe(false);
+    expect(db.pin.create).not.toHaveBeenCalled();
+  });
+
   it("publishes with status PUBLISHED by default", async () => {
     db.board.findFirst.mockResolvedValue({ id: "b1", isDefault: false });
     await createPin(pinForm());
