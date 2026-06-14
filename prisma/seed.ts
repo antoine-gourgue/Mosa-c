@@ -413,6 +413,31 @@ async function main(): Promise<void> {
     });
   }
 
+  const demoBoards = [
+    { id: "board_demo_travel", name: "Travel ideas", pins: [1, 3, 12, 13, 6] },
+    { id: "board_demo_food", name: "On the menu", pins: [9, 10, 11] },
+    { id: "board_demo_peaks", name: "Peaks & trails", pins: [4, 16, 2, 5] },
+  ];
+  for (const board of demoBoards) {
+    await prisma.board.upsert({
+      where: { id: board.id },
+      update: { name: board.name },
+      create: { id: board.id, name: board.name, owner: { connect: { id: "user_demo" } } },
+    });
+    await prisma.boardMember.upsert({
+      where: { boardId_userId: { boardId: board.id, userId: "user_demo" } },
+      update: { role: "OWNER" },
+      create: { boardId: board.id, userId: "user_demo", role: "OWNER" },
+    });
+    for (const ref of board.pins) {
+      await prisma.boardPin.upsert({
+        where: { boardId_pinId: { boardId: board.id, pinId: `pin_${ref}` } },
+        update: {},
+        create: { boardId: board.id, pinId: `pin_${ref}` },
+      });
+    }
+  }
+
   await prisma.follow.upsert({
     where: { followerId_creatorId: { followerId: "user_demo", creatorId: "user_mira" } },
     update: {},
