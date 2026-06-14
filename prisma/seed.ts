@@ -26,6 +26,8 @@ type PinSeed = {
   creator: string;
   tag: string;
   description: string;
+  place?: { name: string; address: string; lat: number; lng: number; approximate?: boolean };
+  status?: "DRAFT" | "SCHEDULED";
 };
 
 /**
@@ -58,6 +60,7 @@ const pins: PinSeed[] = [
     creator: "atlas",
     tag: "Travel",
     description: "Turquoise water and wooden rowboats beneath the Dolomite cliffs.",
+    place: { name: "Lago di Braies", address: "Dolomites, Italy", lat: 46.6946, lng: 12.085 },
   },
   {
     ref: 2,
@@ -78,6 +81,12 @@ const pins: PinSeed[] = [
     creator: "atlas",
     tag: "Travel",
     description: "A wooden boathouse on a still mountain lake at first light.",
+    place: {
+      name: "Oeschinen Lake",
+      address: "Bernese Alps, Switzerland",
+      lat: 46.4983,
+      lng: 7.73,
+    },
   },
   {
     ref: 4,
@@ -209,6 +218,29 @@ const pins: PinSeed[] = [
     tag: "Mountains",
     description: "Snowy summits rising over a sea of cloud at sunset.",
   },
+  {
+    ref: 17,
+    imageUrl: unsplash("1469474968028-56623f02e42e", 600, 520),
+    width: 600,
+    height: 520,
+    title: "Trailhead notes (draft)",
+    creator: "demo",
+    tag: "Nature",
+    description: "Saved for later — still picking the best shot.",
+    status: "DRAFT",
+  },
+  {
+    ref: 18,
+    imageUrl: unsplash("1502602898657-3e91760cbb34", 600, 600),
+    width: 600,
+    height: 600,
+    title: "Paris rooftops at golden hour",
+    creator: "demo",
+    tag: "Travel",
+    description: "Scheduled to go live with the weekend travel set.",
+    status: "SCHEDULED",
+    place: { name: "Montmartre", address: "Paris, France", lat: 48.8867, lng: 2.3431 },
+  },
 ];
 
 /**
@@ -334,6 +366,13 @@ async function main(): Promise<void> {
         imageUrl: pin.imageUrl,
         width: pin.width,
         height: pin.height,
+        placeName: pin.place?.name ?? null,
+        placeAddress: pin.place?.address ?? null,
+        lat: pin.place?.lat ?? null,
+        lng: pin.place?.lng ?? null,
+        placeApproximate: pin.place?.approximate ?? false,
+        status: pin.status ?? "PUBLISHED",
+        publishAt: pin.status === "SCHEDULED" ? new Date(Date.now() + 3 * 86_400_000) : null,
       },
       create: {
         id: `pin_${pin.ref}`,
@@ -342,6 +381,13 @@ async function main(): Promise<void> {
         imageUrl: pin.imageUrl,
         width: pin.width,
         height: pin.height,
+        placeName: pin.place?.name ?? null,
+        placeAddress: pin.place?.address ?? null,
+        lat: pin.place?.lat ?? null,
+        lng: pin.place?.lng ?? null,
+        placeApproximate: pin.place?.approximate ?? false,
+        status: pin.status ?? "PUBLISHED",
+        publishAt: pin.status === "SCHEDULED" ? new Date(Date.now() + 3 * 86_400_000) : null,
         creator: { connect: { id: `user_${pin.creator}` } },
       },
     });
