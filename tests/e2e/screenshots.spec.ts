@@ -1,4 +1,5 @@
 import { test } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { login } from "./helpers";
 
 /**
@@ -19,14 +20,29 @@ const DIR = ".github/screenshots";
  * The pages to capture, in gallery order. `wait` is bumped for map pages so the
  * Leaflet tiles finish loading before the shot.
  */
-const shots: { name: string; path: string; wait?: number }[] = [
+const shots: {
+  name: string;
+  path: string;
+  wait?: number;
+  action?: (page: Page) => Promise<void>;
+}[] = [
   { name: "home", path: "/", wait: 1800 },
   { name: "pin", path: "/pin/pin_1", wait: 3000 },
   { name: "place", path: "/place/lago-di-braies", wait: 3000 },
-  { name: "boards", path: "/u/you?tab=boards", wait: 1500 },
+  { name: "boards", path: "/boards", wait: 1800 },
   { name: "create", path: "/create", wait: 1500 },
-  { name: "search", path: "/search?q=paris", wait: 1800 },
-  { name: "messages", path: "/messages", wait: 1500 },
+  { name: "search", path: "/search", wait: 1800 },
+  {
+    name: "messages",
+    path: "/",
+    wait: 1600,
+    action: async (page) => {
+      await page
+        .getByRole("button", { name: /^Messages/ })
+        .first()
+        .click();
+    },
+  },
   { name: "profile", path: "/u/you", wait: 1800 },
   { name: "drafts", path: "/u/you?tab=drafts", wait: 1500 },
   { name: "settings", path: "/settings", wait: 1200 },
@@ -39,7 +55,11 @@ test("capture README screenshots", async ({ page }) => {
   for (const shot of shots) {
     try {
       await page.goto(shot.path, { waitUntil: "domcontentloaded" });
+      if (shot.action !== undefined) {
+        await shot.action(page);
+      }
       await page.waitForTimeout(shot.wait ?? 1200);
+      await page.mouse.move(0, 0);
       await page.screenshot({ path: `${DIR}/${shot.name}.png` });
     } catch (error) {
       console.warn(`Screenshot failed for ${shot.path}:`, (error as Error).message);
