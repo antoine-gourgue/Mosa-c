@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.24.1](https://github.com/antoine-gourgue/Mosa-c/compare/v1.24.0...v1.24.1) (2026-06-14)
+
+
+### Documentation
+
+* **readme:** automate screenshot capture ([#431](https://github.com/antoine-gourgue/Mosa-c/issues/431)) ([c8e36bf](https://github.com/antoine-gourgue/Mosa-c/commit/c8e36bf68fa083e60941d39ddec5dfa14f4c53ac))
+* **readme:** overhaul the content and refresh the gallery ([#433](https://github.com/antoine-gourgue/Mosa-c/issues/433)) ([751ac1f](https://github.com/antoine-gourgue/Mosa-c/commit/751ac1f8221a103f41417e7b997a8fc6feebe09b)), closes [#426](https://github.com/antoine-gourgue/Mosa-c/issues/426)
+
 ## [1.24.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.23.0...v1.24.0) (2026-06-13)
 
 
