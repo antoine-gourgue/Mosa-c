@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.24.1...v1.25.0) (2026-06-15)
+
+
+### Features
+
+* **ai:** text-to-image generation over FLUX (Pollinations) ([#440](https://github.com/antoine-gourgue/Mosa-c/issues/440)) ([958189f](https://github.com/antoine-gourgue/Mosa-c/commit/958189ff1a124e875850f2b627410b62bcda21cc)), closes [#437](https://github.com/antoine-gourgue/Mosa-c/issues/437)
+
 ## [1.24.1](https://github.com/antoine-gourgue/Mosa-c/compare/v1.24.0...v1.24.1) (2026-06-14)
 
 
