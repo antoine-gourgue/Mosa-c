@@ -95,3 +95,8 @@ export type {
   AdminUserDetail,
   AdminPinDetail,
 } from "./admin";
+export {
+  imageGenerationsRemaining,
+  recordImageGeneration,
+  IMAGE_GENERATION_DAILY_LIMIT,
+} from "./ai-generations";
