@@ -107,6 +107,7 @@ model User {
   interests         UserInterest[]
   pushSubscriptions PushSubscription[]
   pinViews          PinView[]
+  aiImageGenerations AiImageGeneration[]
 
   conversations ConversationParticipant[]
   sentMessages  Message[]
@@ -517,4 +518,13 @@ model Notification {
 
   @@index([recipientId, read])
   @@index([recipientId, createdAt])
+}
+
+model AiImageGeneration {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
