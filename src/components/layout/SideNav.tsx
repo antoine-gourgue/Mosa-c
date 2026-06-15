@@ -22,6 +22,7 @@ import {
 } from "@/icons";
 import { cn } from "@/lib/cn";
 import { useNavPanel } from "./NavPanelProvider";
+import type { NavPanel } from "./NavPanelProvider";
 
 type Item = {
   href: string;
@@ -30,6 +31,7 @@ type Item = {
   IconActive?: ComponentType<IconProps>;
   isActive: (pathname: string) => boolean;
   badge?: "notifications" | "messages";
+  panel?: NavPanel;
 };
 
 const ITEMS: Item[] = [
@@ -41,7 +43,13 @@ const ITEMS: Item[] = [
     isActive: (p) => p === "/",
   },
   { href: "/boards", labelKey: "saves", Icon: StackIcon, isActive: (p) => p.startsWith("/boards") },
-  { href: "/create", labelKey: "create", Icon: PlusIcon, isActive: (p) => p.startsWith("/create") },
+  {
+    href: "/create",
+    labelKey: "create",
+    Icon: PlusIcon,
+    isActive: (p) => p.startsWith("/create"),
+    panel: "create",
+  },
   {
     href: "/notifications",
     labelKey: "notifications",
@@ -129,12 +137,13 @@ export function SideNav(): ReactElement {
         const badge = hasBadge(item) ? (
           <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-accent ring-2 ring-bg" />
         ) : null;
-        const panel =
-          item.badge === "messages"
+        const panel: NavPanel | null =
+          item.panel ??
+          (item.badge === "messages"
             ? "messages"
             : item.badge === "notifications"
               ? "notifications"
-              : null;
+              : null);
         if (panel !== null) {
           const panelActive = activePanel === panel;
           const Glyph = panelActive && item.IconActive !== undefined ? item.IconActive : item.Icon;

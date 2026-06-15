@@ -28,6 +28,10 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 export type CreatePinProps = {
   boards: BoardOption[];
   aiEnabled: boolean;
+  /** Whether AI image generation is configured (Cloudflare Workers AI). */
+  imageGenEnabled: boolean;
+  /** Open the AI image generation dialog on load (from the sidebar's AI entry). */
+  initialGenerate?: boolean;
 };
 
 /**
@@ -80,7 +84,12 @@ function buildAnalysisForm(file: File, title: string, description: string): Form
  * @param props - The user's boards for the selector.
  * @returns The create pin form element.
  */
-export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
+export function CreatePin({
+  boards,
+  aiEnabled,
+  imageGenEnabled,
+  initialGenerate = false,
+}: CreatePinProps): ReactElement {
   const t = useTranslations("create");
   const [image, setImage] = useState<SelectedImage | null>(null);
   const [title, setTitle] = useState("");
@@ -183,7 +192,12 @@ export function CreatePin({ boards, aiEnabled }: CreatePinProps): ReactElement {
       </header>
 
       <div className="mx-auto grid max-w-[1000px] grid-cols-1 gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
-        <UploadDropzone value={image} onChange={onImageChange} />
+        <UploadDropzone
+          value={image}
+          onChange={onImageChange}
+          imageGenEnabled={imageGenEnabled}
+          initialGenerate={initialGenerate}
+        />
 
         <div className="flex flex-col gap-3">
           <Field label={t("title")}>

@@ -132,7 +132,10 @@
     "cannotBlockSelf": "Vous ne pouvez pas vous bloquer vous-même.",
     "cannotMessageBlocked": "Vous ne pouvez pas envoyer de message à une personne que vous avez bloquée.",
     "deleteConfirmMismatch": "Le texte de confirmation ne correspond pas.",
-    "scheduleFuture": "Choisis une date et une heure dans le futur."
+    "scheduleFuture": "Choisis une date et une heure dans le futur.",
+    "promptRequired": "Saisis un prompt pour générer une image.",
+    "aiLimitReached": "Tu as atteint ta limite de générations d'images du jour. Réessaie demain.",
+    "aiGenerateFailed": "Impossible de générer une image. Essaie un autre prompt."
   },
   "nav": {
     "home": "Accueil",
@@ -289,6 +292,7 @@
   "create": {
     "add": "Ajouter",
     "addImage": "Veuillez ajouter une image.",
+    "aiPanelHeading": "Créer",
     "allBoards": "Tous les tableaux",
     "approximate": "Lieu approximatif",
     "approximateHint": "Floute le point exact à ~1 km et masque la rue",
@@ -307,6 +311,13 @@
     "editFailed": "Impossible d’enregistrer vos modifications. Veuillez réessayer.",
     "editPin": "Modifier l’épingle",
     "fileHint": "Nous recommandons des fichiers .jpg, .png ou .heic de haute qualité, jusqu’à 10 Mo.",
+    "generate": "Générer",
+    "generateHint": "Décris ce que tu aimerais voir et on s'occupe du reste.",
+    "generatePlaceholder": "Décris l'image que tu veux…",
+    "generateRemaining": "{count, plural, one {# génération restante aujourd'hui} other {# générations restantes aujourd'hui}}",
+    "generateTitle": "Créer une image",
+    "generateWithAi": "Générer avec l'IA",
+    "generateWithAiHint": "Décris-la, on la crée",
     "imageTooLargeCompressed": "L’image doit faire moins de 10 Mo, même après compression.",
     "imageUnreadable": "Cette image n’a pas pu être lue.",
     "imageUrl": "URL de l’image",
@@ -322,9 +333,11 @@
     "preview": "Aperçu",
     "previewHint": "Un aperçu apparaîtra ici.",
     "previewLoadFailed": "Impossible de charger une image depuis ce lien.",
+    "promptEnglishHint": "Astuce : les prompts donnent de meilleurs résultats en anglais.",
     "processing": "Traitement de la photo…",
     "publish": "Publier",
     "publishFailed": "Impossible de publier cette image. Essayez une autre photo.",
+    "regenerate": "Régénérer",
     "removePlace": "Retirer le lieu",
     "removeTag": "Retirer {tag}",
     "save": "Enregistrer",
@@ -340,8 +353,11 @@
     "tagsPlaceholder": "Ajoutez des tags (appuyez sur Entrée)",
     "title": "Titre",
     "titlePlaceholder": "Dites à tout le monde de quoi parle votre épingle",
+    "uploadAPin": "Importer une épingle",
+    "uploadAPinHint": "Ajoute ta propre image",
     "urlDialogHint": "Collez un lien vers une image du web.",
-    "urlImportFailed": "Impossible d’importer cette image. Essayez un autre lien."
+    "urlImportFailed": "Impossible d’importer cette image. Essayez un autre lien.",
+    "useThisImage": "Utiliser cette image"
   },
   "board": {
     "add": "Ajouter",

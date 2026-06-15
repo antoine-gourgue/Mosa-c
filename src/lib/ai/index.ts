@@ -1,4 +1,6 @@
 import { env } from "@/lib/env";
+import { createImageGenerator } from "./image-gen";
+import type { GeneratedImage, ImageGenOptions } from "./image-gen";
 import { createMistralProvider } from "./mistral";
 import type { AiProvider, TagSuggestionInput } from "./types";
 
@@ -8,6 +10,47 @@ import type { AiProvider, TagSuggestionInput } from "./types";
  * providers is a one-line change here.
  */
 const provider: AiProvider = createMistralProvider({ apiKey: env.MISTRAL_API_KEY });
+
+/**
+ * The app-wide text-to-image generator, configured from the environment
+ * (Cloudflare Workers AI). Server-only — it reads a secret token and must never
+ * be imported into client code.
+ */
+const imageGenerator = createImageGenerator({
+  accountId: env.CLOUDFLARE_ACCOUNT_ID,
+  token: env.CLOUDFLARE_AI_TOKEN,
+  steps: env.CLOUDFLARE_AI_STEPS,
+});
+
+/**
+ * Whether AI image generation is configured. Use this to gate the optional
+ * "Generate with AI" create flow.
+ *
+ * @returns True when Cloudflare credentials are present.
+ */
+export function imageGenAvailable(): boolean {
+  return (
+    env.CLOUDFLARE_ACCOUNT_ID !== undefined &&
+    env.CLOUDFLARE_ACCOUNT_ID !== "" &&
+    env.CLOUDFLARE_AI_TOKEN !== undefined &&
+    env.CLOUDFLARE_AI_TOKEN !== ""
+  );
+}
+
+/**
+ * Generates an image from a text prompt, or null when generation is
+ * unavailable or the request fails.
+ *
+ * @param prompt - The text prompt to render.
+ * @param options - Optional per-call sizing.
+ * @returns The generated image, or null.
+ */
+export function generateImage(
+  prompt: string,
+  options?: ImageGenOptions,
+): Promise<GeneratedImage | null> {
+  return imageGenerator(prompt, options);
+}
 
 /**
  * Whether AI features are configured. Use this to gate optional UI/behaviour.
@@ -51,6 +94,5 @@ export function embed(text: string): Promise<number[] | null> {
   return provider.embed(text);
 }
 
-export { generateImage } from "./image-gen";
 export type { GeneratedImage, ImageGenerator, ImageGenOptions } from "./image-gen";
 export type { AiProvider, TagSuggestionInput } from "./types";
