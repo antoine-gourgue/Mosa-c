@@ -16,9 +16,22 @@ export type GeneratedImage = {
 };
 
 /**
- * A text-to-image generator: maps a prompt to an image, or null on failure.
+ * Per-call sizing overrides for a generation, falling back to the generator's
+ * configured defaults.
  */
-export type ImageGenerator = (prompt: string) => Promise<GeneratedImage | null>;
+export type ImageGenOptions = {
+  width?: number;
+  height?: number;
+};
+
+/**
+ * A text-to-image generator: maps a prompt (with optional per-call sizing) to an
+ * image, or null on failure.
+ */
+export type ImageGenerator = (
+  prompt: string,
+  options?: ImageGenOptions,
+) => Promise<GeneratedImage | null>;
 
 /**
  * Configuration for {@link createImageGenerator}.
@@ -53,15 +66,17 @@ export function createImageGenerator(config: ImageGenConfig = {}): ImageGenerato
   const width = config.width ?? DEFAULT_WIDTH;
   const height = config.height ?? DEFAULT_HEIGHT;
 
-  return async (prompt: string): Promise<GeneratedImage | null> => {
+  return async (prompt: string, options?: ImageGenOptions): Promise<GeneratedImage | null> => {
     const trimmed = prompt.trim();
     if (trimmed === "") {
       return null;
     }
+    const w = options?.width ?? width;
+    const h = options?.height ?? height;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const url = `${endpoint}/${encodeURIComponent(trimmed)}?width=${width}&height=${height}&model=flux&nologo=true`;
+      const url = `${endpoint}/${encodeURIComponent(trimmed)}?width=${w}&height=${h}&model=flux&nologo=true`;
       const response = await fetchImpl(url, {
         headers: { "User-Agent": USER_AGENT },
         signal: controller.signal,
@@ -69,15 +84,19 @@ export function createImageGenerator(config: ImageGenConfig = {}): ImageGenerato
       if (!response.ok) {
         return null;
       }
-      const contentType = response.headers.get("content-type") ?? "image/png";
-      if (!contentType.startsWith("image/")) {
+      const contentType = response.headers.get("content-type");
+      if (contentType === null || !contentType.startsWith("image/")) {
         return null;
       }
       const buffer = Buffer.from(await response.arrayBuffer());
       if (buffer.length === 0) {
         return null;
       }
-      return { dataUrl: `data:${contentType};base64,${buffer.toString("base64")}`, width, height };
+      return {
+        dataUrl: `data:${contentType};base64,${buffer.toString("base64")}`,
+        width: w,
+        height: h,
+      };
     } catch {
       return null;
     } finally {
