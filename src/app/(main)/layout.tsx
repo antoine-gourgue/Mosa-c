@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import type { ReactElement, ReactNode } from "react";
 import { ToastProvider } from "@/components/ui";
+import { CreatePanel } from "@/components/create";
 import { EngagementProvider } from "@/components/engagement";
 import { MessagesPanel, MessagesProvider } from "@/components/messages";
 import { NotificationsPanel, NotificationsProvider } from "@/components/notifications";
@@ -13,6 +14,7 @@ import {
   SideNav,
   TopNav,
 } from "@/components/layout";
+import { imageGenAvailable } from "@/lib/ai";
 import { getCurrentUser } from "@/lib/auth";
 import {
   getCreatorById,
@@ -79,6 +81,7 @@ export default async function MainLayout({
         />
       ) : null}
       {user !== null ? <NotificationsPanel /> : null}
+      {user !== null ? <CreatePanel imageGenEnabled={imageGenAvailable()} /> : null}
       {user !== null ? <Fab /> : null}
       {user !== null ? <BottomNav /> : null}
       {modal}

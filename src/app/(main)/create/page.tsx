@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import type { ReactElement } from "react";
 import { CreatePin } from "@/components/create";
-import { aiAvailable } from "@/lib/ai";
+import { aiAvailable, imageGenAvailable } from "@/lib/ai";
 import { getCurrentUser } from "@/lib/auth";
 import { getUserBoardsWithCovers } from "@/server/services";
 
@@ -23,15 +23,22 @@ export async function generateMetadata(): Promise<Metadata> {
  *
  * @returns The create page.
  */
-export default async function CreatePage(): Promise<ReactElement> {
+export default async function CreatePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ mode?: string }>;
+}): Promise<ReactElement> {
   const user = await getCurrentUser();
   if (user === null) {
     redirect("/login");
   }
+  const { mode } = await searchParams;
   const boards = await getUserBoardsWithCovers(user.id);
   return (
     <CreatePin
       aiEnabled={aiAvailable()}
+      imageGenEnabled={imageGenAvailable()}
+      initialGenerate={mode === "ai"}
       boards={boards.map((board) => ({
         id: board.id,
         name: board.name,

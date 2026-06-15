@@ -41,6 +41,12 @@ const envSchema = z.object({
   VAPID_SUBJECT: optionalSecret,
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: optionalSecret,
   MISTRAL_API_KEY: optionalSecret,
+  CLOUDFLARE_ACCOUNT_ID: optionalSecret,
+  CLOUDFLARE_AI_TOKEN: optionalSecret,
+  CLOUDFLARE_AI_STEPS: z.preprocess(
+    blankToUndefined,
+    z.coerce.number().int().min(1).max(8).optional(),
+  ),
 });
 
 /**

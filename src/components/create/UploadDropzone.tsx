@@ -4,9 +4,10 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent, ReactElement } from "react";
 import { Button } from "@/components/ui";
-import { SendIcon } from "@/icons";
+import { SendIcon, SparkleIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { ensureDisplayableImage, isHeicFile } from "@/lib/image";
+import { GenerateImageDialog } from "./GenerateImageDialog";
 import { UrlImageDialog } from "./UrlImageDialog";
 
 /**
@@ -26,6 +27,10 @@ export type SelectedImage = {
 export type UploadDropzoneProps = {
   value: SelectedImage | null;
   onChange: (value: SelectedImage | null) => void;
+  /** Whether AI image generation is configured; hides the entry when false. */
+  imageGenEnabled?: boolean;
+  /** Open the AI generation dialog on mount (the "Generate with AI" entry). */
+  initialGenerate?: boolean;
 };
 
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -61,12 +66,18 @@ function readImage(file: File): Promise<SelectedImage> {
  * @param props - The selected image and the change handler.
  * @returns The upload area element.
  */
-export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactElement {
+export function UploadDropzone({
+  value,
+  onChange,
+  imageGenEnabled = false,
+  initialGenerate = false,
+}: UploadDropzoneProps): ReactElement {
   const t = useTranslations("create");
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [urlOpen, setUrlOpen] = useState(false);
+  const [genOpen, setGenOpen] = useState(initialGenerate && imageGenEnabled);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File | undefined): Promise<void> => {
@@ -182,9 +193,21 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
       ) : null}
 
       <div className="my-4 border-t border-line" />
-      <Button variant="ghost" fullWidth onClick={() => setUrlOpen(true)}>
-        {t("saveFromUrl")}
-      </Button>
+      <div className="flex gap-2">
+        <Button variant="ghost" fullWidth onClick={() => setUrlOpen(true)}>
+          {t("saveFromUrl")}
+        </Button>
+        {imageGenEnabled ? (
+          <Button
+            variant="ghost"
+            fullWidth
+            leftIcon={<SparkleIcon size={18} className="text-accent" />}
+            onClick={() => setGenOpen(true)}
+          >
+            {t("generateWithAi")}
+          </Button>
+        ) : null}
+      </div>
 
       <UrlImageDialog
         open={urlOpen}
@@ -194,6 +217,16 @@ export function UploadDropzone({ value, onChange }: UploadDropzoneProps): ReactE
           void handleFile(file);
         }}
       />
+      {imageGenEnabled ? (
+        <GenerateImageDialog
+          open={genOpen}
+          onClose={() => setGenOpen(false)}
+          onPicked={(file) => {
+            setGenOpen(false);
+            void handleFile(file);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

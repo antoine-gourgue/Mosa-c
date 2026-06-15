@@ -1,7 +1,9 @@
 "use server";
 
-import { aiAvailable, describeImage, suggestTags } from "@/lib/ai";
+import { aiAvailable, describeImage, generateImage, suggestTags } from "@/lib/ai";
 import { getCurrentUser } from "@/lib/auth";
+import { errorMessage } from "@/server/error-message";
+import { imageGenerationsRemaining, recordImageGeneration } from "@/server/services";
 
 /**
  * The AI analysis of a pin image: a short alt text and suggested tags. Both are
@@ -40,4 +42,46 @@ export async function analyzePinImage(formData: FormData): Promise<PinImageAnaly
     suggestTags({ title, description, imageUrl: dataUri }),
   ]);
   return { altText, tags };
+}
+
+/**
+ * The result of generating a pin image from a prompt.
+ */
+export type GeneratePinImageResult =
+  | { ok: true; dataUrl: string; width: number; height: number; remaining: number }
+  | { ok: false; error: string };
+
+/**
+ * Generates a pin image from a text prompt (FLUX via Pollinations), enforcing
+ * the per-user daily limit: it checks the remaining allowance first, only
+ * records a generation once one succeeds (so a failed attempt never burns the
+ * quota), and returns the image as a data URL the create form turns into a file.
+ *
+ * @param prompt - The text prompt to render.
+ * @returns The generated image and remaining allowance, or an error.
+ */
+export async function generatePinImage(prompt: string): Promise<GeneratePinImageResult> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: await errorMessage("signedOut") };
+  }
+  if (prompt.trim() === "") {
+    return { ok: false, error: await errorMessage("promptRequired") };
+  }
+  const remaining = await imageGenerationsRemaining(user.id);
+  if (remaining <= 0) {
+    return { ok: false, error: await errorMessage("aiLimitReached") };
+  }
+  const image = await generateImage(prompt);
+  if (image === null) {
+    return { ok: false, error: await errorMessage("aiGenerateFailed") };
+  }
+  await recordImageGeneration(user.id);
+  return {
+    ok: true,
+    dataUrl: image.dataUrl,
+    width: image.width,
+    height: image.height,
+    remaining: remaining - 1,
+  };
 }

@@ -132,7 +132,10 @@
     "cannotBlockSelf": "You can’t block yourself.",
     "cannotMessageBlocked": "You can’t message someone you’ve blocked.",
     "deleteConfirmMismatch": "The confirmation text doesn’t match.",
-    "scheduleFuture": "Pick a date and time in the future."
+    "scheduleFuture": "Pick a date and time in the future.",
+    "promptRequired": "Enter a prompt to generate an image.",
+    "aiLimitReached": "You've reached your daily image generation limit. Try again tomorrow.",
+    "aiGenerateFailed": "Couldn't generate an image. Try a different prompt."
   },
   "nav": {
     "home": "Home",
@@ -289,6 +292,7 @@
   "create": {
     "add": "Add",
     "addImage": "Please add an image.",
+    "aiPanelHeading": "Create",
     "allBoards": "All boards",
     "approximate": "Approximate location",
     "approximateHint": "Blurs the exact spot to about 1 km and hides the street",
@@ -307,6 +311,13 @@
     "editFailed": "Could not save your changes. Please try again.",
     "editPin": "Edit Pin",
     "fileHint": "We recommend high-quality .jpg, .png or .heic files, up to 10 MB.",
+    "generate": "Generate",
+    "generateHint": "Describe what you'd like to see and we'll create it.",
+    "generatePlaceholder": "Describe the image you want…",
+    "generateRemaining": "{count, plural, one {# generation left today} other {# generations left today}}",
+    "generateTitle": "Create an image",
+    "generateWithAi": "Generate with AI",
+    "generateWithAiHint": "Describe it, we create it",
     "imageTooLargeCompressed": "Image must be under 10 MB, even after compression.",
     "imageUnreadable": "That image could not be read.",
     "imageUrl": "Image URL",
@@ -322,9 +333,11 @@
     "preview": "Preview",
     "previewHint": "A preview will appear here.",
     "previewLoadFailed": "Couldn’t load an image from that link.",
+    "promptEnglishHint": "Tip: prompts work best written in English.",
     "processing": "Processing photo…",
     "publish": "Publish",
     "publishFailed": "Could not publish this image. Please try another photo.",
+    "regenerate": "Regenerate",
     "removePlace": "Remove place",
     "removeTag": "Remove {tag}",
     "save": "Save",
@@ -340,8 +353,11 @@
     "tagsPlaceholder": "Add tags (press Enter)",
     "title": "Title",
     "titlePlaceholder": "Tell everyone what your Pin is about",
+    "uploadAPin": "Upload a pin",
+    "uploadAPinHint": "Add your own image",
     "urlDialogHint": "Paste a link to an image from the web.",
-    "urlImportFailed": "Couldn’t import this image. Try another link."
+    "urlImportFailed": "Couldn’t import this image. Try another link.",
+    "useThisImage": "Use this image"
   },
   "board": {
     "add": "Add",

@@ -6,7 +6,7 @@ import type { ReactElement, ReactNode } from "react";
 /**
  * The rail panels that can slide in over the page content.
  */
-export type NavPanel = "messages" | "notifications";
+export type NavPanel = "messages" | "notifications" | "create";
 
 type NavPanelContextValue = {
   activePanel: NavPanel | null;
