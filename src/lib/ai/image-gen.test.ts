@@ -65,6 +65,33 @@ describe("createImageGenerator", () => {
     expect(await generate("prompt")).toBeNull();
   });
 
+  it("rejects a response with no content-type header", async () => {
+    const fetchImpl = vi.fn(
+      async () =>
+        ({
+          ok: true,
+          headers: { get: () => null },
+          arrayBuffer: async () => new Uint8Array([1]).buffer,
+        }) as unknown as Response,
+    );
+    const generate = createImageGenerator({ fetchImpl });
+    expect(await generate("prompt")).toBeNull();
+  });
+
+  it("lets a single call override the configured size", async () => {
+    const fetchImpl = imageResponse([1, 2]);
+    const generate = createImageGenerator({
+      fetchImpl,
+      endpoint: "https://gen.test/prompt",
+      width: 768,
+      height: 1024,
+    });
+    const result = await generate("a sunset", { width: 512, height: 512 });
+    expect(result).toMatchObject({ width: 512, height: 512 });
+    const [url] = (fetchImpl as ReturnType<typeof vi.fn>).mock.calls[0] as [string];
+    expect(url).toContain("width=512&height=512");
+  });
+
   it("returns null for an empty image body", async () => {
     const generate = createImageGenerator({ fetchImpl: imageResponse([]) });
     expect(await generate("prompt")).toBeNull();
