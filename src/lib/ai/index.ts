@@ -51,4 +51,6 @@ export function embed(text: string): Promise<number[] | null> {
   return provider.embed(text);
 }
 
+export { generateImage } from "./image-gen";
+export type { GeneratedImage, ImageGenerator } from "./image-gen";
 export type { AiProvider, TagSuggestionInput } from "./types";
