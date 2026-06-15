@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.25.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.24.1...v1.25.0) (2026-06-15)
+
+
+### Features
+
+* **ai:** per-user daily rate limit for image generation ([#442](https://github.com/antoine-gourgue/Mosa-c/issues/442)) ([a9211be](https://github.com/antoine-gourgue/Mosa-c/commit/a9211beba779cf86fedf37dda6df625bfa6906e6)), closes [#438](https://github.com/antoine-gourgue/Mosa-c/issues/438)
+* **ai:** text-to-image generation over FLUX (Pollinations) ([#440](https://github.com/antoine-gourgue/Mosa-c/issues/440)) ([958189f](https://github.com/antoine-gourgue/Mosa-c/commit/958189ff1a124e875850f2b627410b62bcda21cc)), closes [#437](https://github.com/antoine-gourgue/Mosa-c/issues/437)
+* **create:** generate pin images with ai ([#444](https://github.com/antoine-gourgue/Mosa-c/issues/444)) ([8ac77c7](https://github.com/antoine-gourgue/Mosa-c/commit/8ac77c78b03a20ce2d5efad39d754e4e37c5be43))
+
+
+### Bug Fixes
+
+* **ai:** reject headerless image responses and allow per-call sizing ([#443](https://github.com/antoine-gourgue/Mosa-c/issues/443)) ([5d239af](https://github.com/antoine-gourgue/Mosa-c/commit/5d239af5f845fc03ca564dbc6e2db5fb8ca0b57a))
+
 ## [1.24.1](https://github.com/antoine-gourgue/Mosa-c/compare/v1.24.0...v1.24.1) (2026-06-14)
 
 
