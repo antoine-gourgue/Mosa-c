@@ -8,6 +8,7 @@ import { PinFeed } from "@/components/pin";
 import { AccountResults } from "./AccountResults";
 import { SearchTabs } from "./SearchTabs";
 import type { SearchTab } from "./SearchTabs";
+import { SearchTopSections } from "./SearchTopSections";
 import { TagResults } from "./TagResults";
 
 /**
@@ -86,12 +87,13 @@ export async function SearchResults({
         <AccountResults query={query} />
       ) : type === "tags" ? (
         <TagResults query={query} />
+      ) : type === "pins" ? (
+        <PinResults query={query} sort={sort} withSort />
       ) : (
-        <PinResults
-          query={query}
-          sort={type === "pins" ? sort : "recent"}
-          withSort={type === "pins"}
-        />
+        <>
+          <SearchTopSections query={query} />
+          <PinResults query={query} sort="recent" withSort={false} />
+        </>
       )}
     </>
   );

@@ -3,6 +3,44 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactElement } from "react";
 import { searchTagResults } from "@/server/services";
+import type { TagResult } from "@/types/domain";
+
+/**
+ * A single tag search result row: a strip of preview thumbnails, the tag name
+ * and its pin count, linking to the tag page. Shared by the Tags tab and the
+ * Top tab.
+ *
+ * @param props - The tag result and its localized pin-count label.
+ * @returns The tag row element.
+ */
+export function TagRow({ tag, pinsLabel }: { tag: TagResult; pinsLabel: string }): ReactElement {
+  return (
+    <li>
+      <Link
+        href={`/tag/${tag.slug}`}
+        className="flex items-center gap-3 rounded-2xl p-2 transition-colors hover:bg-surface"
+      >
+        <div className="flex shrink-0 gap-1">
+          {tag.previewUrls.length > 0 ? (
+            tag.previewUrls.map((url, index) => (
+              <span key={index} className="relative size-12 overflow-hidden rounded-lg bg-surface">
+                <Image src={url} alt="" fill sizes="48px" className="object-cover" />
+              </span>
+            ))
+          ) : (
+            <span className="grid size-12 place-items-center rounded-lg bg-surface text-lg font-bold text-ink-soft">
+              #
+            </span>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate font-semibold text-ink">#{tag.name}</p>
+          <p className="truncate text-sm text-ink-soft">{pinsLabel}</p>
+        </div>
+      </Link>
+    </li>
+  );
+}
 
 /**
  * Props for the {@link TagResults} component.
@@ -30,35 +68,7 @@ export async function TagResults({ query }: TagResultsProps): Promise<ReactEleme
   return (
     <ul className="mx-auto flex max-w-xl flex-col gap-1">
       {tags.map((tag) => (
-        <li key={tag.id}>
-          <Link
-            href={`/tag/${tag.slug}`}
-            className="flex items-center gap-3 rounded-2xl p-2 transition-colors hover:bg-surface"
-          >
-            <div className="flex shrink-0 gap-1">
-              {tag.previewUrls.length > 0 ? (
-                tag.previewUrls.map((url, index) => (
-                  <span
-                    key={index}
-                    className="relative size-12 overflow-hidden rounded-lg bg-surface"
-                  >
-                    <Image src={url} alt="" fill sizes="48px" className="object-cover" />
-                  </span>
-                ))
-              ) : (
-                <span className="grid size-12 place-items-center rounded-lg bg-surface text-lg font-bold text-ink-soft">
-                  #
-                </span>
-              )}
-            </div>
-            <div className="min-w-0">
-              <p className="truncate font-semibold text-ink">#{tag.name}</p>
-              <p className="truncate text-sm text-ink-soft">
-                {t("tagPins", { count: tag.pinCount })}
-              </p>
-            </div>
-          </Link>
-        </li>
+        <TagRow key={tag.id} tag={tag} pinsLabel={t("tagPins", { count: tag.pinCount })} />
       ))}
     </ul>
   );
