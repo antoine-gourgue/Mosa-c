@@ -75,14 +75,29 @@ export function TrimVideoDialog({ file, onCancel, onApply }: TrimVideoDialogProp
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [onCancel]);
 
+  const applyDuration = (total: number): void => {
+    setDuration(total);
+    setEnd(Math.min(total, MAX_VIDEO_SECONDS));
+  };
+
   const onLoadedMetadata = (): void => {
     const video = videoRef.current;
     if (video === null) {
       return;
     }
-    const total = Number.isFinite(video.duration) ? video.duration : 0;
-    setDuration(total);
-    setEnd(Math.min(total, MAX_VIDEO_SECONDS));
+    if (Number.isFinite(video.duration) && video.duration > 0) {
+      applyDuration(video.duration);
+    } else {
+      video.currentTime = 1e7;
+    }
+  };
+
+  const onDurationChange = (): void => {
+    const video = videoRef.current;
+    if (video !== null && duration === 0 && Number.isFinite(video.duration) && video.duration > 0) {
+      video.currentTime = 0;
+      applyDuration(video.duration);
+    }
   };
 
   const seek = (to: number): void => {
@@ -199,6 +214,7 @@ export function TrimVideoDialog({ file, onCancel, onApply }: TrimVideoDialogProp
             muted
             playsInline
             onLoadedMetadata={onLoadedMetadata}
+            onDurationChange={onDurationChange}
             onTimeUpdate={onTimeUpdate}
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}
