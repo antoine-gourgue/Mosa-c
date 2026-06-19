@@ -53,6 +53,9 @@ export function extractVideoPoster(file: File): Promise<VideoPoster> {
     video.preload = "metadata";
     video.src = url;
 
+    let measured = 0;
+    let phase: "measure" | "poster" = "poster";
+
     const cleanup = (): void => {
       URL.revokeObjectURL(url);
       video.removeAttribute("src");
@@ -63,19 +66,27 @@ export function extractVideoPoster(file: File): Promise<VideoPoster> {
       reject(new Error("video-decode-failed"));
     };
 
+    const seekToPoster = (): void => {
+      phase = "poster";
+      video.currentTime = Math.min(0.1, measured / 2) || 0;
+    };
+
     video.onloadedmetadata = () => {
-      const target = Math.min(0.1, (video.duration || 0) / 2);
-      const seek = (): void => {
-        video.currentTime = target;
-      };
-      if (video.readyState >= 1) {
-        seek();
+      if (Number.isFinite(video.duration) && video.duration > 0) {
+        measured = video.duration;
+        seekToPoster();
       } else {
-        video.onloadeddata = seek;
+        phase = "measure";
+        video.currentTime = 1e7;
       }
     };
 
     video.onseeked = () => {
+      if (phase === "measure") {
+        measured = Number.isFinite(video.duration) ? video.duration : video.currentTime;
+        seekToPoster();
+        return;
+      }
       const width = video.videoWidth;
       const height = video.videoHeight;
       if (width === 0 || height === 0) {
@@ -104,7 +115,7 @@ export function extractVideoPoster(file: File): Promise<VideoPoster> {
             poster,
             width,
             height,
-            durationS: Math.max(1, Math.round(video.duration || 0)),
+            durationS: Math.max(1, Math.round(measured)),
           });
         },
         "image/jpeg",

@@ -59,11 +59,11 @@ function StoryRing({
     >
       <span
         className={cn(
-          "block rounded-full p-[2px]",
-          hasUnseen ? "bg-gradient-to-tr from-fuchsia-500 via-rose-500 to-amber-400" : "bg-line",
+          "grid place-items-center rounded-full p-[2.5px]",
+          hasUnseen ? "bg-gradient-to-tr from-accent to-accent-press" : "bg-line",
         )}
       >
-        <span className="block rounded-full bg-bg p-[2px]">
+        <span className="grid place-items-center rounded-full bg-bg p-[2.5px]">
           <Avatar src={avatarUrl ?? undefined} name={name} size={56} verified={verified} />
         </span>
       </span>
@@ -93,7 +93,7 @@ export function StoriesRail({ reel, viewer }: StoriesRailProps): ReactElement {
     <div className="mb-5">
       <div className="flex gap-3 overflow-x-auto pb-1">
         <div className="flex w-[72px] shrink-0 flex-col items-center gap-1">
-          <span className="relative">
+          <span className="relative inline-block">
             <button
               type="button"
               aria-label={own !== null ? t("yourStory") : t("addStory")}
@@ -101,13 +101,13 @@ export function StoriesRail({ reel, viewer }: StoriesRailProps): ReactElement {
                 own !== null ? setOpenIndex(ownIndex) : router.push("/stories/create")
               }
               className={cn(
-                "block rounded-full p-[2px]",
+                "grid place-items-center rounded-full p-[2.5px]",
                 own?.hasUnseen === true
-                  ? "bg-gradient-to-tr from-fuchsia-500 via-rose-500 to-amber-400"
+                  ? "bg-gradient-to-tr from-accent to-accent-press"
                   : "bg-line",
               )}
             >
-              <span className="block rounded-full bg-bg p-[2px]">
+              <span className="grid place-items-center rounded-full bg-bg p-[2.5px]">
                 <Avatar src={viewer.avatarUrl ?? undefined} name={viewer.name} size={56} />
               </span>
             </button>

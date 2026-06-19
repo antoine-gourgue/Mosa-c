@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent, ReactElement } from "react";
 import { Button } from "@/components/ui";
-import { SendIcon, SparkleIcon } from "@/icons";
+import { CameraIcon, SendIcon, SparkleIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { ensureDisplayableImage, isHeicFile } from "@/lib/image";
 import {
@@ -13,6 +13,7 @@ import {
   extractVideoPoster,
   isAcceptedVideo,
 } from "@/lib/video";
+import { CameraCapture } from "./CameraCapture";
 import { GenerateImageDialog } from "./GenerateImageDialog";
 import { TrimVideoDialog } from "./TrimVideoDialog";
 import { UrlImageDialog } from "./UrlImageDialog";
@@ -99,6 +100,7 @@ export function UploadDropzone({
   const [urlOpen, setUrlOpen] = useState(false);
   const [genOpen, setGenOpen] = useState(initialGenerate && imageGenEnabled);
   const [pendingVideo, setPendingVideo] = useState<File | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const commit = (selected: SelectedImage): void => {
@@ -269,26 +271,32 @@ export function UploadDropzone({
         </p>
       ) : null}
 
-      {minimal ? null : (
-        <>
-          <div className="my-4 border-t border-line" />
-          <div className="flex gap-2">
-            <Button variant="ghost" fullWidth onClick={() => setUrlOpen(true)}>
-              {t("saveFromUrl")}
-            </Button>
-            {imageGenEnabled ? (
-              <Button
-                variant="ghost"
-                fullWidth
-                leftIcon={<SparkleIcon size={18} className="text-accent" />}
-                onClick={() => setGenOpen(true)}
-              >
-                {t("generateWithAi")}
-              </Button>
-            ) : null}
-          </div>
-        </>
-      )}
+      <div className="my-4 border-t border-line" />
+      <div className="flex gap-2">
+        <Button
+          variant="ghost"
+          fullWidth
+          leftIcon={<CameraIcon size={18} />}
+          onClick={() => setCameraOpen(true)}
+        >
+          {t("camera")}
+        </Button>
+        {minimal ? null : (
+          <Button variant="ghost" fullWidth onClick={() => setUrlOpen(true)}>
+            {t("saveFromUrl")}
+          </Button>
+        )}
+        {!minimal && imageGenEnabled ? (
+          <Button
+            variant="ghost"
+            fullWidth
+            leftIcon={<SparkleIcon size={18} className="text-accent" />}
+            onClick={() => setGenOpen(true)}
+          >
+            {t("generateWithAi")}
+          </Button>
+        ) : null}
+      </div>
 
       <UrlImageDialog
         open={urlOpen}
@@ -315,6 +323,15 @@ export function UploadDropzone({
           onApply={(clip) => {
             setPendingVideo(null);
             void finalizeVideo(clip);
+          }}
+        />
+      ) : null}
+      {cameraOpen ? (
+        <CameraCapture
+          onClose={() => setCameraOpen(false)}
+          onCapture={(file) => {
+            setCameraOpen(false);
+            void handleFile(file);
           }}
         />
       ) : null}

@@ -6,10 +6,26 @@ import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
 import { getStorage } from "@/lib/storage";
 import { errorMessage } from "@/server/error-message";
-import { createStory as createStoryRecord } from "@/server/services";
+import { createStory as createStoryRecord, recordStoryView } from "@/server/services";
 
 /** Failure outcome of {@link createStory}; success redirects instead. */
 export type CreateStoryResult = { ok: false; error: string };
+
+/**
+ * Marks a story segment as seen by the current viewer (idempotent). No-op when
+ * signed out. Called from the viewer as each segment is shown so the feed rings
+ * update to their seen state.
+ *
+ * @param storyId - The story segment id.
+ * @returns A promise that resolves once the view is recorded.
+ */
+export async function markStoryViewed(storyId: string): Promise<void> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return;
+  }
+  await recordStoryView(storyId, user.id);
+}
 
 /** Server-side guards mirroring the create form's video limits. */
 const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm"];
