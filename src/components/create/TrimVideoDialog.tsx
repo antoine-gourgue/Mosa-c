@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { PointerEvent as ReactPointerEvent, ReactElement } from "react";
 import { Button } from "@/components/ui";
@@ -46,7 +46,6 @@ function formatTime(seconds: number): string {
  */
 export function TrimVideoDialog({ file, onCancel, onApply }: TrimVideoDialogProps): ReactElement {
   const t = useTranslations("create");
-  const previewUrl = useMemo(() => URL.createObjectURL(file), [file]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [duration, setDuration] = useState(0);
@@ -57,7 +56,14 @@ export function TrimVideoDialog({ file, onCancel, onApply }: TrimVideoDialogProp
   const [error, setError] = useState<string | null>(null);
   const dragging = useRef<"start" | "end" | null>(null);
 
-  useEffect(() => () => URL.revokeObjectURL(previewUrl), [previewUrl]);
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    const video = videoRef.current;
+    if (video !== null) {
+      video.src = url;
+    }
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -127,7 +133,7 @@ export function TrimVideoDialog({ file, onCancel, onApply }: TrimVideoDialogProp
       if (video.currentTime < start || video.currentTime >= end) {
         video.currentTime = start;
       }
-      void video.play();
+      video.play().catch(() => undefined);
     } else {
       video.pause();
     }
@@ -190,13 +196,13 @@ export function TrimVideoDialog({ file, onCancel, onApply }: TrimVideoDialogProp
         <div className="relative mt-4 overflow-hidden rounded-2xl bg-ink">
           <video
             ref={videoRef}
-            src={previewUrl}
             muted
             playsInline
             onLoadedMetadata={onLoadedMetadata}
             onTimeUpdate={onTimeUpdate}
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}
+            onError={() => setError(t("videoUnreadable"))}
             onClick={togglePlay}
             className="mx-auto block max-h-[40vh] w-auto max-w-full"
           />
