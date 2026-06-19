@@ -55,8 +55,12 @@ export function extractVideoPoster(file: File): Promise<VideoPoster> {
 
     let measured = 0;
     let phase: "measure" | "poster" = "poster";
+    const timer: { id: ReturnType<typeof setTimeout> | null } = { id: null };
 
     const cleanup = (): void => {
+      if (timer.id !== null) {
+        clearTimeout(timer.id);
+      }
       URL.revokeObjectURL(url);
       video.removeAttribute("src");
       video.load();
@@ -65,6 +69,8 @@ export function extractVideoPoster(file: File): Promise<VideoPoster> {
       cleanup();
       reject(new Error("video-decode-failed"));
     };
+
+    timer.id = setTimeout(fail, 12_000);
 
     const seekToPoster = (): void => {
       phase = "poster";

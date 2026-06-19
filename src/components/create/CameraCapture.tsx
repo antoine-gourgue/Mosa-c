@@ -181,14 +181,20 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps): React
       return;
     }
     const mime = pickMime();
+    const options: MediaRecorderOptions = {
+      videoBitsPerSecond: 2_500_000,
+      audioBitsPerSecond: 128_000,
+    };
+    if (mime !== null) {
+      options.mimeType = mime;
+    }
     try {
-      const recorder =
-        mime !== null ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      const recorder = new MediaRecorder(stream, options);
       attach(recorder);
       recorder.start();
     } catch {
       try {
-        const fallback = new MediaRecorder(stream);
+        const fallback = new MediaRecorder(stream, { videoBitsPerSecond: 2_500_000 });
         attach(fallback);
         fallback.start();
       } catch {
