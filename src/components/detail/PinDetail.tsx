@@ -84,13 +84,24 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
       />
       <div className="shrink-0 p-3 md:flex md:min-h-[520px] md:w-1/2 md:items-center md:justify-center md:p-4">
         <div className={cn("relative w-full overflow-hidden rounded-2xl bg-surface", aspectClass)}>
-          <Image
-            src={pin.imageUrl}
-            alt={pin.altText ?? pin.title}
-            fill
-            sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover"
-          />
+          {pin.mediaType === "VIDEO" && pin.videoUrl !== null ? (
+            <video
+              src={pin.videoUrl}
+              poster={pin.imageUrl}
+              controls
+              playsInline
+              preload="metadata"
+              className="absolute inset-0 size-full bg-ink object-contain"
+            />
+          ) : (
+            <Image
+              src={pin.imageUrl}
+              alt={pin.altText ?? pin.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover"
+            />
+          )}
         </div>
       </div>
       <div className="flex min-w-0 flex-col md:absolute md:inset-y-0 md:right-0 md:w-1/2 md:overflow-hidden">

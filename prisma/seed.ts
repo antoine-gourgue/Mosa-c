@@ -28,6 +28,9 @@ type PinSeed = {
   description: string;
   place?: { name: string; address: string; lat: number; lng: number; approximate?: boolean };
   status?: "DRAFT" | "SCHEDULED";
+  mediaType?: "VIDEO";
+  videoUrl?: string;
+  videoDurationS?: number;
 };
 
 /**
@@ -241,6 +244,20 @@ const pins: PinSeed[] = [
     status: "SCHEDULED",
     place: { name: "Montmartre", address: "Paris, France", lat: 48.8867, lng: 2.3431 },
   },
+  {
+    ref: 19,
+    imageUrl: unsplash("1426604966848-d7adac402bff", 600, 338),
+    width: 600,
+    height: 338,
+    title: "Sweeping valley flyover",
+    creator: "atlas",
+    tag: "Travel",
+    description: "A short aerial clip drifting over the granite valley at first light.",
+    mediaType: "VIDEO",
+    videoUrl:
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+    videoDurationS: 15,
+  },
 ];
 
 /**
@@ -373,6 +390,9 @@ async function main(): Promise<void> {
         placeApproximate: pin.place?.approximate ?? false,
         status: pin.status ?? "PUBLISHED",
         publishAt: pin.status === "SCHEDULED" ? new Date(Date.now() + 3 * 86_400_000) : null,
+        mediaType: pin.mediaType ?? "IMAGE",
+        videoUrl: pin.videoUrl ?? null,
+        videoDurationS: pin.videoDurationS ?? null,
       },
       create: {
         id: `pin_${pin.ref}`,
@@ -388,6 +408,9 @@ async function main(): Promise<void> {
         placeApproximate: pin.place?.approximate ?? false,
         status: pin.status ?? "PUBLISHED",
         publishAt: pin.status === "SCHEDULED" ? new Date(Date.now() + 3 * 86_400_000) : null,
+        mediaType: pin.mediaType ?? "IMAGE",
+        videoUrl: pin.videoUrl ?? null,
+        videoDurationS: pin.videoDurationS ?? null,
         creator: { connect: { id: `user_${pin.creator}` } },
       },
     });

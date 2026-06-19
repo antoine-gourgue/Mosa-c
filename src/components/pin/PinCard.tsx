@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import Image from "next/image";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { MouseEvent, ReactElement } from "react";
@@ -28,6 +27,7 @@ import { deletePin } from "@/server/actions/pins";
 import { reportPin } from "@/server/actions/reports";
 import type { Pin } from "@/types/domain";
 import { EditPinDialog } from "./EditPinDialog";
+import { PinCardMedia } from "./PinCardMedia";
 
 /**
  * Props for the {@link PinCard} component.
@@ -155,14 +155,7 @@ export function PinCard({
         href={`/pin/${pin.id}`}
         className="group relative block overflow-hidden rounded-pin bg-surface"
       >
-        <Image
-          src={pin.imageUrl}
-          alt={pin.altText ?? pin.title}
-          width={pin.width}
-          height={pin.height}
-          sizes="(max-width: 768px) 50vw, 20vw"
-          className="w-full"
-        />
+        <PinCardMedia pin={pin} sizes="(max-width: 768px) 50vw, 20vw" />
         {count !== undefined && count > 1 ? (
           <div className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-ink/60 px-2 py-1 text-xs font-semibold text-bg backdrop-blur">
             <StackIcon size={14} />
