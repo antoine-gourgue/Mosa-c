@@ -1,4 +1,4 @@
-import type { Board, Creator, Pin, PinPlace, PinStatus, Tag } from "@/types/domain";
+import type { Board, Creator, Pin, PinMediaType, PinPlace, PinStatus, Tag } from "@/types/domain";
 
 /**
  * Structural shape of a creator row read from the database.
@@ -34,6 +34,9 @@ export type PinRow = {
   imageUrl: string;
   width: number;
   height: number;
+  mediaType: PinMediaType;
+  videoUrl: string | null;
+  videoDurationS: number | null;
   link: string | null;
   placeName: string | null;
   placeAddress: string | null;
@@ -134,6 +137,9 @@ export function toPin(row: PinRow): Pin {
     imageUrl: row.imageUrl,
     width: row.width,
     height: row.height,
+    mediaType: row.mediaType,
+    videoUrl: row.videoUrl,
+    videoDurationS: row.videoDurationS,
     link: row.link,
     place: toPlace(row),
     status: row.status,

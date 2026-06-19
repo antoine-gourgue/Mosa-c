@@ -59,6 +59,9 @@ describe("toPin", () => {
     imageUrl: "/p.png",
     width: 800,
     height: 600,
+    mediaType: "IMAGE",
+    videoUrl: null,
+    videoDurationS: null,
     link: "https://example.com",
     placeName: null,
     placeAddress: null,
@@ -84,6 +87,25 @@ describe("toPin", () => {
 
   it("handles a pin with no tags", () => {
     expect(toPin({ ...pinRow, tags: [] }).tags).toEqual([]);
+  });
+
+  it("defaults to an image pin with no video media", () => {
+    const pin = toPin(pinRow);
+    expect(pin.mediaType).toBe("IMAGE");
+    expect(pin.videoUrl).toBeNull();
+    expect(pin.videoDurationS).toBeNull();
+  });
+
+  it("carries the video media through for a video pin", () => {
+    const pin = toPin({
+      ...pinRow,
+      mediaType: "VIDEO",
+      videoUrl: "/clip.mp4",
+      videoDurationS: 12,
+    });
+    expect(pin.mediaType).toBe("VIDEO");
+    expect(pin.videoUrl).toBe("/clip.mp4");
+    expect(pin.videoDurationS).toBe(12);
   });
 
   it("leaves place null when the pin has no coordinates", () => {
