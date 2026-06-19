@@ -478,7 +478,13 @@
     "nearbyCta": "Show pins near you",
     "nearbyEmpty": "No pins nearby yet.",
     "nearbyDenied": "Allow location access to see pins near you.",
-    "nearbyAgain": "Refresh"
+    "nearbyAgain": "Refresh",
+    "resultTabs": "Search result tabs",
+    "tabTop": "Top",
+    "tabPins": "Pins",
+    "tabAccounts": "Accounts",
+    "tabTags": "Tags",
+    "tabComingSoon": "Coming soon."
   },
   "gender": {
     "female": "Female",

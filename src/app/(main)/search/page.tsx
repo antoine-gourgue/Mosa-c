@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import type { ReactElement } from "react";
 import { SearchDiscovery, SearchField, SearchResults } from "@/components/search";
+import type { SearchTab } from "@/components/search";
 import type { FeedSort } from "@/server/services";
 
 /**
@@ -13,6 +14,16 @@ import type { FeedSort } from "@/server/services";
  */
 function resolveSort(value: string | undefined): FeedSort {
   return value === "likes" || value === "downloads" || value === "comments" ? value : "recent";
+}
+
+/**
+ * Resolves the active result tab from the URL query.
+ *
+ * @param value - The raw `type` query value.
+ * @returns The search tab, defaulting to "top".
+ */
+function resolveTab(value: string | undefined): SearchTab {
+  return value === "pins" || value === "accounts" || value === "tags" ? value : "top";
 }
 
 /**
@@ -39,9 +50,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string; type?: string }>;
 }): Promise<ReactElement> {
-  const { q, sort } = await searchParams;
+  const { q, sort, type } = await searchParams;
   const query = (q ?? "").trim();
 
   return (
@@ -54,7 +65,7 @@ export default async function SearchPage({
       {query === "" ? (
         <SearchDiscovery />
       ) : (
-        <SearchResults query={query} sort={resolveSort(sort)} />
+        <SearchResults query={query} type={resolveTab(type)} sort={resolveSort(sort)} />
       )}
     </>
   );
