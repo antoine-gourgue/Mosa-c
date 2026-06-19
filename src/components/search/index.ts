@@ -9,6 +9,8 @@ export { AccountResults } from "./AccountResults";
 export type { AccountResultsProps } from "./AccountResults";
 export { TagResults } from "./TagResults";
 export type { TagResultsProps } from "./TagResults";
+export { SearchTopSections } from "./SearchTopSections";
+export type { SearchTopSectionsProps } from "./SearchTopSections";
 export { SearchField } from "./SearchField";
 export type { SearchFieldProps } from "./SearchField";
 export { NearbyPins } from "./NearbyPins";

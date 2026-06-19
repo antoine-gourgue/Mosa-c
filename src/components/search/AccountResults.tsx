@@ -5,6 +5,55 @@ import { Avatar } from "@/components/ui";
 import { FollowButton } from "@/components/profile";
 import { getCurrentUser } from "@/lib/auth";
 import { getFollowedCreatorIds, searchUsers } from "@/server/services";
+import type { Creator } from "@/types/domain";
+
+/**
+ * A single account search result row: avatar, name and @handle linking to the
+ * profile, with a Follow toggle. Shared by the Accounts tab and the Top tab.
+ *
+ * @param props - The creator, the viewer's follow state and auth state.
+ * @returns The account row element.
+ */
+export function AccountRow({
+  creator,
+  following,
+  isAuthed,
+}: {
+  creator: Creator;
+  following: boolean;
+  isAuthed: boolean;
+}): ReactElement {
+  return (
+    <li className="flex items-center gap-3 rounded-2xl p-2 transition-colors hover:bg-surface">
+      <Link
+        href={creator.username !== null ? `/u/${creator.username}` : "#"}
+        className="flex min-w-0 flex-1 items-center gap-3"
+      >
+        <Avatar
+          src={creator.avatarUrl ?? undefined}
+          name={creator.name}
+          size={48}
+          verified={creator.verified}
+        />
+        <div className="min-w-0">
+          <p className="truncate font-semibold text-ink">{creator.name}</p>
+          {creator.username !== null ? (
+            <p className="truncate text-sm text-ink-soft">@{creator.username}</p>
+          ) : null}
+        </div>
+      </Link>
+      <div className="shrink-0">
+        <FollowButton
+          creatorId={creator.id}
+          initialState={following ? "following" : "none"}
+          isPrivate={creator.isPrivate}
+          size="sm"
+          isAuthed={isAuthed}
+        />
+      </div>
+    </li>
+  );
+}
 
 /**
  * Props for the {@link AccountResults} component.
@@ -35,39 +84,14 @@ export async function AccountResults({ query }: AccountResultsProps): Promise<Re
 
   const followed = new Set(followedIds);
   return (
-    <ul className="mx-auto flex max-w-xl flex-col gap-1">
+    <ul className="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2 xl:grid-cols-3">
       {creators.map((creator) => (
-        <li
+        <AccountRow
           key={creator.id}
-          className="flex items-center gap-3 rounded-2xl p-2 transition-colors hover:bg-surface"
-        >
-          <Link
-            href={creator.username !== null ? `/u/${creator.username}` : "#"}
-            className="flex min-w-0 flex-1 items-center gap-3"
-          >
-            <Avatar
-              src={creator.avatarUrl ?? undefined}
-              name={creator.name}
-              size={48}
-              verified={creator.verified}
-            />
-            <div className="min-w-0">
-              <p className="truncate font-semibold text-ink">{creator.name}</p>
-              {creator.username !== null ? (
-                <p className="truncate text-sm text-ink-soft">@{creator.username}</p>
-              ) : null}
-            </div>
-          </Link>
-          <div className="shrink-0">
-            <FollowButton
-              creatorId={creator.id}
-              initialState={followed.has(creator.id) ? "following" : "none"}
-              isPrivate={creator.isPrivate}
-              size="sm"
-              isAuthed={user !== null}
-            />
-          </div>
-        </li>
+          creator={creator}
+          following={followed.has(creator.id)}
+          isAuthed={user !== null}
+        />
       ))}
     </ul>
   );

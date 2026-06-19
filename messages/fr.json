@@ -486,7 +486,8 @@
     "tabTags": "Tags",
     "noAccounts": "Aucun compte ne correspond à « {query} ».",
     "noTags": "Aucun tag ne correspond à « {query} ».",
-    "tagPins": "{count, plural, one {# épingle} other {# épingles}}"
+    "tagPins": "{count, plural, one {# épingle} other {# épingles}}",
+    "seeAll": "Tout voir"
   },
   "gender": {
     "female": "Femme",

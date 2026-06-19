@@ -486,7 +486,8 @@
     "tabTags": "Tags",
     "noAccounts": "No accounts match “{query}”.",
     "noTags": "No tags match “{query}”.",
-    "tagPins": "{count, plural, one {# pin} other {# pins}}"
+    "tagPins": "{count, plural, one {# pin} other {# pins}}",
+    "seeAll": "See all"
   },
   "gender": {
     "female": "Female",
