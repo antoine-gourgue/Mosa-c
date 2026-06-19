@@ -126,7 +126,7 @@ export function StoryViewer({ reel, startIndex, onClose }: StoryViewerProps): Re
       viewedRef.current.add(story.id);
       void markStoryViewed(story.id);
     }
-    if (isVideo || reduced) {
+    if (reduced) {
       return;
     }
     progressRef.current = 0;
@@ -136,11 +136,19 @@ export function StoryViewer({ reel, startIndex, onClose }: StoryViewerProps): Re
       const delta = now - last;
       last = now;
       if (!pausedRef.current) {
-        progressRef.current = Math.min(1, progressRef.current + delta / IMAGE_DURATION_MS);
-        setProgress(progressRef.current);
-        if (progressRef.current >= 1) {
-          goNext();
-          return;
+        if (isVideo) {
+          const video = videoRef.current;
+          if (video !== null && video.duration > 0) {
+            progressRef.current = Math.min(1, video.currentTime / video.duration);
+            setProgress(progressRef.current);
+          }
+        } else {
+          progressRef.current = Math.min(1, progressRef.current + delta / IMAGE_DURATION_MS);
+          setProgress(progressRef.current);
+          if (progressRef.current >= 1) {
+            goNext();
+            return;
+          }
         }
       }
       raf = requestAnimationFrame(tick);
@@ -153,13 +161,6 @@ export function StoryViewer({ reel, startIndex, onClose }: StoryViewerProps): Re
   if (author === undefined || story === undefined) {
     return null;
   }
-
-  const onTimeUpdate = (): void => {
-    const video = videoRef.current;
-    if (video !== null && video.duration > 0) {
-      setProgress(video.currentTime / video.duration);
-    }
-  };
 
   const onPressStart = (): void => {
     pressAtRef.current = Date.now();
@@ -220,7 +221,6 @@ export function StoryViewer({ reel, startIndex, onClose }: StoryViewerProps): Re
             muted
             autoPlay
             playsInline
-            onTimeUpdate={onTimeUpdate}
             onEnded={goNext}
             className="relative size-full object-contain"
           />
@@ -255,10 +255,7 @@ export function StoryViewer({ reel, startIndex, onClose }: StoryViewerProps): Re
               index < pos.segment ? 100 : index > pos.segment ? 0 : reduced ? 100 : progress * 100;
             return (
               <span key={segment.id} className="h-0.5 flex-1 overflow-hidden rounded-full bg-bg/30">
-                <span
-                  style={{ width: `${width}%` }}
-                  className="block h-full rounded-full bg-bg transition-[width] duration-100 ease-linear"
-                />
+                <span style={{ width: `${width}%` }} className="block h-full rounded-full bg-bg" />
               </span>
             );
           })}
