@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.27.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.26.0...v1.27.0) (2026-06-19)
+
+
+### Features
+
+* **search:** accounts tab ([#457](https://github.com/antoine-gourgue/Mosa-c/issues/457)) ([584514f](https://github.com/antoine-gourgue/Mosa-c/commit/584514f2680bb60e9f8d162e669ad392fa463ad8)), closes [#451](https://github.com/antoine-gourgue/Mosa-c/issues/451)
+* **search:** add people and tag search services ([#454](https://github.com/antoine-gourgue/Mosa-c/issues/454)) ([6e4c310](https://github.com/antoine-gourgue/Mosa-c/commit/6e4c3107889e605f697940e62358d85fbe0a05bc)), closes [#449](https://github.com/antoine-gourgue/Mosa-c/issues/449)
+* **search:** blended top tab ([#459](https://github.com/antoine-gourgue/Mosa-c/issues/459)) ([b80040c](https://github.com/antoine-gourgue/Mosa-c/commit/b80040c66668d36d29d0ceec8fe85fd1035d17a5))
+* **search:** tabbed results shell with a pins tab ([#456](https://github.com/antoine-gourgue/Mosa-c/issues/456)) ([9ec50a0](https://github.com/antoine-gourgue/Mosa-c/commit/9ec50a0ec0d44f2c121201e9ae53577a418957f8))
+* **search:** tags tab ([#458](https://github.com/antoine-gourgue/Mosa-c/issues/458)) ([b355798](https://github.com/antoine-gourgue/Mosa-c/commit/b35579883ac4abb0d4296d796cb8c4c2bb6f90da)), closes [#452](https://github.com/antoine-gourgue/Mosa-c/issues/452)
+
 ## [1.26.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.25.0...v1.26.0) (2026-06-19)
 
 
