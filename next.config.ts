@@ -17,7 +17,8 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: "10mb",
+      // Large enough for a 50 MB video pin plus its generated poster.
+      bodySizeLimit: "60mb",
     },
   },
 };

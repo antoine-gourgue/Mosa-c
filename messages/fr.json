@@ -121,6 +121,9 @@
     "hostNotAllowed": "Cet hôte n’est pas autorisé.",
     "linkNotImage": "Ce lien ne pointe pas vers une image.",
     "fileNotImage": "Le fichier doit être une image.",
+    "fileNotVideo": "Le fichier doit être une vidéo MP4 ou WebM.",
+    "videoTooLarge": "Les vidéos doivent faire 50 Mo ou moins.",
+    "videoTooLong": "Les vidéos doivent durer 60 secondes ou moins.",
     "writeMessage": "Écrivez d’abord un message.",
     "deleteOwnPins": "Vous ne pouvez supprimer que vos propres épingles.",
     "cannotMessageUser": "Vous ne pouvez pas envoyer de message à cet utilisateur.",
@@ -300,6 +303,7 @@
     "cancel": "Annuler",
     "chooseBoard": "Choisir un tableau",
     "chooseImageFile": "Veuillez choisir un fichier image.",
+    "chooseVideoFile": "Veuillez choisir une vidéo MP4 ou WebM.",
     "createAction": "Créer",
     "createBoard": "Créer un tableau",
     "createBoardFailed": "Impossible de créer ce tableau. Essayez un autre nom.",
@@ -310,7 +314,7 @@
     "dropLine2": "glissez-le ici",
     "editFailed": "Impossible d’enregistrer vos modifications. Veuillez réessayer.",
     "editPin": "Modifier l’épingle",
-    "fileHint": "Nous recommandons des fichiers .jpg, .png ou .heic de haute qualité, jusqu’à 10 Mo.",
+    "fileHint": "Un .jpg, .png ou .heic jusqu’à 10 Mo, ou une vidéo .mp4/.webm jusqu’à 50 Mo.",
     "generate": "Générer",
     "generateHint": "Décris ce que tu aimerais voir et on s'occupe du reste.",
     "generatePlaceholder": "Décris l'image que tu veux…",
@@ -357,7 +361,10 @@
     "uploadAPinHint": "Ajoute ta propre image",
     "urlDialogHint": "Collez un lien vers une image du web.",
     "urlImportFailed": "Impossible d’importer cette image. Essayez un autre lien.",
-    "useThisImage": "Utiliser cette image"
+    "useThisImage": "Utiliser cette image",
+    "videoUnreadable": "Impossible de lire cette vidéo.",
+    "videosMax50": "Les vidéos doivent faire 50 Mo ou moins.",
+    "videosMax60s": "Les vidéos doivent durer 60 secondes ou moins."
   },
   "board": {
     "add": "Ajouter",
