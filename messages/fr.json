@@ -484,7 +484,8 @@
     "tabPins": "Épingles",
     "tabAccounts": "Comptes",
     "tabTags": "Tags",
-    "tabComingSoon": "Bientôt disponible."
+    "tabComingSoon": "Bientôt disponible.",
+    "noAccounts": "Aucun compte ne correspond à « {query} »."
   },
   "gender": {
     "female": "Femme",

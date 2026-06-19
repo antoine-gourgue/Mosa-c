@@ -5,6 +5,7 @@ import { getLikedPinIds, getSavedPinIds, searchPins } from "@/server/services";
 import type { FeedSort } from "@/server/services";
 import { FeedFilter } from "@/components/feed";
 import { PinFeed } from "@/components/pin";
+import { AccountResults } from "./AccountResults";
 import { SearchTabs } from "./SearchTabs";
 import type { SearchTab } from "./SearchTabs";
 
@@ -82,7 +83,9 @@ export async function SearchResults({
   return (
     <>
       <SearchTabs active={type} />
-      {type === "accounts" || type === "tags" ? (
+      {type === "accounts" ? (
+        <AccountResults query={query} />
+      ) : type === "tags" ? (
         <div className="mt-16 text-center text-ink-soft">{t("tabComingSoon")}</div>
       ) : (
         <PinResults
