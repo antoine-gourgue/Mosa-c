@@ -20,6 +20,11 @@ enum PinStatus {
   PUBLISHED
 }
 
+enum PinMediaType {
+  IMAGE
+  VIDEO
+}
+
 enum NotificationType {
   FOLLOW
   LIKE
@@ -240,6 +245,9 @@ model Pin {
   imageUrl      String
   width         Int
   height        Int
+  mediaType      PinMediaType @default(IMAGE)
+  videoUrl       String?
+  videoDurationS Int?
   link          String?
   placeName        String?
   placeAddress     String?

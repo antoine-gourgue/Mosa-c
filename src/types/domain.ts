@@ -74,6 +74,13 @@ export type CreatorAnalytics = {
  */
 export type PinStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED";
 
+/**
+ * Whether a pin's media is a still image or a video. Video pins keep `imageUrl`
+ * as the poster, so every image-based surface (feed, cards, boards, OG) renders
+ * unchanged, while `videoUrl` adds playback where supported.
+ */
+export type PinMediaType = "IMAGE" | "VIDEO";
+
 export type Pin = {
   id: string;
   title: string;
@@ -82,6 +89,9 @@ export type Pin = {
   imageUrl: string;
   width: number;
   height: number;
+  mediaType: PinMediaType;
+  videoUrl: string | null;
+  videoDurationS: number | null;
   link: string | null;
   place: PinPlace | null;
   status: PinStatus;
