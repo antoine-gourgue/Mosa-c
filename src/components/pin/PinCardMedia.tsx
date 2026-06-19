@@ -59,7 +59,7 @@ export function PinCardMedia({ pin, sizes }: PinCardMediaProps): ReactElement {
         sizes={sizes}
         className="w-full"
       />
-      {isVideo && active ? (
+      {isVideo && active && !reduced ? (
         <video
           ref={videoRef}
           src={pin.videoUrl ?? undefined}
@@ -71,7 +71,7 @@ export function PinCardMedia({ pin, sizes }: PinCardMediaProps): ReactElement {
           className="absolute inset-0 size-full object-cover"
         />
       ) : null}
-      {isVideo && !active ? (
+      {isVideo && (!active || reduced) ? (
         <span className="pointer-events-none absolute inset-0 grid place-items-center">
           <span className="grid size-12 place-items-center rounded-full bg-ink/55 text-bg backdrop-blur">
             <PlayIcon size={22} />
