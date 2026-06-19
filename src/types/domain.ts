@@ -35,6 +35,14 @@ export type TagWithCount = Tag & {
 };
 
 /**
+ * A tag search result: its pin count plus a few preview thumbnails to render in
+ * the search "Tags" tab.
+ */
+export type TagResult = TagWithCount & {
+  previewUrls: string[];
+};
+
+/**
  * Engagement stats for a single pin in the creator analytics dashboard.
  */
 export type PinStat = {

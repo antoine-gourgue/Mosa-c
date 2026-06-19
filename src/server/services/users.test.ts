@@ -16,6 +16,7 @@ import {
   getSuggestedCreators,
   getUserByUsername,
   searchMentionUsers,
+  searchUsers,
 } from "./users";
 
 const db = prisma as unknown as {
@@ -62,6 +63,30 @@ describe("searchMentionUsers", () => {
     const args = db.user.findMany.mock.calls[0]?.[0];
     expect(args.where.OR).toBeUndefined();
     expect(args.where.id).toEqual({ not: "me" });
+  });
+});
+
+describe("searchUsers", () => {
+  it("returns an empty list for a blank query without querying", async () => {
+    expect(await searchUsers("   ", "me")).toEqual([]);
+    expect(db.user.findMany).not.toHaveBeenCalled();
+  });
+
+  it("filters to handled accounts, excludes the viewer, and maps creators", async () => {
+    db.user.findMany.mockResolvedValue([userRow("ada", { verified: true }), userRow("ben")]);
+    const result = await searchUsers("a", "me");
+    expect(result.map((c) => c.id)).toEqual(["ada", "ben"]);
+    const args = db.user.findMany.mock.calls[0]?.[0];
+    expect(args.where.username).toEqual({ not: null });
+    expect(args.where.OR).toHaveLength(2);
+    expect(args.where.id).toEqual({ not: "me" });
+  });
+
+  it("omits the id filter when signed out", async () => {
+    db.user.findMany.mockResolvedValue([]);
+    await searchUsers("art", null);
+    const args = db.user.findMany.mock.calls[0]?.[0];
+    expect(args.where.id).toBeUndefined();
   });
 });
 

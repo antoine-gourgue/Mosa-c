@@ -19,8 +19,9 @@ export {
   getUserByUsername,
   getFollowCounts,
   searchMentionUsers,
+  searchUsers,
 } from "./users";
-export { getPopularTags, searchTags, getTagBySlug, getPinsByTag } from "./tags";
+export { getPopularTags, searchTags, searchTagResults, getTagBySlug, getPinsByTag } from "./tags";
 export {
   getBoardsForUser,
   getDefaultBoard,
