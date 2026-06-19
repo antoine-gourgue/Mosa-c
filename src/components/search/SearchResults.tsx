@@ -8,6 +8,7 @@ import { PinFeed } from "@/components/pin";
 import { AccountResults } from "./AccountResults";
 import { SearchTabs } from "./SearchTabs";
 import type { SearchTab } from "./SearchTabs";
+import { TagResults } from "./TagResults";
 
 /**
  * Props for the {@link SearchResults} component.
@@ -78,15 +79,13 @@ export async function SearchResults({
   type,
   sort,
 }: SearchResultsProps): Promise<ReactElement> {
-  const t = await getTranslations("search");
-
   return (
     <>
       <SearchTabs active={type} />
       {type === "accounts" ? (
         <AccountResults query={query} />
       ) : type === "tags" ? (
-        <div className="mt-16 text-center text-ink-soft">{t("tabComingSoon")}</div>
+        <TagResults query={query} />
       ) : (
         <PinResults
           query={query}

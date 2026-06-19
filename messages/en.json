@@ -484,8 +484,9 @@
     "tabPins": "Pins",
     "tabAccounts": "Accounts",
     "tabTags": "Tags",
-    "tabComingSoon": "Coming soon.",
-    "noAccounts": "No accounts match “{query}”."
+    "noAccounts": "No accounts match “{query}”.",
+    "noTags": "No tags match “{query}”.",
+    "tagPins": "{count, plural, one {# pin} other {# pins}}"
   },
   "gender": {
     "female": "Female",

@@ -7,6 +7,8 @@ export { SearchTabs } from "./SearchTabs";
 export type { SearchTab, SearchTabsProps } from "./SearchTabs";
 export { AccountResults } from "./AccountResults";
 export type { AccountResultsProps } from "./AccountResults";
+export { TagResults } from "./TagResults";
+export type { TagResultsProps } from "./TagResults";
 export { SearchField } from "./SearchField";
 export type { SearchFieldProps } from "./SearchField";
 export { NearbyPins } from "./NearbyPins";
