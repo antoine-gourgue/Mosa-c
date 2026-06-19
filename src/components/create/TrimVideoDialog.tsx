@@ -141,7 +141,7 @@ export function TrimVideoDialog({ file, onCancel, onApply }: TrimVideoDialogProp
 
   const onTimeUpdate = (): void => {
     const video = videoRef.current;
-    if (video !== null && video.currentTime >= end) {
+    if (video !== null && !video.paused && video.currentTime >= end) {
       video.currentTime = start;
     }
   };
