@@ -60,6 +60,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
     notFound();
   }
 
+  const isVideo = pin.mediaType === "VIDEO" && pin.videoUrl !== null;
   const aspectClass =
     pin.height > pin.width
       ? "aspect-[3/4]"
@@ -83,15 +84,21 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
         }}
       />
       <div className="shrink-0 p-3 md:flex md:min-h-[520px] md:w-1/2 md:items-center md:justify-center md:p-4">
-        <div className={cn("relative w-full overflow-hidden rounded-2xl bg-surface", aspectClass)}>
-          {pin.mediaType === "VIDEO" && pin.videoUrl !== null ? (
+        <div
+          className={cn(
+            "relative w-full overflow-hidden rounded-2xl bg-surface",
+            isVideo ? null : aspectClass,
+          )}
+          style={isVideo ? { aspectRatio: `${pin.width} / ${pin.height}` } : undefined}
+        >
+          {isVideo && pin.videoUrl !== null ? (
             <video
               src={pin.videoUrl}
               poster={pin.imageUrl}
               controls
               playsInline
               preload="metadata"
-              className="absolute inset-0 size-full bg-ink object-contain"
+              className="absolute inset-0 size-full object-cover"
             />
           ) : (
             <Image
