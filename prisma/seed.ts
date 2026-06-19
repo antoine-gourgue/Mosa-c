@@ -246,17 +246,16 @@ const pins: PinSeed[] = [
   },
   {
     ref: 19,
-    imageUrl: unsplash("1426604966848-d7adac402bff", 600, 338),
-    width: 600,
-    height: 338,
-    title: "Sweeping valley flyover",
+    imageUrl: "/images/sample-clip-poster.jpg",
+    width: 1280,
+    height: 720,
+    title: "Big Buck Bunny (sample clip)",
     creator: "atlas",
-    tag: "Travel",
-    description: "A short aerial clip drifting over the granite valley at first light.",
+    tag: "Nature",
+    description: "A short clip from the open-source Blender short film.",
     mediaType: "VIDEO",
-    videoUrl:
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
-    videoDurationS: 15,
+    videoUrl: "/videos/sample-clip.mp4",
+    videoDurationS: 10,
   },
 ];
 
