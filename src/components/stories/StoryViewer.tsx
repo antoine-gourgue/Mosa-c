@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import type { ReactElement } from "react";
 import { Avatar, IconButton } from "@/components/ui";
 import { CloseIcon } from "@/icons";
+import { cn } from "@/lib/cn";
 import type { StoryReelItem } from "@/types/domain";
 
 /**
@@ -95,51 +96,86 @@ export function StoryViewer({ reel, startIndex, onClose }: StoryViewerProps): Re
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[140] flex items-center justify-center bg-ink/95">
-      <div className="relative flex h-full w-full max-w-md flex-col">
-        <div className="absolute left-0 right-0 top-0 z-20 flex items-center gap-3 p-4">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-[140] grid place-items-center bg-ink/90 p-3 backdrop-blur-sm"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        onClick={(event) => event.stopPropagation()}
+        className="relative aspect-[9/16] max-h-[94vh] w-auto max-w-[440px] overflow-hidden rounded-2xl bg-ink shadow-pop"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={story.imageUrl}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 size-full scale-110 object-cover opacity-50 blur-2xl"
+        />
+
+        {story.mediaType === "VIDEO" && story.videoUrl !== null ? (
+          <video
+            key={story.id}
+            src={story.videoUrl}
+            poster={story.imageUrl}
+            muted
+            autoPlay
+            playsInline
+            onEnded={goNext}
+            className="relative size-full object-contain"
+          />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={story.id}
+            src={story.imageUrl}
+            alt=""
+            className="relative size-full object-contain"
+          />
+        )}
+
+        <button
+          type="button"
+          aria-label={t("previous")}
+          onClick={goPrev}
+          className="absolute inset-y-0 left-0 z-10 w-1/3"
+        />
+        <button
+          type="button"
+          aria-label={t("next")}
+          onClick={goNext}
+          className="absolute inset-y-0 right-0 z-10 w-2/3"
+        />
+
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-24 bg-gradient-to-b from-ink/70 to-transparent" />
+
+        <div className="absolute inset-x-0 top-0 z-30 flex gap-1 p-2">
+          {author.stories.map((segment, index) => (
+            <span key={segment.id} className="h-0.5 flex-1 overflow-hidden rounded-full bg-bg/30">
+              <span
+                className={cn(
+                  "block h-full rounded-full bg-bg transition-all",
+                  index <= pos.segment ? "w-full" : "w-0",
+                )}
+              />
+            </span>
+          ))}
+        </div>
+
+        <div className="absolute inset-x-0 top-0 z-30 flex items-center gap-2 px-3 pb-2 pt-4">
           <Avatar
             src={author.author.avatarUrl ?? undefined}
             name={author.author.name}
-            size={36}
+            size={32}
             verified={author.author.verified}
           />
-          <span className="text-sm font-semibold text-bg">{author.author.name}</span>
+          <span className="text-sm font-semibold text-bg drop-shadow">{author.author.name}</span>
           <div className="ml-auto">
             <IconButton label={t("close")} tone="solid" onClick={onClose}>
               <CloseIcon size={18} />
             </IconButton>
           </div>
-        </div>
-
-        <div className="relative flex flex-1 items-center justify-center overflow-hidden">
-          {story.mediaType === "VIDEO" && story.videoUrl !== null ? (
-            <video
-              key={story.id}
-              src={story.videoUrl}
-              poster={story.imageUrl}
-              muted
-              autoPlay
-              playsInline
-              onEnded={goNext}
-              className="size-full object-contain"
-            />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={story.id} src={story.imageUrl} alt="" className="size-full object-contain" />
-          )}
-          <button
-            type="button"
-            aria-label={t("previous")}
-            onClick={goPrev}
-            className="absolute inset-y-0 left-0 z-10 w-1/3"
-          />
-          <button
-            type="button"
-            aria-label={t("next")}
-            onClick={goNext}
-            className="absolute inset-y-0 right-0 z-10 w-2/3"
-          />
         </div>
       </div>
     </div>,
