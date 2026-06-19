@@ -85,7 +85,11 @@ export async function SearchResults({
       {type === "accounts" || type === "tags" ? (
         <div className="mt-16 text-center text-ink-soft">{t("tabComingSoon")}</div>
       ) : (
-        <PinResults query={query} sort={sort} withSort={type === "pins"} />
+        <PinResults
+          query={query}
+          sort={type === "pins" ? sort : "recent"}
+          withSort={type === "pins"}
+        />
       )}
     </>
   );

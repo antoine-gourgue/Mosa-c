@@ -46,7 +46,9 @@ export function SearchTabs({ active }: SearchTabsProps): ReactElement {
     } else {
       params.set("type", tab);
     }
-    params.delete("sort");
+    if (tab !== active) {
+      params.delete("sort");
+    }
     const query = params.toString();
     return query === "" ? pathname : `${pathname}?${query}`;
   };
