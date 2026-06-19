@@ -31,6 +31,7 @@ export default defineConfig({
         "src/lib/realtime.ts",
         "src/lib/image.ts",
         "src/lib/video.ts",
+        "src/lib/video-trim.ts",
         "src/lib/site.ts",
         "src/lib/storage/**",
         "src/lib/ai/index.ts",

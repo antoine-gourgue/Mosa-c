@@ -28,6 +28,9 @@ type PinSeed = {
   description: string;
   place?: { name: string; address: string; lat: number; lng: number; approximate?: boolean };
   status?: "DRAFT" | "SCHEDULED";
+  mediaType?: "VIDEO";
+  videoUrl?: string;
+  videoDurationS?: number;
 };
 
 /**
@@ -241,6 +244,19 @@ const pins: PinSeed[] = [
     status: "SCHEDULED",
     place: { name: "Montmartre", address: "Paris, France", lat: 48.8867, lng: 2.3431 },
   },
+  {
+    ref: 19,
+    imageUrl: "/images/sample-clip-poster.jpg",
+    width: 1280,
+    height: 720,
+    title: "Big Buck Bunny (sample clip)",
+    creator: "atlas",
+    tag: "Nature",
+    description: "A short clip from the open-source Blender short film.",
+    mediaType: "VIDEO",
+    videoUrl: "/videos/sample-clip.mp4",
+    videoDurationS: 10,
+  },
 ];
 
 /**
@@ -373,6 +389,9 @@ async function main(): Promise<void> {
         placeApproximate: pin.place?.approximate ?? false,
         status: pin.status ?? "PUBLISHED",
         publishAt: pin.status === "SCHEDULED" ? new Date(Date.now() + 3 * 86_400_000) : null,
+        mediaType: pin.mediaType ?? "IMAGE",
+        videoUrl: pin.videoUrl ?? null,
+        videoDurationS: pin.videoDurationS ?? null,
       },
       create: {
         id: `pin_${pin.ref}`,
@@ -388,6 +407,9 @@ async function main(): Promise<void> {
         placeApproximate: pin.place?.approximate ?? false,
         status: pin.status ?? "PUBLISHED",
         publishAt: pin.status === "SCHEDULED" ? new Date(Date.now() + 3 * 86_400_000) : null,
+        mediaType: pin.mediaType ?? "IMAGE",
+        videoUrl: pin.videoUrl ?? null,
+        videoDurationS: pin.videoDurationS ?? null,
         creator: { connect: { id: `user_${pin.creator}` } },
       },
     });

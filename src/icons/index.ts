@@ -32,6 +32,7 @@ export {
   ComposeIcon,
   SendIcon,
   ImageIcon,
+  PlayIcon,
   ExpandIcon,
   GearFilledIcon,
   UserIcon,

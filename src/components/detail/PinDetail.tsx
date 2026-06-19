@@ -60,6 +60,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
     notFound();
   }
 
+  const isVideo = pin.mediaType === "VIDEO" && pin.videoUrl !== null;
   const aspectClass =
     pin.height > pin.width
       ? "aspect-[3/4]"
@@ -83,14 +84,31 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
         }}
       />
       <div className="shrink-0 p-3 md:flex md:min-h-[520px] md:w-1/2 md:items-center md:justify-center md:p-4">
-        <div className={cn("relative w-full overflow-hidden rounded-2xl bg-surface", aspectClass)}>
-          <Image
-            src={pin.imageUrl}
-            alt={pin.altText ?? pin.title}
-            fill
-            sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover"
-          />
+        <div
+          className={cn(
+            "relative w-full overflow-hidden rounded-2xl bg-surface",
+            isVideo ? null : aspectClass,
+          )}
+          style={isVideo ? { aspectRatio: `${pin.width} / ${pin.height}` } : undefined}
+        >
+          {isVideo && pin.videoUrl !== null ? (
+            <video
+              src={pin.videoUrl}
+              poster={pin.imageUrl}
+              controls
+              playsInline
+              preload="metadata"
+              className="absolute inset-0 size-full object-cover"
+            />
+          ) : (
+            <Image
+              src={pin.imageUrl}
+              alt={pin.altText ?? pin.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover"
+            />
+          )}
         </div>
       </div>
       <div className="flex min-w-0 flex-col md:absolute md:inset-y-0 md:right-0 md:w-1/2 md:overflow-hidden">
@@ -101,6 +119,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
             description={pin.description}
             tags={pin.tags.map((tag) => tag.name)}
             imageUrl={pin.imageUrl}
+            videoUrl={pin.videoUrl}
             link={pin.link}
             place={pin.place}
             initialLiked={like.liked}

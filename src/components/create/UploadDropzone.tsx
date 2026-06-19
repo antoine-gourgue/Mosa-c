@@ -14,6 +14,7 @@ import {
   isAcceptedVideo,
 } from "@/lib/video";
 import { GenerateImageDialog } from "./GenerateImageDialog";
+import { TrimVideoDialog } from "./TrimVideoDialog";
 import { UrlImageDialog } from "./UrlImageDialog";
 
 /**
@@ -94,6 +95,7 @@ export function UploadDropzone({
   const [processing, setProcessing] = useState(false);
   const [urlOpen, setUrlOpen] = useState(false);
   const [genOpen, setGenOpen] = useState(initialGenerate && imageGenEnabled);
+  const [pendingVideo, setPendingVideo] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const commit = (selected: SelectedImage): void => {
@@ -103,15 +105,7 @@ export function UploadDropzone({
     onChange(selected);
   };
 
-  const handleVideo = async (file: File): Promise<void> => {
-    if (!isAcceptedVideo(file)) {
-      setError(t("chooseVideoFile"));
-      return;
-    }
-    if (file.size > MAX_VIDEO_BYTES) {
-      setError(t("videosMax50"));
-      return;
-    }
+  const finalizeVideo = async (file: File): Promise<void> => {
     setError(null);
     setProcessing(true);
     try {
@@ -136,12 +130,25 @@ export function UploadDropzone({
     }
   };
 
+  const handleVideo = (file: File): void => {
+    if (!isAcceptedVideo(file)) {
+      setError(t("chooseVideoFile"));
+      return;
+    }
+    if (file.size > MAX_VIDEO_BYTES) {
+      setError(t("videosMax50"));
+      return;
+    }
+    setError(null);
+    setPendingVideo(file);
+  };
+
   const handleFile = async (file: File | undefined): Promise<void> => {
     if (file === undefined) {
       return;
     }
     if (file.type.startsWith("video/")) {
-      await handleVideo(file);
+      handleVideo(file);
       return;
     }
     if (!file.type.startsWith("image/") && !isHeicFile(file)) {
@@ -291,6 +298,16 @@ export function UploadDropzone({
           onPicked={(file) => {
             setGenOpen(false);
             void handleFile(file);
+          }}
+        />
+      ) : null}
+      {pendingVideo !== null ? (
+        <TrimVideoDialog
+          file={pendingVideo}
+          onCancel={() => setPendingVideo(null)}
+          onApply={(clip) => {
+            setPendingVideo(null);
+            void finalizeVideo(clip);
           }}
         />
       ) : null}

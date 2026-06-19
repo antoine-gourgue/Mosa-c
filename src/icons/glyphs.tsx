@@ -547,6 +547,20 @@ export function ImageIcon(props: IconProps): ReactElement {
 }
 
 /**
+ * Filled triangular "play" glyph used to mark and start video pins.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function PlayIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon {...props} filled>
+      <path d="M8 5v14l11-7z" />
+    </SvgIcon>
+  );
+}
+
+/**
  * Diagonal "expand" glyph used to open the pin detail as a full page.
  *
  * @param props - Icon sizing and presentation props.
