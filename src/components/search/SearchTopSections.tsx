@@ -67,11 +67,11 @@ export async function SearchTopSections({
   const tabHref = (type: string): string => `/search?q=${encodeURIComponent(query)}&type=${type}`;
 
   return (
-    <div className="mx-auto mb-6 flex max-w-xl flex-col gap-6">
+    <div className="mb-6 flex flex-col gap-6">
       {creators.length > 0 ? (
         <section>
           <SectionHeader title={t("tabAccounts")} href={tabHref("accounts")} seeAll={t("seeAll")} />
-          <ul className="flex flex-col gap-1">
+          <ul className="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2 xl:grid-cols-3">
             {creators.map((creator) => (
               <AccountRow
                 key={creator.id}
@@ -86,7 +86,7 @@ export async function SearchTopSections({
       {tags.length > 0 ? (
         <section>
           <SectionHeader title={t("tabTags")} href={tabHref("tags")} seeAll={t("seeAll")} />
-          <ul className="flex flex-col gap-1">
+          <ul className="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2 xl:grid-cols-3">
             {tags.map((tag) => (
               <TagRow key={tag.id} tag={tag} pinsLabel={t("tagPins", { count: tag.pinCount })} />
             ))}

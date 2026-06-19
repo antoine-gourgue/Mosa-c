@@ -66,7 +66,7 @@ export async function TagResults({ query }: TagResultsProps): Promise<ReactEleme
   }
 
   return (
-    <ul className="mx-auto flex max-w-xl flex-col gap-1">
+    <ul className="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2 xl:grid-cols-3">
       {tags.map((tag) => (
         <TagRow key={tag.id} tag={tag} pinsLabel={t("tagPins", { count: tag.pinCount })} />
       ))}
