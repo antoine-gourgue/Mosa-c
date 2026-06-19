@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.26.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.25.0...v1.26.0) (2026-06-19)
+
+
+### Features
+
+* **create:** upload a video pin with an auto poster ([#447](https://github.com/antoine-gourgue/Mosa-c/issues/447)) ([5dfbaf2](https://github.com/antoine-gourgue/Mosa-c/commit/5dfbaf2849f8b4974b6265c1c953ba56279b5467)), closes [#435](https://github.com/antoine-gourgue/Mosa-c/issues/435)
+* **pins:** support video pins in the model ([#445](https://github.com/antoine-gourgue/Mosa-c/issues/445)) ([1ff7194](https://github.com/antoine-gourgue/Mosa-c/commit/1ff7194030b20b6823da484a098e9dddee8c4863)), closes [#434](https://github.com/antoine-gourgue/Mosa-c/issues/434)
+* **pin:** video playback, and pre-publish trimming ([#448](https://github.com/antoine-gourgue/Mosa-c/issues/448)) ([20b3fce](https://github.com/antoine-gourgue/Mosa-c/commit/20b3fce4531887cd16dc632656b9f3e7cb00a0f9))
+
 ## [1.25.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.24.1...v1.25.0) (2026-06-15)
 
 
