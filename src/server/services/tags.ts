@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import type { Pin, Tag, TagWithCount } from "@/types/domain";
+import type { Pin, Tag, TagResult, TagWithCount } from "@/types/domain";
 import { PIN_INCLUDE, toPin, toTag } from "./mappers";
 import { publishedPinWhere } from "./pins";
 
@@ -43,6 +43,45 @@ export async function searchTags(query: string, limit = 40): Promise<Tag[]> {
     take: limit,
   });
   return rows.map(toTag);
+}
+
+/**
+ * Searches tags for the search "Tags" tab, busiest first, returning each tag's
+ * pin count and a few published preview thumbnails. Returns an empty list for a
+ * blank query.
+ *
+ * @param query - The partial tag name.
+ * @param limit - The maximum number of tags to return.
+ * @returns The matching tag results with previews.
+ */
+export async function searchTagResults(query: string, limit = 20): Promise<TagResult[]> {
+  const q = query.trim();
+  if (q === "") {
+    return [];
+  }
+  const rows = await prisma.tag.findMany({
+    where: { name: { contains: q, mode: "insensitive" } },
+    include: { _count: { select: { pins: true } } },
+    orderBy: [{ pins: { _count: "desc" } }, { name: "asc" }],
+    take: limit,
+  });
+  return Promise.all(
+    rows.map(async (tag) => {
+      const previews = await prisma.pin.findMany({
+        where: { tags: { some: { tagId: tag.id } }, ...publishedPinWhere() },
+        select: { imageUrl: true },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+      });
+      return {
+        id: tag.id,
+        slug: tag.slug,
+        name: tag.name,
+        pinCount: tag._count.pins,
+        previewUrls: previews.map((pin) => pin.imageUrl),
+      };
+    }),
+  );
 }
 
 /**

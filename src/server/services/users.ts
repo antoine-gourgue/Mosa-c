@@ -52,6 +52,45 @@ export async function searchMentionUsers(
 }
 
 /**
+ * Searches linkable accounts (those with a public username) for the search
+ * "Accounts" tab, matching the query against the username or display name.
+ * Blocked users and the viewer are excluded; verified accounts rank first.
+ *
+ * @param query - The search query.
+ * @param viewerId - The current viewer id, or null when signed out.
+ * @param limit - The maximum number of accounts to return.
+ * @returns The matching creators, or an empty list for a blank query.
+ */
+export async function searchUsers(
+  query: string,
+  viewerId: string | null = null,
+  limit = 20,
+): Promise<Creator[]> {
+  const q = query.trim();
+  if (q === "") {
+    return [];
+  }
+  const hidden = await getHiddenUserIds(viewerId);
+  const idFilter = {
+    ...(viewerId === null ? {} : { not: viewerId }),
+    ...(hidden.length > 0 ? { notIn: hidden } : {}),
+  };
+  const rows = await prisma.user.findMany({
+    where: {
+      username: { not: null },
+      ...(Object.keys(idFilter).length > 0 ? { id: idFilter } : {}),
+      OR: [
+        { username: { contains: q, mode: "insensitive" } },
+        { name: { contains: q, mode: "insensitive" } },
+      ],
+    },
+    orderBy: [{ verified: "desc" }, { username: "asc" }],
+    take: limit,
+  });
+  return rows.map(toCreator);
+}
+
+/**
  * Fetches a creator by id.
  *
  * @param id - The user id.

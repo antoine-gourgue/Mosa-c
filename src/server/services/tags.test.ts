@@ -9,7 +9,7 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 import { prisma } from "@/lib/prisma";
-import { getPinsByTag, getPopularTags, getTagBySlug, searchTags } from "./tags";
+import { getPinsByTag, getPopularTags, getTagBySlug, searchTagResults, searchTags } from "./tags";
 
 const db = prisma as unknown as {
   tag: { findMany: Mock; findUnique: Mock };
@@ -85,6 +85,24 @@ describe("getPinsByTag", () => {
         where: expect.objectContaining({ tags: { some: { tag: { slug: "art" } } } }),
       }),
     );
+  });
+});
+
+describe("searchTagResults", () => {
+  it("returns an empty list for a blank query without querying", async () => {
+    expect(await searchTagResults("   ")).toEqual([]);
+    expect(db.tag.findMany).not.toHaveBeenCalled();
+  });
+
+  it("returns each tag's count and preview thumbnails", async () => {
+    db.tag.findMany.mockResolvedValue([
+      { id: "t1", slug: "art", name: "Art", _count: { pins: 5 } },
+    ]);
+    db.pin.findMany.mockResolvedValue([{ imageUrl: "/a.png" }, { imageUrl: "/b.png" }]);
+    const result = await searchTagResults("ar");
+    expect(result).toEqual([
+      { id: "t1", slug: "art", name: "Art", pinCount: 5, previewUrls: ["/a.png", "/b.png"] },
+    ]);
   });
 });
 
