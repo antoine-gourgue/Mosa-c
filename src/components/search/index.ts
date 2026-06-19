@@ -3,6 +3,8 @@ export { TagCloud } from "./TagCloud";
 export type { TagCloudProps } from "./TagCloud";
 export { SearchResults } from "./SearchResults";
 export type { SearchResultsProps } from "./SearchResults";
+export { SearchTabs } from "./SearchTabs";
+export type { SearchTab, SearchTabsProps } from "./SearchTabs";
 export { SearchField } from "./SearchField";
 export type { SearchFieldProps } from "./SearchField";
 export { NearbyPins } from "./NearbyPins";
