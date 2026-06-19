@@ -7,18 +7,28 @@ import { Button } from "@/components/ui";
 import { SendIcon, SparkleIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { ensureDisplayableImage, isHeicFile } from "@/lib/image";
+import {
+  MAX_VIDEO_BYTES,
+  MAX_VIDEO_SECONDS,
+  extractVideoPoster,
+  isAcceptedVideo,
+} from "@/lib/video";
 import { GenerateImageDialog } from "./GenerateImageDialog";
 import { UrlImageDialog } from "./UrlImageDialog";
 
 /**
- * An image selected in the upload area, with its preview URL and intrinsic
- * dimensions.
+ * Media selected in the upload area, with its preview URL and intrinsic
+ * dimensions. For a video, `file` is the generated poster image, `previewUrl`
+ * points at the clip itself, and `videoFile` / `durationS` carry the upload.
  */
 export type SelectedImage = {
   file: File;
   previewUrl: string;
   width: number;
   height: number;
+  mediaType: "IMAGE" | "VIDEO";
+  videoFile?: File;
+  durationS?: number;
 };
 
 /**
@@ -46,7 +56,13 @@ function readImage(file: File): Promise<SelectedImage> {
     const previewUrl = URL.createObjectURL(file);
     const image = new window.Image();
     image.onload = () => {
-      resolve({ file, previewUrl, width: image.naturalWidth, height: image.naturalHeight });
+      resolve({
+        file,
+        previewUrl,
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+        mediaType: "IMAGE",
+      });
     };
     image.onerror = () => {
       URL.revokeObjectURL(previewUrl);
@@ -80,8 +96,52 @@ export function UploadDropzone({
   const [genOpen, setGenOpen] = useState(initialGenerate && imageGenEnabled);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const commit = (selected: SelectedImage): void => {
+    if (value !== null) {
+      URL.revokeObjectURL(value.previewUrl);
+    }
+    onChange(selected);
+  };
+
+  const handleVideo = async (file: File): Promise<void> => {
+    if (!isAcceptedVideo(file)) {
+      setError(t("chooseVideoFile"));
+      return;
+    }
+    if (file.size > MAX_VIDEO_BYTES) {
+      setError(t("videosMax50"));
+      return;
+    }
+    setError(null);
+    setProcessing(true);
+    try {
+      const { poster, width, height, durationS } = await extractVideoPoster(file);
+      if (durationS > MAX_VIDEO_SECONDS) {
+        setError(t("videosMax60s"));
+        return;
+      }
+      commit({
+        file: poster,
+        previewUrl: URL.createObjectURL(file),
+        width,
+        height,
+        mediaType: "VIDEO",
+        videoFile: file,
+        durationS,
+      });
+    } catch {
+      setError(t("videoUnreadable"));
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const handleFile = async (file: File | undefined): Promise<void> => {
     if (file === undefined) {
+      return;
+    }
+    if (file.type.startsWith("video/")) {
+      await handleVideo(file);
       return;
     }
     if (!file.type.startsWith("image/") && !isHeicFile(file)) {
@@ -97,10 +157,7 @@ export function UploadDropzone({
     try {
       const displayable = await ensureDisplayableImage(file);
       const selected = await readImage(displayable);
-      if (value !== null) {
-        URL.revokeObjectURL(value.previewUrl);
-      }
-      onChange(selected);
+      commit(selected);
     } catch {
       setError(t("imageUnreadable"));
     } finally {
@@ -140,7 +197,7 @@ export function UploadDropzone({
         <input
           ref={inputRef}
           type="file"
-          accept="image/*,.heic,.heif"
+          accept="image/*,.heic,.heif,video/mp4,video/webm"
           className="hidden"
           onChange={onInputChange}
         />
@@ -176,12 +233,22 @@ export function UploadDropzone({
               dragActive ? "ring-2 ring-accent ring-offset-2 ring-offset-bg" : "",
             )}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={value.previewUrl}
-              alt=""
-              className="mx-auto block max-h-[70vh] w-auto max-w-full rounded-xl"
-            />
+            {value.mediaType === "VIDEO" ? (
+              <video
+                src={value.previewUrl}
+                controls
+                muted
+                playsInline
+                className="mx-auto block max-h-[70vh] w-auto max-w-full rounded-xl"
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={value.previewUrl}
+                alt=""
+                className="mx-auto block max-h-[70vh] w-auto max-w-full rounded-xl"
+              />
+            )}
           </div>
         )}
       </label>

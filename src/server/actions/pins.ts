@@ -185,6 +185,45 @@ const createPinSchema = z.object({
   height: z.coerce.number().int().positive(),
 });
 
+/** Server-side guards mirroring the create form's video limits. */
+const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm"];
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+const MAX_VIDEO_SECONDS = 60;
+
+/**
+ * Validates and stores the uploaded video for a video pin, returning its URL
+ * and rounded duration. The poster lives in the `image` field and is handled by
+ * the caller; here we only deal with the clip itself.
+ *
+ * @param formData - The create form data.
+ * @returns The stored video URL and duration, or a localized error.
+ */
+async function storeVideo(
+  formData: FormData,
+): Promise<{ ok: true; url: string; durationS: number | null } | { ok: false; error: string }> {
+  const video = formData.get("video");
+  if (!(video instanceof File) || video.size === 0 || !ACCEPTED_VIDEO_TYPES.includes(video.type)) {
+    return { ok: false, error: await errorMessage("fileNotVideo") };
+  }
+  if (video.size > MAX_VIDEO_BYTES) {
+    return { ok: false, error: await errorMessage("videoTooLarge") };
+  }
+  const durationRaw = Number(formData.get("videoDurationS")?.toString() ?? "");
+  if (Number.isFinite(durationRaw) && durationRaw > MAX_VIDEO_SECONDS) {
+    return { ok: false, error: await errorMessage("videoTooLong") };
+  }
+  const buffer = Buffer.from(await video.arrayBuffer());
+  const stored = await getStorage().put(buffer, {
+    filename: video.name,
+    contentType: video.type,
+  });
+  return {
+    ok: true,
+    url: stored.url,
+    durationS: Number.isFinite(durationRaw) && durationRaw > 0 ? Math.round(durationRaw) : null,
+  };
+}
+
 /**
  * Creates a pin from the submitted form: stores the uploaded image, persists
  * the pin owned by the current user, saves it to their collection and
@@ -230,6 +269,18 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
     }
     publishAt = when;
   }
+  const isVideo = formData.get("mediaType")?.toString() === "VIDEO";
+  let videoUrl: string | null = null;
+  let videoDurationS: number | null = null;
+  if (isVideo) {
+    const result = await storeVideo(formData);
+    if (!result.ok) {
+      return { ok: false, error: result.error };
+    }
+    videoUrl = result.url;
+    videoDurationS = result.durationS;
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer());
   const stored = await getStorage().put(buffer, { filename: file.name, contentType: file.type });
 
@@ -253,6 +304,9 @@ export async function createPin(formData: FormData): Promise<CreatePinResult> {
       imageUrl: stored.url,
       width: parsed.data.width,
       height: parsed.data.height,
+      mediaType: isVideo ? "VIDEO" : "IMAGE",
+      videoUrl,
+      videoDurationS,
       creatorId: user.id,
     },
   });

@@ -121,6 +121,9 @@
     "hostNotAllowed": "That host isn’t allowed.",
     "linkNotImage": "That link doesn’t point to an image.",
     "fileNotImage": "The file must be an image.",
+    "fileNotVideo": "The file must be an MP4 or WebM video.",
+    "videoTooLarge": "Videos must be 50 MB or smaller.",
+    "videoTooLong": "Videos must be 60 seconds or shorter.",
     "writeMessage": "Write a message first.",
     "deleteOwnPins": "You can only delete your own pins.",
     "cannotMessageUser": "You can’t message this user.",
@@ -300,6 +303,7 @@
     "cancel": "Cancel",
     "chooseBoard": "Choose a board",
     "chooseImageFile": "Please choose an image file.",
+    "chooseVideoFile": "Please choose an MP4 or WebM video.",
     "createAction": "Create",
     "createBoard": "Create board",
     "createBoardFailed": "Couldn’t create this board. Try a different name.",
@@ -310,7 +314,7 @@
     "dropLine2": "drag it here",
     "editFailed": "Could not save your changes. Please try again.",
     "editPin": "Edit Pin",
-    "fileHint": "We recommend high-quality .jpg, .png or .heic files, up to 10 MB.",
+    "fileHint": "High-quality .jpg, .png or .heic up to 10 MB, or an .mp4/.webm video up to 50 MB.",
     "generate": "Generate",
     "generateHint": "Describe what you'd like to see and we'll create it.",
     "generatePlaceholder": "Describe the image you want…",
@@ -357,7 +361,10 @@
     "uploadAPinHint": "Add your own image",
     "urlDialogHint": "Paste a link to an image from the web.",
     "urlImportFailed": "Couldn’t import this image. Try another link.",
-    "useThisImage": "Use this image"
+    "useThisImage": "Use this image",
+    "videoUnreadable": "That video could not be read.",
+    "videosMax50": "Videos must be 50 MB or smaller.",
+    "videosMax60s": "Videos must be 60 seconds or shorter."
   },
   "board": {
     "add": "Add",

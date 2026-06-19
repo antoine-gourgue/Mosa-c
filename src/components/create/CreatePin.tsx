@@ -173,6 +173,11 @@ export function CreatePin({
         formData.set("width", String(upload.width));
         formData.set("height", String(upload.height));
         formData.set("image", upload.file);
+        if (selected.mediaType === "VIDEO" && selected.videoFile !== undefined) {
+          formData.set("mediaType", "VIDEO");
+          formData.set("video", selected.videoFile);
+          formData.set("videoDurationS", String(selected.durationS ?? ""));
+        }
         const result = await createPin(formData);
         if (result.error !== null) {
           setError(result.error);

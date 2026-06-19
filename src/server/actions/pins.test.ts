@@ -163,6 +163,56 @@ describe("createPin", () => {
     );
   });
 
+  it("defaults to an image pin with no video media", async () => {
+    db.board.findFirst.mockResolvedValue({ id: "b1", isDefault: false });
+    await createPin(pinForm());
+    expect(db.pin.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ mediaType: "IMAGE", videoUrl: null, videoDurationS: null }),
+      }),
+    );
+  });
+
+  it("creates a video pin with the stored video and duration", async () => {
+    db.board.findFirst.mockResolvedValue({ id: "b1", isDefault: false });
+    const fd = pinForm({ mediaType: "VIDEO", videoDurationS: "12" });
+    fd.set("video", new File(["v"], "clip.mp4", { type: "video/mp4" }));
+    await createPin(fd);
+    expect(db.pin.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          mediaType: "VIDEO",
+          videoUrl: "/uploads/x.png",
+          videoDurationS: 12,
+        }),
+      }),
+    );
+  });
+
+  it("rejects a video pin without a valid video file", async () => {
+    const result = await createPin(pinForm({ mediaType: "VIDEO" }));
+    expect(result.ok).toBe(false);
+    expect(db.pin.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects a video over the size limit", async () => {
+    const fd = pinForm({ mediaType: "VIDEO" });
+    const big = new File(["v"], "clip.mp4", { type: "video/mp4" });
+    Object.defineProperty(big, "size", { value: 50 * 1024 * 1024 + 1 });
+    fd.set("video", big);
+    const result = await createPin(fd);
+    expect(result.ok).toBe(false);
+    expect(db.pin.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects a video longer than the limit", async () => {
+    const fd = pinForm({ mediaType: "VIDEO", videoDurationS: "61" });
+    fd.set("video", new File(["v"], "clip.mp4", { type: "video/mp4" }));
+    const result = await createPin(fd);
+    expect(result.ok).toBe(false);
+    expect(db.pin.create).not.toHaveBeenCalled();
+  });
+
   it("attaches a place when a name and coordinates are provided", async () => {
     db.board.findFirst.mockResolvedValue({ id: "b1", isDefault: false });
     await createPin(
