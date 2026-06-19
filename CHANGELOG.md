@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.28.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.27.0...v1.28.0) (2026-06-19)
+
+
+### Features
+
+* **stories:** create a story ([#467](https://github.com/antoine-gourgue/Mosa-c/issues/467)) ([caa1ac8](https://github.com/antoine-gourgue/Mosa-c/commit/caa1ac883ccddb9937db566cab5037dbbe047527)), closes [#461](https://github.com/antoine-gourgue/Mosa-c/issues/461)
+* **stories:** likes, viewers activity, delete, in-app camera fixes ([#470](https://github.com/antoine-gourgue/Mosa-c/issues/470)) ([392c122](https://github.com/antoine-gourgue/Mosa-c/commit/392c12242e6b388296ce80484d1edd1cd26c18d7))
+* **stories:** model, expiry and services ([#465](https://github.com/antoine-gourgue/Mosa-c/issues/465)) ([6a4e228](https://github.com/antoine-gourgue/Mosa-c/commit/6a4e2289a7848ac17ab4c61974f726c35f45c98b)), closes [#460](https://github.com/antoine-gourgue/Mosa-c/issues/460)
+* **stories:** ring rail on the feed ([#468](https://github.com/antoine-gourgue/Mosa-c/issues/468)) ([4a1cb6f](https://github.com/antoine-gourgue/Mosa-c/commit/4a1cb6f42590fa8abd41ebe0441a634567bce7fa))
+* **stories:** timed viewer with auto-advance and views ([#469](https://github.com/antoine-gourgue/Mosa-c/issues/469)) ([dfcd718](https://github.com/antoine-gourgue/Mosa-c/commit/dfcd718c8b8fe62bbedb8ea918b0e353cf13c261))
+
+
+### Bug Fixes
+
+* **create:** keep in-app recordings small and poster extraction safe ([#471](https://github.com/antoine-gourgue/Mosa-c/issues/471)) ([1af893f](https://github.com/antoine-gourgue/Mosa-c/commit/1af893f15338ab6df4e50639186e4760f1759b0d))
+
 ## [1.27.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.26.0...v1.27.0) (2026-06-19)
 
 
