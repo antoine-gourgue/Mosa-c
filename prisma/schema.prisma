@@ -116,6 +116,7 @@ model User {
 
   stories     Story[]     @relation("StoryAuthor")
   storyViews  StoryView[]
+  storyLikes  StoryLike[]
 
   conversations ConversationParticipant[]
   sentMessages  Message[]
@@ -314,6 +315,7 @@ model Story {
   createdAt      DateTime     @default(now())
   expiresAt      DateTime
   views          StoryView[]
+  likes          StoryLike[]
 
   @@index([authorId, expiresAt])
   @@index([expiresAt])
@@ -328,6 +330,17 @@ model StoryView {
 
   @@id([storyId, viewerId])
   @@index([viewerId])
+}
+
+model StoryLike {
+  storyId   String
+  userId    String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([storyId, userId])
+  @@index([userId])
 }
 
 model Like {

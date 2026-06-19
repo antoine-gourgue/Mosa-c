@@ -140,7 +140,12 @@ export function StoriesRail({ reel, viewer }: StoriesRailProps): ReactElement {
       </div>
 
       {openIndex !== null ? (
-        <StoryViewer reel={reel} startIndex={openIndex} onClose={() => setOpenIndex(null)} />
+        <StoryViewer
+          reel={reel}
+          startIndex={openIndex}
+          viewerId={viewer.id}
+          onClose={() => setOpenIndex(null)}
+        />
       ) : null}
     </div>
   );

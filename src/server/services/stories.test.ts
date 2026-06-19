@@ -3,8 +3,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    story: { create: vi.fn(), findMany: vi.fn() },
-    storyView: { upsert: vi.fn() },
+    story: { create: vi.fn(), findMany: vi.fn(), findUnique: vi.fn(), deleteMany: vi.fn() },
+    storyView: { upsert: vi.fn(), findMany: vi.fn() },
+    storyLike: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
+      findMany: vi.fn(),
+    },
   },
 }));
 vi.mock("./follows", () => ({ getFollowedCreatorIds: vi.fn() }));
@@ -13,11 +20,19 @@ vi.mock("./blocks", () => ({ getHiddenUserIds: vi.fn() }));
 import { prisma } from "@/lib/prisma";
 import { getHiddenUserIds } from "./blocks";
 import { getFollowedCreatorIds } from "./follows";
-import { createStory, getStoryReel, recordStoryView } from "./stories";
+import {
+  createStory,
+  deleteStory,
+  getStoryReel,
+  getStoryViewers,
+  recordStoryView,
+  toggleStoryLike,
+} from "./stories";
 
 const db = prisma as unknown as {
-  story: { create: Mock; findMany: Mock };
-  storyView: { upsert: Mock };
+  story: { create: Mock; findMany: Mock; findUnique: Mock; deleteMany: Mock };
+  storyView: { upsert: Mock; findMany: Mock };
+  storyLike: { findUnique: Mock; create: Mock; delete: Mock; count: Mock; findMany: Mock };
 };
 
 const author = (id: string) => ({
@@ -112,5 +127,82 @@ describe("getStoryReel", () => {
     await getStoryReel("me");
     const where = db.story.findMany.mock.calls[0]?.[0]?.where;
     expect(where.authorId.in).toEqual(["me", "ada"]);
+  });
+});
+
+describe("toggleStoryLike", () => {
+  it("likes when not already liked", async () => {
+    db.storyLike.findUnique.mockResolvedValue(null);
+    db.storyLike.count.mockResolvedValue(3);
+    const result = await toggleStoryLike("s1", "u1");
+    expect(db.storyLike.create).toHaveBeenCalled();
+    expect(result).toEqual({ liked: true, likeCount: 3 });
+  });
+
+  it("unlikes when already liked", async () => {
+    db.storyLike.findUnique.mockResolvedValue({ storyId: "s1", userId: "u1" });
+    db.storyLike.count.mockResolvedValue(0);
+    const result = await toggleStoryLike("s1", "u1");
+    expect(db.storyLike.delete).toHaveBeenCalled();
+    expect(result).toEqual({ liked: false, likeCount: 0 });
+  });
+});
+
+describe("deleteStory", () => {
+  it("deletes only the requester's own story", async () => {
+    db.story.deleteMany.mockResolvedValue({ count: 1 });
+    expect(await deleteStory("s1", "u1")).toBe(true);
+    expect(db.story.deleteMany).toHaveBeenCalledWith({
+      where: { id: "s1", authorId: "u1" },
+    });
+  });
+
+  it("reports false when nothing was deleted", async () => {
+    db.story.deleteMany.mockResolvedValue({ count: 0 });
+    expect(await deleteStory("s1", "intruder")).toBe(false);
+  });
+});
+
+describe("getStoryViewers", () => {
+  it("returns an empty list for a non-author", async () => {
+    db.story.findUnique.mockResolvedValue({ authorId: "owner" });
+    expect(await getStoryViewers("s1", "someone")).toEqual([]);
+    expect(db.storyView.findMany).not.toHaveBeenCalled();
+  });
+
+  it("maps the viewers with their like state for the author", async () => {
+    db.story.findUnique.mockResolvedValue({ authorId: "owner" });
+    db.storyView.findMany.mockResolvedValue([
+      {
+        viewerId: "ada",
+        viewer: {
+          id: "ada",
+          name: "Ada",
+          username: "ada",
+          bio: null,
+          avatarUrl: null,
+          followersLabel: null,
+          verified: false,
+        },
+      },
+      {
+        viewerId: "ben",
+        viewer: {
+          id: "ben",
+          name: "Ben",
+          username: "ben",
+          bio: null,
+          avatarUrl: null,
+          followersLabel: null,
+          verified: false,
+        },
+      },
+    ]);
+    db.storyLike.findMany.mockResolvedValue([{ userId: "ada" }]);
+    const viewers = await getStoryViewers("s1", "owner");
+    expect(viewers.map((v) => [v.creator.id, v.liked])).toEqual([
+      ["ada", true],
+      ["ben", false],
+    ]);
   });
 });

@@ -5,3 +5,5 @@ export { StoriesRail } from "./StoriesRail";
 export type { StoriesRailProps, StoriesRailViewer } from "./StoriesRail";
 export { StoryViewer } from "./StoryViewer";
 export type { StoryViewerProps } from "./StoryViewer";
+export { StoryViewersSheet } from "./StoryViewersSheet";
+export type { StoryViewersSheetProps } from "./StoryViewersSheet";

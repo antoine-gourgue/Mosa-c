@@ -10,14 +10,29 @@ vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("@/lib/storage", () => ({
   getStorage: () => ({ put: vi.fn(async () => ({ url: "/uploads/x.png" })) }),
 }));
-vi.mock("@/server/services", () => ({ createStory: vi.fn(), recordStoryView: vi.fn() }));
+vi.mock("@/server/services", () => ({
+  createStory: vi.fn(),
+  recordStoryView: vi.fn(),
+  toggleStoryLike: vi.fn(),
+  deleteStory: vi.fn(),
+  getStoryViewers: vi.fn(),
+}));
 
 import { getCurrentUser } from "@/lib/auth";
-import { createStory as createStoryRecord, recordStoryView } from "@/server/services";
-import { createStory, markStoryViewed } from "./stories";
+import {
+  createStory as createStoryRecord,
+  deleteStory as deleteStoryRecord,
+  getStoryViewers,
+  recordStoryView,
+  toggleStoryLike,
+} from "@/server/services";
+import { createStory, likeStory, listStoryViewers, markStoryViewed, removeStory } from "./stories";
 
 const record = createStoryRecord as unknown as Mock;
 const recordView = recordStoryView as unknown as Mock;
+const likeRecord = toggleStoryLike as unknown as Mock;
+const deleteRecord = deleteStoryRecord as unknown as Mock;
+const viewersRecord = getStoryViewers as unknown as Mock;
 
 const imageFile = () => new File(["x"], "a.png", { type: "image/png" });
 
@@ -115,5 +130,47 @@ describe("markStoryViewed action", () => {
     vi.mocked(getCurrentUser).mockResolvedValue(null);
     await markStoryViewed("s1");
     expect(recordView).not.toHaveBeenCalled();
+  });
+});
+
+describe("likeStory action", () => {
+  it("delegates to the service for a signed-in viewer", async () => {
+    likeRecord.mockResolvedValue({ liked: true, likeCount: 2 });
+    expect(await likeStory("s1")).toEqual({ liked: true, likeCount: 2 });
+    expect(likeRecord).toHaveBeenCalledWith("s1", "u1");
+  });
+
+  it("returns a neutral result when signed out", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    expect(await likeStory("s1")).toEqual({ liked: false, likeCount: 0 });
+    expect(likeRecord).not.toHaveBeenCalled();
+  });
+});
+
+describe("removeStory action", () => {
+  it("deletes for a signed-in owner", async () => {
+    deleteRecord.mockResolvedValue(true);
+    expect(await removeStory("s1")).toEqual({ ok: true });
+    expect(deleteRecord).toHaveBeenCalledWith("s1", "u1");
+  });
+
+  it("is rejected when signed out", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    expect(await removeStory("s1")).toEqual({ ok: false });
+    expect(deleteRecord).not.toHaveBeenCalled();
+  });
+});
+
+describe("listStoryViewers action", () => {
+  it("delegates to the service for the author", async () => {
+    viewersRecord.mockResolvedValue([]);
+    await listStoryViewers("s1");
+    expect(viewersRecord).toHaveBeenCalledWith("s1", "u1");
+  });
+
+  it("returns an empty list when signed out", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    expect(await listStoryViewers("s1")).toEqual([]);
+    expect(viewersRecord).not.toHaveBeenCalled();
   });
 });

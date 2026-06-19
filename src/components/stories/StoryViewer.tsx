@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { PointerEvent as ReactPointerEvent, ReactElement } from "react";
-import { Avatar, IconButton } from "@/components/ui";
+import { Avatar, ConfirmDialog, IconButton } from "@/components/ui";
 import { usePrefersReducedMotion } from "@/hooks";
-import { CloseIcon } from "@/icons";
-import { markStoryViewed } from "@/server/actions/stories";
+import { ChevronDownIcon, CloseIcon, HeartFilledIcon, HeartIcon, TrashIcon } from "@/icons";
+import { likeStory, markStoryViewed, removeStory } from "@/server/actions/stories";
 import type { StoryReelItem } from "@/types/domain";
+import { StoryViewersSheet } from "./StoryViewersSheet";
 
 /**
  * Props for the {@link StoryViewer} component.
@@ -17,8 +18,11 @@ import type { StoryReelItem } from "@/types/domain";
 export type StoryViewerProps = {
   reel: StoryReelItem[];
   startIndex: number;
+  viewerId: string;
   onClose: () => void;
 };
+
+type LikeState = { liked: boolean; count: number };
 
 type Position = { author: number; segment: number };
 
@@ -40,17 +44,32 @@ const HOLD_MS = 200;
  * @param props - The ordered reel, the author to open at, and the close handler.
  * @returns The viewer overlay, or null when the reel is empty.
  */
-export function StoryViewer({ reel, startIndex, onClose }: StoryViewerProps): ReactElement | null {
+export function StoryViewer({
+  reel,
+  startIndex,
+  viewerId,
+  onClose,
+}: StoryViewerProps): ReactElement | null {
   const t = useTranslations("stories");
   const router = useRouter();
   const reduced = usePrefersReducedMotion();
   const [pos, setPos] = useState<Position>({ author: startIndex, segment: 0 });
   const [progress, setProgress] = useState(0);
+  const [likes, setLikes] = useState<Record<string, LikeState>>({});
+  const [viewersOpen, setViewersOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const progressRef = useRef(0);
   const pausedRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const viewedRef = useRef<Set<string>>(new Set());
   const pressAtRef = useRef(0);
+
+  const setPaused = (value: boolean): void => {
+    pausedRef.current = value;
+    if (value) {
+      videoRef.current?.pause();
+    }
+  };
 
   const resetProgress = (): void => {
     progressRef.current = 0;
@@ -164,14 +183,15 @@ export function StoryViewer({ reel, startIndex, onClose }: StoryViewerProps): Re
 
   const onPressStart = (): void => {
     pressAtRef.current = Date.now();
-    pausedRef.current = true;
-    videoRef.current?.pause();
+    setPaused(true);
   };
 
   const onPressEnd = (): void => {
-    pausedRef.current = false;
-    if (isVideo) {
-      void videoRef.current?.play();
+    if (!viewersOpen && !confirmDelete) {
+      setPaused(false);
+      if (isVideo) {
+        void videoRef.current?.play();
+      }
     }
   };
 
@@ -188,6 +208,43 @@ export function StoryViewer({ reel, startIndex, onClose }: StoryViewerProps): Re
     } else {
       goPrev();
     }
+  };
+
+  const isOwn = author.author.id === viewerId;
+  const like = likes[story.id] ?? { liked: story.likedByViewer, count: story.likeCount };
+
+  const toggleLike = (): void => {
+    const next = { liked: !like.liked, count: like.count + (like.liked ? -1 : 1) };
+    setLikes((current) => ({ ...current, [story.id]: next }));
+    void likeStory(story.id).then((result) =>
+      setLikes((current) => ({
+        ...current,
+        [story.id]: { liked: result.liked, count: result.likeCount },
+      })),
+    );
+  };
+
+  const openViewers = (): void => {
+    setViewersOpen(true);
+    setPaused(true);
+  };
+
+  const closeViewers = (): void => {
+    setViewersOpen(false);
+    setPaused(false);
+    if (isVideo) {
+      void videoRef.current?.play();
+    }
+  };
+
+  const onDelete = (): void => {
+    void removeStory(story.id).then((result) => {
+      setConfirmDelete(false);
+      if (result.ok) {
+        router.refresh();
+        goNext();
+      }
+    });
   };
 
   return createPortal(
@@ -275,6 +332,62 @@ export function StoryViewer({ reel, startIndex, onClose }: StoryViewerProps): Re
             </IconButton>
           </div>
         </div>
+
+        <div className="absolute inset-x-0 bottom-0 z-30 flex items-center gap-3 bg-gradient-to-t from-ink/70 to-transparent px-4 pb-4 pt-10">
+          {isOwn ? (
+            <>
+              <button
+                type="button"
+                onClick={openViewers}
+                className="flex items-center gap-1.5 text-sm font-semibold text-bg"
+              >
+                <ChevronDownIcon size={18} className="rotate-180" />
+                {t("viewerCount", { count: story.viewerCount })}
+              </button>
+              <div className="ml-auto">
+                <IconButton
+                  label={t("deleteStory")}
+                  tone="solid"
+                  onClick={() => {
+                    setConfirmDelete(true);
+                    setPaused(true);
+                  }}
+                >
+                  <TrashIcon size={18} />
+                </IconButton>
+              </div>
+            </>
+          ) : (
+            <div className="ml-auto">
+              <IconButton
+                label={like.liked ? t("unlike") : t("like")}
+                tone="solid"
+                onClick={toggleLike}
+              >
+                {like.liked ? (
+                  <HeartFilledIcon size={18} className="text-accent" />
+                ) : (
+                  <HeartIcon size={18} />
+                )}
+              </IconButton>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div onClick={(event) => event.stopPropagation()}>
+        {viewersOpen ? <StoryViewersSheet storyId={story.id} onClose={closeViewers} /> : null}
+        <ConfirmDialog
+          open={confirmDelete}
+          title={t("deleteStoryTitle")}
+          confirmLabel={t("delete")}
+          destructive
+          onConfirm={onDelete}
+          onCancel={() => {
+            setConfirmDelete(false);
+            setPaused(false);
+          }}
+        />
       </div>
     </div>,
     document.body,

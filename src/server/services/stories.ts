@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import type { Creator, Story, StoryReelItem } from "@/types/domain";
+import type { Creator, Story, StoryReelItem, StoryViewerEntry } from "@/types/domain";
 import { getHiddenUserIds } from "./blocks";
 import { getFollowedCreatorIds } from "./follows";
 import { toCreator } from "./mappers";
@@ -20,10 +20,13 @@ type StoryRow = {
   videoDurationS: number | null;
   createdAt: Date;
   expiresAt: Date;
+  _count?: { views: number; likes: number };
+  likes?: { storyId: string }[];
 };
 
 /**
- * Maps a story row to the UI story type.
+ * Maps a story row to the UI story type. Engagement counts default to zero when
+ * the row was read without them (e.g. straight after creation).
  *
  * @param row - The story row.
  * @returns The mapped story.
@@ -39,6 +42,9 @@ function toStory(row: StoryRow): Story {
     videoDurationS: row.videoDurationS,
     createdAt: row.createdAt,
     expiresAt: row.expiresAt,
+    likeCount: row._count?.likes ?? 0,
+    viewerCount: row._count?.views ?? 0,
+    likedByViewer: (row.likes?.length ?? 0) > 0,
   };
 }
 
@@ -116,7 +122,12 @@ export async function getStoryReel(viewerId: string): Promise<StoryReelItem[]> {
 
   const rows = await prisma.story.findMany({
     where: { authorId: { in: authorIds }, expiresAt: { gt: new Date() } },
-    include: { author: true, views: { where: { viewerId }, select: { storyId: true } } },
+    include: {
+      author: true,
+      views: { where: { viewerId }, select: { storyId: true } },
+      likes: { where: { userId: viewerId }, select: { storyId: true } },
+      _count: { select: { views: true, likes: true } },
+    },
     orderBy: { createdAt: "asc" },
   });
 
@@ -153,4 +164,73 @@ export async function getStoryReel(viewerId: string): Promise<StoryReelItem[]> {
       return latest(b.stories) - latest(a.stories);
     })
     .map(({ author, stories, hasUnseen }) => ({ author, stories, hasUnseen }));
+}
+
+/**
+ * Toggles the viewer's like on a story.
+ *
+ * @param storyId - The story id.
+ * @param userId - The viewer's user id.
+ * @returns The new like state and total like count.
+ */
+export async function toggleStoryLike(
+  storyId: string,
+  userId: string,
+): Promise<{ liked: boolean; likeCount: number }> {
+  const existing = await prisma.storyLike.findUnique({
+    where: { storyId_userId: { storyId, userId } },
+  });
+  if (existing === null) {
+    await prisma.storyLike.create({ data: { storyId, userId } });
+  } else {
+    await prisma.storyLike.delete({ where: { storyId_userId: { storyId, userId } } });
+  }
+  const likeCount = await prisma.storyLike.count({ where: { storyId } });
+  return { liked: existing === null, likeCount };
+}
+
+/**
+ * Deletes a story, but only when the requester is its author.
+ *
+ * @param storyId - The story id.
+ * @param userId - The requester's user id.
+ * @returns True when a story was deleted.
+ */
+export async function deleteStory(storyId: string, userId: string): Promise<boolean> {
+  const result = await prisma.story.deleteMany({ where: { id: storyId, authorId: userId } });
+  return result.count > 0;
+}
+
+/**
+ * Lists who viewed a story — newest first, with whether each liked it — but only
+ * for the story's author. Returns an empty list for anyone else.
+ *
+ * @param storyId - The story id.
+ * @param requesterId - The requesting user id (must be the author).
+ * @returns The viewer entries, or an empty list.
+ */
+export async function getStoryViewers(
+  storyId: string,
+  requesterId: string,
+): Promise<StoryViewerEntry[]> {
+  const story = await prisma.story.findUnique({
+    where: { id: storyId },
+    select: { authorId: true },
+  });
+  if (story === null || story.authorId !== requesterId) {
+    return [];
+  }
+  const [views, likes] = await Promise.all([
+    prisma.storyView.findMany({
+      where: { storyId },
+      include: { viewer: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.storyLike.findMany({ where: { storyId }, select: { userId: true } }),
+  ]);
+  const likedSet = new Set(likes.map((like) => like.userId));
+  return views.map((view) => ({
+    creator: toCreator(view.viewer),
+    liked: likedSet.has(view.viewerId),
+  }));
 }
