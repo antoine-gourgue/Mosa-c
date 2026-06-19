@@ -186,7 +186,7 @@ const createPinSchema = z.object({
 });
 
 /** Server-side guards mirroring the create form's video limits. */
-const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm"];
+const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 const MAX_VIDEO_SECONDS = 60;
 

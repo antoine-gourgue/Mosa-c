@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import type { ReactElement } from "react";
 import { Avatar, Spinner } from "@/components/ui";
 import { HeartFilledIcon } from "@/icons";
@@ -20,9 +19,10 @@ export type StoryViewersSheetProps = {
 };
 
 /**
- * Bottom sheet (slides up) listing who viewed a story, newest first, with a
- * heart next to anyone who liked it. Only the story's author gets data back; for
- * anyone else the list comes back empty. Tapping the backdrop closes it.
+ * Bottom sheet that slides up **within the story card** listing who viewed a
+ * story, newest first, with a heart next to anyone who liked it. Only the
+ * story's author gets data back. Tapping the dimmed area closes it. Rendered
+ * absolutely inside the card (its parent must be positioned).
  *
  * @param props - The story id and the close handler.
  * @returns The viewers sheet element.
@@ -49,12 +49,12 @@ export function StoryViewersSheet({ storyId, onClose }: StoryViewersSheetProps):
     return () => cancelAnimationFrame(id);
   }, []);
 
-  return createPortal(
-    <div onClick={onClose} className="fixed inset-0 z-[150] flex items-end bg-ink/50">
+  return (
+    <div onClick={onClose} className="absolute inset-0 z-40 flex items-end bg-ink/40">
       <div
         onClick={(event) => event.stopPropagation()}
         className={cn(
-          "max-h-[70vh] w-full overflow-y-auto rounded-t-2xl bg-bg p-4 transition-transform duration-200 ease-out",
+          "max-h-[75%] w-full overflow-y-auto rounded-t-2xl bg-bg p-4 transition-transform duration-200 ease-out",
           shown ? "translate-y-0" : "translate-y-full",
         )}
       >
@@ -98,7 +98,6 @@ export function StoryViewersSheet({ storyId, onClose }: StoryViewersSheetProps):
           </ul>
         )}
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

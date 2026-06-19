@@ -161,10 +161,13 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps): React
       }
     };
     recorder.onstop = () => {
-      const type = (recorder.mimeType || "video/webm").startsWith("video/mp4")
-        ? "video/mp4"
-        : "video/webm";
-      const ext = type === "video/mp4" ? "mp4" : "webm";
+      const raw = recorder.mimeType || chunksRef.current[0]?.type || "video/mp4";
+      const type = raw.includes("webm")
+        ? "video/webm"
+        : raw.includes("quicktime") || raw.includes("mov")
+          ? "video/quicktime"
+          : "video/mp4";
+      const ext = type === "video/webm" ? "webm" : type === "video/quicktime" ? "mov" : "mp4";
       const blob = new Blob(chunksRef.current, { type });
       stopStream();
       onCapture(new File([blob], `clip-${Date.now()}.${ext}`, { type }));

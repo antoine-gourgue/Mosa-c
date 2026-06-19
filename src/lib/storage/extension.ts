@@ -8,6 +8,7 @@ const EXTENSION_BY_TYPE: Record<string, string> = {
   "image/avif": ".avif",
   "video/mp4": ".mp4",
   "video/webm": ".webm",
+  "video/quicktime": ".mov",
 };
 
 /**

@@ -373,10 +373,11 @@ export function StoryViewer({
             </div>
           )}
         </div>
+
+        {viewersOpen ? <StoryViewersSheet storyId={story.id} onClose={closeViewers} /> : null}
       </div>
 
       <div onClick={(event) => event.stopPropagation()}>
-        {viewersOpen ? <StoryViewersSheet storyId={story.id} onClose={closeViewers} /> : null}
         <ConfirmDialog
           open={confirmDelete}
           title={t("deleteStoryTitle")}
