@@ -525,7 +525,15 @@
     "addStory": "Ajouter à ta story",
     "close": "Fermer",
     "next": "Suivant",
-    "previous": "Précédent"
+    "previous": "Précédent",
+    "like": "J’aime",
+    "unlike": "Je n’aime plus",
+    "deleteStory": "Supprimer la story",
+    "deleteStoryTitle": "Supprimer cette story ?",
+    "delete": "Supprimer",
+    "viewers": "Vues",
+    "noViewers": "Aucune vue pour l’instant.",
+    "viewerCount": "{count, plural, =0 {Aucune vue} one {# vue} other {# vues}}"
   },
   "settings": {
     "account": {

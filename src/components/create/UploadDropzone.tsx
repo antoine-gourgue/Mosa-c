@@ -209,7 +209,7 @@ export function UploadDropzone({
         <input
           ref={inputRef}
           type="file"
-          accept="image/*,.heic,.heif,video/mp4,video/webm"
+          accept="image/*,.heic,.heif,video/mp4,video/webm,video/quicktime,.mov"
           className="hidden"
           onChange={onInputChange}
         />

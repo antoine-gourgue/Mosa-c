@@ -126,6 +126,9 @@ export type Story = {
   videoDurationS: number | null;
   createdAt: Date;
   expiresAt: Date;
+  likeCount: number;
+  viewerCount: number;
+  likedByViewer: boolean;
 };
 
 /**
@@ -136,6 +139,14 @@ export type StoryReelItem = {
   author: Creator;
   stories: Story[];
   hasUnseen: boolean;
+};
+
+/**
+ * A viewer of a story in the author's activity list, with whether they liked it.
+ */
+export type StoryViewerEntry = {
+  creator: Creator;
+  liked: boolean;
 };
 
 /**

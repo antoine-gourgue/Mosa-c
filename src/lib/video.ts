@@ -12,7 +12,7 @@ export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 export const MAX_VIDEO_SECONDS = 60;
 
 /** Video MIME types the create flow accepts and can preview in-browser. */
-export const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm"] as const;
+export const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"] as const;
 
 /**
  * A poster frame grabbed from a video, with the clip's intrinsic size and

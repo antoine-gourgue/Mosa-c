@@ -6,7 +6,14 @@ import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
 import { getStorage } from "@/lib/storage";
 import { errorMessage } from "@/server/error-message";
-import { createStory as createStoryRecord, recordStoryView } from "@/server/services";
+import {
+  createStory as createStoryRecord,
+  deleteStory as deleteStoryRecord,
+  getStoryViewers,
+  recordStoryView,
+  toggleStoryLike as toggleStoryLikeRecord,
+} from "@/server/services";
+import type { StoryViewerEntry } from "@/types/domain";
 
 /** Failure outcome of {@link createStory}; success redirects instead. */
 export type CreateStoryResult = { ok: false; error: string };
@@ -27,8 +34,54 @@ export async function markStoryViewed(storyId: string): Promise<void> {
   await recordStoryView(storyId, user.id);
 }
 
+/**
+ * Toggles the current viewer's like on a story.
+ *
+ * @param storyId - The story id.
+ * @returns The new like state and count (defaults when signed out).
+ */
+export async function likeStory(storyId: string): Promise<{ liked: boolean; likeCount: number }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { liked: false, likeCount: 0 };
+  }
+  return toggleStoryLikeRecord(storyId, user.id);
+}
+
+/**
+ * Deletes one of the current user's own stories.
+ *
+ * @param storyId - The story id.
+ * @returns Whether the story was deleted.
+ */
+export async function removeStory(storyId: string): Promise<{ ok: boolean }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false };
+  }
+  const ok = await deleteStoryRecord(storyId, user.id);
+  if (ok) {
+    revalidatePath("/");
+  }
+  return { ok };
+}
+
+/**
+ * Lists who viewed a story, for the story's author only.
+ *
+ * @param storyId - The story id.
+ * @returns The viewer entries, or an empty list.
+ */
+export async function listStoryViewers(storyId: string): Promise<StoryViewerEntry[]> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return [];
+  }
+  return getStoryViewers(storyId, user.id);
+}
+
 /** Server-side guards mirroring the create form's video limits. */
-const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm"];
+const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 const MAX_VIDEO_SECONDS = 60;
 
