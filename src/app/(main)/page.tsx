@@ -8,6 +8,7 @@ import type { FeedSort, FeedSource } from "@/server/services";
 import { FeedFilter, FeedTabs } from "@/components/feed";
 import { Landing } from "@/components/marketing";
 import { InfiniteFeed, PinCardSkeleton } from "@/components/pin";
+import { StoriesReel } from "@/components/stories";
 
 /**
  * Canonical metadata for the home route.
@@ -120,6 +121,9 @@ export default async function HomePage({
 
   return (
     <>
+      <Suspense>
+        <StoriesReel viewerId={viewer.id} />
+      </Suspense>
       <div className="mb-4 flex items-center justify-between gap-3 border-b border-line">
         <FeedTabs active={source} sort={order} />
         <div className="pb-1">
