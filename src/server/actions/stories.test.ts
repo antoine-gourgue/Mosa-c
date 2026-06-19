@@ -10,13 +10,14 @@ vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("@/lib/storage", () => ({
   getStorage: () => ({ put: vi.fn(async () => ({ url: "/uploads/x.png" })) }),
 }));
-vi.mock("@/server/services", () => ({ createStory: vi.fn() }));
+vi.mock("@/server/services", () => ({ createStory: vi.fn(), recordStoryView: vi.fn() }));
 
 import { getCurrentUser } from "@/lib/auth";
-import { createStory as createStoryRecord } from "@/server/services";
-import { createStory } from "./stories";
+import { createStory as createStoryRecord, recordStoryView } from "@/server/services";
+import { createStory, markStoryViewed } from "./stories";
 
 const record = createStoryRecord as unknown as Mock;
+const recordView = recordStoryView as unknown as Mock;
 
 const imageFile = () => new File(["x"], "a.png", { type: "image/png" });
 
@@ -101,5 +102,18 @@ describe("createStory action", () => {
     fd.set("video", new File(["v"], "clip.mp4", { type: "video/mp4" }));
     expect((await createStory(fd)).ok).toBe(false);
     expect(record).not.toHaveBeenCalled();
+  });
+});
+
+describe("markStoryViewed action", () => {
+  it("records the view for a signed-in viewer", async () => {
+    await markStoryViewed("s1");
+    expect(recordView).toHaveBeenCalledWith("s1", "u1");
+  });
+
+  it("is a no-op when signed out", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    await markStoryViewed("s1");
+    expect(recordView).not.toHaveBeenCalled();
   });
 });
