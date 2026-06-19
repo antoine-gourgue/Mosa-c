@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { PointerEvent as ReactPointerEvent, ReactElement } from "react";
-import { Avatar, ConfirmDialog, IconButton } from "@/components/ui";
+import { Avatar, IconButton } from "@/components/ui";
 import { usePrefersReducedMotion } from "@/hooks";
-import { ChevronDownIcon, CloseIcon, HeartFilledIcon, HeartIcon, TrashIcon } from "@/icons";
+import { ChevronDownIcon, CloseIcon, HeartFilledIcon, HeartIcon, MoreIcon } from "@/icons";
 import { likeStory, markStoryViewed, removeStory } from "@/server/actions/stories";
 import type { StoryReelItem } from "@/types/domain";
+import { AddToHighlightSheet } from "./AddToHighlightSheet";
+import { StoryOptionsSheet } from "./StoryOptionsSheet";
 import { StoryViewersSheet } from "./StoryViewersSheet";
 
 /**
@@ -20,6 +22,8 @@ export type StoryViewerProps = {
   startIndex: number;
   viewerId: string;
   onClose: () => void;
+  /** Overrides the header label (e.g. a highlight title instead of the author). */
+  title?: string;
 };
 
 type LikeState = { liked: boolean; count: number };
@@ -49,6 +53,7 @@ export function StoryViewer({
   startIndex,
   viewerId,
   onClose,
+  title,
 }: StoryViewerProps): ReactElement | null {
   const t = useTranslations("stories");
   const router = useRouter();
@@ -57,7 +62,8 @@ export function StoryViewer({
   const [progress, setProgress] = useState(0);
   const [likes, setLikes] = useState<Record<string, LikeState>>({});
   const [viewersOpen, setViewersOpen] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [highlightOpen, setHighlightOpen] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const progressRef = useRef(0);
   const pausedRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -187,7 +193,7 @@ export function StoryViewer({
   };
 
   const onPressEnd = (): void => {
-    if (!viewersOpen && !confirmDelete) {
+    if (!viewersOpen && !optionsOpen && !highlightOpen) {
       setPaused(false);
       if (isVideo) {
         void videoRef.current?.play();
@@ -237,9 +243,35 @@ export function StoryViewer({
     }
   };
 
+  const openOptions = (): void => {
+    setOptionsOpen(true);
+    setPaused(true);
+  };
+
+  const closeOptions = (): void => {
+    setOptionsOpen(false);
+    setPaused(false);
+    if (isVideo) {
+      void videoRef.current?.play();
+    }
+  };
+
+  const openHighlight = (): void => {
+    setHighlightOpen(true);
+    setPaused(true);
+  };
+
+  const closeHighlight = (): void => {
+    setHighlightOpen(false);
+    setPaused(false);
+    if (isVideo) {
+      void videoRef.current?.play();
+    }
+  };
+
   const onDelete = (): void => {
     void removeStory(story.id).then((result) => {
-      setConfirmDelete(false);
+      setOptionsOpen(false);
       if (result.ok) {
         router.refresh();
         goNext();
@@ -250,7 +282,7 @@ export function StoryViewer({
   return createPortal(
     <div
       onClick={close}
-      className="fixed inset-0 z-[140] grid place-items-center bg-ink/90 p-3 backdrop-blur-sm"
+      className="fixed inset-0 z-[140] grid place-items-center bg-ink/90 p-0 backdrop-blur-sm sm:p-3"
     >
       <div
         role="dialog"
@@ -259,7 +291,7 @@ export function StoryViewer({
         onPointerDown={onPressStart}
         onPointerUp={onPressEnd}
         onPointerLeave={onPressEnd}
-        className="relative aspect-[9/16] max-h-[94vh] w-auto max-w-[440px] overflow-hidden rounded-2xl bg-ink shadow-pop"
+        className="relative h-full w-full overflow-hidden bg-ink sm:aspect-[9/16] sm:h-auto sm:max-h-[94vh] sm:w-auto sm:max-w-[440px] sm:rounded-2xl sm:shadow-pop"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -325,8 +357,15 @@ export function StoryViewer({
             size={32}
             verified={author.author.verified}
           />
-          <span className="text-sm font-semibold text-bg drop-shadow">{author.author.name}</span>
-          <div className="ml-auto">
+          <span className="text-sm font-semibold text-bg drop-shadow">
+            {title ?? author.author.name}
+          </span>
+          <div className="ml-auto flex items-center gap-1">
+            {isOwn ? (
+              <IconButton label={t("storyOptions")} tone="solid" onClick={openOptions}>
+                <MoreIcon size={18} />
+              </IconButton>
+            ) : null}
             <IconButton label={t("close")} tone="solid" onClick={close}>
               <CloseIcon size={18} />
             </IconButton>
@@ -335,28 +374,14 @@ export function StoryViewer({
 
         <div className="absolute inset-x-0 bottom-0 z-30 flex items-center gap-3 bg-gradient-to-t from-ink/70 to-transparent px-4 pb-4 pt-10">
           {isOwn ? (
-            <>
-              <button
-                type="button"
-                onClick={openViewers}
-                className="flex items-center gap-1.5 text-sm font-semibold text-bg"
-              >
-                <ChevronDownIcon size={18} className="rotate-180" />
-                {t("viewerCount", { count: story.viewerCount })}
-              </button>
-              <div className="ml-auto">
-                <IconButton
-                  label={t("deleteStory")}
-                  tone="solid"
-                  onClick={() => {
-                    setConfirmDelete(true);
-                    setPaused(true);
-                  }}
-                >
-                  <TrashIcon size={18} />
-                </IconButton>
-              </div>
-            </>
+            <button
+              type="button"
+              onClick={openViewers}
+              className="flex items-center gap-1.5 text-sm font-semibold text-bg"
+            >
+              <ChevronDownIcon size={18} className="rotate-180" />
+              {t("viewerCount", { count: story.viewerCount })}
+            </button>
           ) : (
             <div className="ml-auto">
               <IconButton
@@ -375,20 +400,23 @@ export function StoryViewer({
         </div>
 
         {viewersOpen ? <StoryViewersSheet storyId={story.id} onClose={closeViewers} /> : null}
-      </div>
-
-      <div onClick={(event) => event.stopPropagation()}>
-        <ConfirmDialog
-          open={confirmDelete}
-          title={t("deleteStoryTitle")}
-          confirmLabel={t("delete")}
-          destructive
-          onConfirm={onDelete}
-          onCancel={() => {
-            setConfirmDelete(false);
-            setPaused(false);
-          }}
-        />
+        {highlightOpen ? (
+          <AddToHighlightSheet
+            storyId={story.id}
+            onClose={closeHighlight}
+            onDone={closeHighlight}
+          />
+        ) : null}
+        {optionsOpen ? (
+          <StoryOptionsSheet
+            onAddToHighlight={() => {
+              setOptionsOpen(false);
+              openHighlight();
+            }}
+            onConfirmDelete={onDelete}
+            onClose={closeOptions}
+          />
+        ) : null}
       </div>
     </div>,
     document.body,

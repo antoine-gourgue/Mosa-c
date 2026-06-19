@@ -533,7 +533,23 @@
     "delete": "Delete",
     "viewers": "Viewers",
     "noViewers": "No views yet.",
-    "viewerCount": "{count, plural, =0 {No views} one {# view} other {# views}}"
+    "viewerCount": "{count, plural, =0 {No views} one {# view} other {# views}}",
+    "cancel": "Cancel",
+    "addToHighlight": "Add to highlight",
+    "newHighlight": "New highlight",
+    "highlightName": "Highlight name",
+    "create": "Create",
+    "storyCount": "{count, plural, one {# story} other {# stories}}",
+    "editHighlight": "Edit highlight",
+    "manageHighlight": "Manage highlight",
+    "deleteHighlight": "Delete highlight",
+    "deleteHighlightConfirm": "Delete this highlight? Your stories stay on your profile.",
+    "removeFromHighlight": "Remove from highlight",
+    "save": "Save",
+    "storyOptions": "Story options",
+    "edit": "Edit",
+    "addStory": "Add a story",
+    "noStoriesToAdd": "No active stories to add."
   },
   "settings": {
     "account": {

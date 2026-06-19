@@ -150,6 +150,27 @@ export type StoryViewerEntry = {
 };
 
 /**
+ * A profile story highlight: a named, permanently-pinned group of stories shown
+ * as a cover on the profile.
+ */
+export type Highlight = {
+  id: string;
+  title: string;
+  coverUrl: string;
+  storyCount: number;
+};
+
+/**
+ * A highlight with its ordered stories, for playback in the story viewer.
+ */
+export type HighlightDetail = {
+  id: string;
+  title: string;
+  owner: Creator;
+  stories: Story[];
+};
+
+/**
  * A geotagged place attached to a pin: a human-readable label, an optional
  * formatted address, and the coordinates used to render it on a map.
  */
