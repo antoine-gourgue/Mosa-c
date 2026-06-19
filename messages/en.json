@@ -308,6 +308,8 @@
     "createBoard": "Create board",
     "createBoardFailed": "Couldn’t create this board. Try a different name.",
     "createPin": "Create Pin",
+    "createStory": "Create a story",
+    "createStoryHint": "Share a photo or video for 24h",
     "description": "Description",
     "descriptionPlaceholder": "Add a detailed description",
     "dropLine1": "Choose a file or",
@@ -503,6 +505,12 @@
     "gender": "Gender",
     "name": "Name",
     "bio": "Bio"
+  },
+  "stories": {
+    "createTitle": "Create a story",
+    "pickHint": "Add a photo or video. It disappears after 24 hours.",
+    "shareToStory": "Share to story",
+    "shareFailed": "Couldn’t share your story. Please try again."
   },
   "settings": {
     "account": {

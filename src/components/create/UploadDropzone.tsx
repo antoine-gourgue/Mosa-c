@@ -42,6 +42,8 @@ export type UploadDropzoneProps = {
   imageGenEnabled?: boolean;
   /** Open the AI generation dialog on mount (the "Generate with AI" entry). */
   initialGenerate?: boolean;
+  /** Hide the "Save from URL" and "Generate with AI" actions (e.g. story picker). */
+  minimal?: boolean;
 };
 
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -88,6 +90,7 @@ export function UploadDropzone({
   onChange,
   imageGenEnabled = false,
   initialGenerate = false,
+  minimal = false,
 }: UploadDropzoneProps): ReactElement {
   const t = useTranslations("create");
   const [error, setError] = useState<string | null>(null);
@@ -266,22 +269,26 @@ export function UploadDropzone({
         </p>
       ) : null}
 
-      <div className="my-4 border-t border-line" />
-      <div className="flex gap-2">
-        <Button variant="ghost" fullWidth onClick={() => setUrlOpen(true)}>
-          {t("saveFromUrl")}
-        </Button>
-        {imageGenEnabled ? (
-          <Button
-            variant="ghost"
-            fullWidth
-            leftIcon={<SparkleIcon size={18} className="text-accent" />}
-            onClick={() => setGenOpen(true)}
-          >
-            {t("generateWithAi")}
-          </Button>
-        ) : null}
-      </div>
+      {minimal ? null : (
+        <>
+          <div className="my-4 border-t border-line" />
+          <div className="flex gap-2">
+            <Button variant="ghost" fullWidth onClick={() => setUrlOpen(true)}>
+              {t("saveFromUrl")}
+            </Button>
+            {imageGenEnabled ? (
+              <Button
+                variant="ghost"
+                fullWidth
+                leftIcon={<SparkleIcon size={18} className="text-accent" />}
+                onClick={() => setGenOpen(true)}
+              >
+                {t("generateWithAi")}
+              </Button>
+            ) : null}
+          </div>
+        </>
+      )}
 
       <UrlImageDialog
         open={urlOpen}

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import type { ReactElement, ReactNode } from "react";
 import { useNavPanel } from "@/components/layout/NavPanelProvider";
-import { ImageIcon, SparkleIcon } from "@/icons";
+import { CameraIcon, ImageIcon, SparkleIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 
 /**
@@ -92,6 +92,12 @@ export function CreatePanel({
           title={t("uploadAPin")}
           hint={t("uploadAPinHint")}
           onClick={() => go("/create")}
+        />
+        <Option
+          icon={<CameraIcon size={22} />}
+          title={t("createStory")}
+          hint={t("createStoryHint")}
+          onClick={() => go("/stories/create")}
         />
         {imageGenEnabled ? (
           <Option

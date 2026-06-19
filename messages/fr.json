@@ -308,6 +308,8 @@
     "createBoard": "Créer un tableau",
     "createBoardFailed": "Impossible de créer ce tableau. Essayez un autre nom.",
     "createPin": "Créer une épingle",
+    "createStory": "Créer une story",
+    "createStoryHint": "Partage une photo ou vidéo pour 24 h",
     "description": "Description",
     "descriptionPlaceholder": "Ajoutez une description détaillée",
     "dropLine1": "Choisissez un fichier ou",
@@ -503,6 +505,12 @@
     "gender": "Genre",
     "name": "Nom",
     "bio": "Bio"
+  },
+  "stories": {
+    "createTitle": "Créer une story",
+    "pickHint": "Ajoute une photo ou une vidéo. Elle disparaît après 24 h.",
+    "shareToStory": "Partager en story",
+    "shareFailed": "Impossible de partager ta story. Réessaie."
   },
   "settings": {
     "account": {
