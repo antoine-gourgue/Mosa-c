@@ -112,6 +112,33 @@ export type Pin = {
 };
 
 /**
+ * An ephemeral story segment: a single image or video that expires 24h after
+ * it was posted. `imageUrl` is always the poster, so video and image stories
+ * share one rendering path.
+ */
+export type Story = {
+  id: string;
+  mediaType: PinMediaType;
+  imageUrl: string;
+  videoUrl: string | null;
+  width: number;
+  height: number;
+  videoDurationS: number | null;
+  createdAt: Date;
+  expiresAt: Date;
+};
+
+/**
+ * One author's active stories in the feed reel, with whether the viewer has any
+ * unseen segment left (which drives the ring state).
+ */
+export type StoryReelItem = {
+  author: Creator;
+  stories: Story[];
+  hasUnseen: boolean;
+};
+
+/**
  * A geotagged place attached to a pin: a human-readable label, an optional
  * formatted address, and the coordinates used to render it on a map.
  */

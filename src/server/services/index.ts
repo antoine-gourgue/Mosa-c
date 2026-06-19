@@ -22,6 +22,8 @@ export {
   searchUsers,
 } from "./users";
 export { getPopularTags, searchTags, searchTagResults, getTagBySlug, getPinsByTag } from "./tags";
+export { createStory, recordStoryView, getStoryReel } from "./stories";
+export type { CreateStoryInput } from "./stories";
 export {
   getBoardsForUser,
   getDefaultBoard,

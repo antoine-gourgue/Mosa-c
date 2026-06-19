@@ -114,6 +114,9 @@ model User {
   pinViews          PinView[]
   aiImageGenerations AiImageGeneration[]
 
+  stories     Story[]     @relation("StoryAuthor")
+  storyViews  StoryView[]
+
   conversations ConversationParticipant[]
   sentMessages  Message[]
 }
@@ -295,6 +298,35 @@ model PinView {
 
   @@id([pinId, viewerId, viewedOn])
   @@index([pinId])
+  @@index([viewerId])
+}
+
+model Story {
+  id             String       @id @default(cuid())
+  authorId       String
+  author         User         @relation("StoryAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  mediaType      PinMediaType @default(IMAGE)
+  imageUrl       String
+  videoUrl       String?
+  width          Int
+  height         Int
+  videoDurationS Int?
+  createdAt      DateTime     @default(now())
+  expiresAt      DateTime
+  views          StoryView[]
+
+  @@index([authorId, expiresAt])
+  @@index([expiresAt])
+}
+
+model StoryView {
+  storyId   String
+  viewerId  String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  viewer    User     @relation(fields: [viewerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([storyId, viewerId])
   @@index([viewerId])
 }
 

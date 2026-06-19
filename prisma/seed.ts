@@ -427,6 +427,45 @@ async function main(): Promise<void> {
   await prisma.pin.deleteMany({ where: { id: { notIn: seededPinIds } } });
   await prisma.tag.deleteMany({ where: { pins: { none: {} } } });
 
+  const storySeeds = [
+    {
+      id: "story_demo_1",
+      authorId: "user_demo",
+      mediaType: "IMAGE" as const,
+      imageUrl: unsplash("1469474968028-56623f02e42e", 720, 1280),
+      videoUrl: null as string | null,
+      width: 720,
+      height: 1280,
+      videoDurationS: null as number | null,
+    },
+    {
+      id: "story_mira_1",
+      authorId: "user_mira",
+      mediaType: "IMAGE" as const,
+      imageUrl: unsplash("1441974231531-c6227db76b6e", 720, 1280),
+      videoUrl: null as string | null,
+      width: 720,
+      height: 1280,
+      videoDurationS: null as number | null,
+    },
+    {
+      id: "story_mira_2",
+      authorId: "user_mira",
+      mediaType: "VIDEO" as const,
+      imageUrl: "/images/sample-clip-poster.jpg",
+      videoUrl: "/videos/sample-clip.mp4",
+      width: 1280,
+      height: 720,
+      videoDurationS: 10,
+    },
+  ];
+  for (const story of storySeeds) {
+    const { id, ...rest } = story;
+    const data = { ...rest, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) };
+    await prisma.story.upsert({ where: { id }, update: data, create: { id, ...data } });
+  }
+  await prisma.story.deleteMany({ where: { id: { notIn: storySeeds.map((s) => s.id) } } });
+
   for (const ref of [1, 6]) {
     await prisma.save.upsert({
       where: { userId_pinId: { userId: "user_demo", pinId: `pin_${ref}` } },
