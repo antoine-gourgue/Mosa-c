@@ -510,7 +510,12 @@
     "createTitle": "Créer une story",
     "pickHint": "Ajoute une photo ou une vidéo. Elle disparaît après 24 h.",
     "shareToStory": "Partager en story",
-    "shareFailed": "Impossible de partager ta story. Réessaie."
+    "shareFailed": "Impossible de partager ta story. Réessaie.",
+    "yourStory": "Ta story",
+    "addStory": "Ajouter à ta story",
+    "close": "Fermer",
+    "next": "Suivant",
+    "previous": "Précédent"
   },
   "settings": {
     "account": {

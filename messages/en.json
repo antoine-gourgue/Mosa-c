@@ -510,7 +510,12 @@
     "createTitle": "Create a story",
     "pickHint": "Add a photo or video. It disappears after 24 hours.",
     "shareToStory": "Share to story",
-    "shareFailed": "Couldn’t share your story. Please try again."
+    "shareFailed": "Couldn’t share your story. Please try again.",
+    "yourStory": "Your story",
+    "addStory": "Add to your story",
+    "close": "Close",
+    "next": "Next",
+    "previous": "Previous"
   },
   "settings": {
     "account": {
