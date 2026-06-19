@@ -6,6 +6,7 @@ import { BoardsGrid } from "@/components/board";
 import { PlacesMapButton } from "@/components/location";
 import { PinFeed } from "@/components/pin";
 import { DraftsManager, ProfileHeader, ProfileTabs } from "@/components/profile";
+import { ProfileHighlights } from "@/components/stories";
 import type { ProfileTab } from "@/components/profile";
 import { JsonLd } from "@/components/seo";
 import { LockIcon } from "@/icons";
@@ -303,6 +304,7 @@ export default async function ProfilePage({
         <PrivateNotice />
       ) : (
         <>
+          <ProfileHighlights ownerId={user.id} />
           <div className="relative">
             <ProfileTabs username={username} active={active} isOwnProfile={isOwnProfile} />
             {placedPins.length > 0 ? (

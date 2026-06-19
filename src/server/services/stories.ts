@@ -10,7 +10,7 @@ const STORY_TTL_MS = 24 * 60 * 60 * 1000;
 /**
  * Structural shape of a story row read from the database.
  */
-type StoryRow = {
+export type StoryRow = {
   id: string;
   mediaType: Story["mediaType"];
   imageUrl: string;
@@ -31,7 +31,7 @@ type StoryRow = {
  * @param row - The story row.
  * @returns The mapped story.
  */
-function toStory(row: StoryRow): Story {
+export function toStory(row: StoryRow): Story {
   return {
     id: row.id,
     mediaType: row.mediaType,

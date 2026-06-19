@@ -7,3 +7,7 @@ export { StoryViewer } from "./StoryViewer";
 export type { StoryViewerProps } from "./StoryViewer";
 export { StoryViewersSheet } from "./StoryViewersSheet";
 export type { StoryViewersSheetProps } from "./StoryViewersSheet";
+export { ProfileHighlights } from "./ProfileHighlights";
+export type { ProfileHighlightsProps } from "./ProfileHighlights";
+export { HighlightsRail } from "./HighlightsRail";
+export type { HighlightsRailProps } from "./HighlightsRail";

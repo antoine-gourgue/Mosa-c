@@ -32,6 +32,16 @@ export {
 } from "./stories";
 export type { CreateStoryInput } from "./stories";
 export {
+  getHighlights,
+  getHighlightDetail,
+  getAddableStories,
+  createHighlight,
+  addStoryToHighlight,
+  removeStoryFromHighlight,
+  renameHighlight,
+  deleteHighlight,
+} from "./highlights";
+export {
   getBoardsForUser,
   getDefaultBoard,
   getBoardWithPins,

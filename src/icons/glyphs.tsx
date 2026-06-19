@@ -547,6 +547,20 @@ export function ImageIcon(props: IconProps): ReactElement {
 }
 
 /**
+ * Five-point star glyph used for story highlights.
+ *
+ * @param props - Icon sizing and presentation props.
+ * @returns The rendered SVG icon.
+ */
+export function StarIcon(props: IconProps): ReactElement {
+  return (
+    <SvgIcon {...props}>
+      <path d="M12 3.5l2.6 5.27 5.82.85-4.21 4.1.99 5.78L12 16.77l-5.2 2.73.99-5.78-4.21-4.1 5.82-.85L12 3.5z" />
+    </SvgIcon>
+  );
+}
+
+/**
  * Filled triangular "play" glyph used to mark and start video pins.
  *
  * @param props - Icon sizing and presentation props.

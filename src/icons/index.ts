@@ -33,6 +33,7 @@ export {
   SendIcon,
   ImageIcon,
   PlayIcon,
+  StarIcon,
   ExpandIcon,
   GearFilledIcon,
   UserIcon,
