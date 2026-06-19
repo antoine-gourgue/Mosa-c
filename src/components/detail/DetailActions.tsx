@@ -29,6 +29,7 @@ export type DetailActionsProps = {
   description: string | null;
   tags: string[];
   imageUrl: string;
+  videoUrl?: string | null;
   link: string | null;
   place: PinPlace | null;
   initialLiked: boolean;
@@ -53,6 +54,7 @@ export function DetailActions({
   description,
   tags,
   imageUrl,
+  videoUrl = null,
   link,
   place,
   initialLiked,
@@ -79,9 +81,12 @@ export function DetailActions({
     show({ title: tp("linkCopied"), description: title, img: imageUrl });
   };
 
+  const isVideo = videoUrl !== null && videoUrl !== "";
+  const downloadUrl = videoUrl !== null && videoUrl !== "" ? videoUrl : imageUrl;
+
   const onDownload = async (): Promise<void> => {
     try {
-      await downloadPin({ url: imageUrl, title });
+      await downloadPin({ url: downloadUrl, title });
     } catch {
       show({ title: tp("downloadFailed"), description: tp("tryAgain") });
       return;
@@ -121,7 +126,7 @@ export function DetailActions({
   const menuItems: MenuItem[] = [
     { label: tp("copyLink"), icon: <LinkIcon size={18} />, onSelect: () => void onCopyLink() },
     {
-      label: tp("downloadImage"),
+      label: tp(isVideo ? "downloadVideo" : "downloadImage"),
       icon: <DownloadIcon size={18} />,
       onSelect: () => void onDownload(),
     },

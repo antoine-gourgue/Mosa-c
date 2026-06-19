@@ -119,6 +119,7 @@ export async function PinDetail({ pinId }: PinDetailProps): Promise<ReactElement
             description={pin.description}
             tags={pin.tags.map((tag) => tag.name)}
             imageUrl={pin.imageUrl}
+            videoUrl={pin.videoUrl}
             link={pin.link}
             place={pin.place}
             initialLiked={like.liked}

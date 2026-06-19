@@ -84,9 +84,14 @@ export function PinCard({
     show({ title: t("linkCopied"), description: pin.title, img: pin.imageUrl });
   };
 
+  const isVideo = pin.mediaType === "VIDEO" && pin.videoUrl !== null;
+
   const onDownload = async (): Promise<void> => {
     try {
-      await downloadPin({ url: pin.imageUrl, title: pin.title });
+      await downloadPin({
+        url: isVideo ? (pin.videoUrl ?? pin.imageUrl) : pin.imageUrl,
+        title: pin.title,
+      });
       setDownloadCount(pin.id, downloads + 1);
       const result = await recordDownload(pin.id);
       setDownloadCount(pin.id, result.count);
@@ -121,7 +126,7 @@ export function PinCard({
   const menuItems: MenuItem[] = [
     { label: t("copyLink"), icon: <LinkIcon size={18} />, onSelect: () => void onCopyLink() },
     {
-      label: t("downloadImage"),
+      label: t(isVideo ? "downloadVideo" : "downloadImage"),
       icon: <DownloadIcon size={18} />,
       onSelect: () => void onDownload(),
     },
