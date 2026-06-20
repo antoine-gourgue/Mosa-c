@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.29.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.28.0...v1.29.0) (2026-06-20)
+
+
+### Features
+
+* **pins:** archive and restore pins ([#477](https://github.com/antoine-gourgue/Mosa-c/issues/477)) ([18db85a](https://github.com/antoine-gourgue/Mosa-c/commit/18db85ac0541c2e9bf6b3da25fb90000af5c9dd9)), closes [#473](https://github.com/antoine-gourgue/Mosa-c/issues/473)
+* **stories:** profile story highlights ([#475](https://github.com/antoine-gourgue/Mosa-c/issues/475)) ([7b9877d](https://github.com/antoine-gourgue/Mosa-c/commit/7b9877d0114cafd5040b62ec669a48a6aa3eee30)), closes [#472](https://github.com/antoine-gourgue/Mosa-c/issues/472)
+
 ## [1.28.0](https://github.com/antoine-gourgue/Mosa-c/compare/v1.27.0...v1.28.0) (2026-06-19)
 
 
