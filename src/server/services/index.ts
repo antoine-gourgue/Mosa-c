@@ -4,6 +4,7 @@ export {
   searchPins,
   getCreatedPins,
   getDraftAndScheduledPins,
+  getArchivedPins,
   getRelatedPins,
   getHomeFeed,
   getPlacedPinsForUser,

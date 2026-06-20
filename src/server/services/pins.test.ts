@@ -27,6 +27,7 @@ vi.mock("@/lib/ai", () => ({
 import { aiAvailable, embed } from "@/lib/ai";
 import { prisma } from "@/lib/prisma";
 import {
+  getArchivedPins,
   getCreatedPins,
   getDraftAndScheduledPins,
   getHomeFeed,
@@ -463,6 +464,18 @@ describe("getDraftAndScheduledPins", () => {
           creatorId: "u1",
           OR: [{ status: "DRAFT" }, { status: "SCHEDULED", publishAt: { gt: expect.any(Date) } }],
         },
+      }),
+    );
+  });
+});
+
+describe("getArchivedPins", () => {
+  it("queries the owner's archived pins", async () => {
+    db.pin.findMany.mockResolvedValue([]);
+    await getArchivedPins("u1");
+    expect(db.pin.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { creatorId: "u1", status: "ARCHIVED" },
       }),
     );
   });

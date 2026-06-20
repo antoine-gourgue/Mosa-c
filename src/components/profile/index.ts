@@ -10,3 +10,5 @@ export { EditProfile } from "./EditProfile";
 export type { EditProfileProps } from "./EditProfile";
 export { DraftsManager } from "./DraftsManager";
 export type { DraftsManagerProps } from "./DraftsManager";
+export { ArchiveManager } from "./ArchiveManager";
+export type { ArchiveManagerProps } from "./ArchiveManager";

@@ -31,7 +31,7 @@ vi.mock("@/lib/storage", () => ({
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { createPin, deletePin, publishPinNow, updatePin } from "./pins";
+import { archivePin, createPin, deletePin, publishPinNow, restorePin, updatePin } from "./pins";
 
 const db = prisma as unknown as {
   pin: { create: Mock; findUnique: Mock; delete: Mock; update: Mock };
@@ -436,6 +436,50 @@ describe("publishPinNow", () => {
     expect(db.pin.update).toHaveBeenCalledWith({
       where: { id: "p1" },
       data: { status: "PUBLISHED", publishAt: null },
+    });
+  });
+});
+
+describe("archivePin", () => {
+  it("rejects when signed out", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    expect((await archivePin("p1")).ok).toBe(false);
+  });
+
+  it("refuses to archive another user's pin", async () => {
+    db.pin.findUnique.mockResolvedValue({ creatorId: "other" });
+    expect((await archivePin("p1")).ok).toBe(false);
+    expect(db.pin.update).not.toHaveBeenCalled();
+  });
+
+  it("archives the owner's pin and clears the schedule", async () => {
+    db.pin.findUnique.mockResolvedValue({ creatorId: "u1" });
+    expect(await archivePin("p1")).toEqual({ ok: true });
+    expect(db.pin.update).toHaveBeenCalledWith({
+      where: { id: "p1" },
+      data: { status: "ARCHIVED", publishAt: null },
+    });
+  });
+});
+
+describe("restorePin", () => {
+  it("rejects when signed out", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    expect((await restorePin("p1")).ok).toBe(false);
+  });
+
+  it("refuses to restore another user's pin", async () => {
+    db.pin.findUnique.mockResolvedValue({ creatorId: "other" });
+    expect((await restorePin("p1")).ok).toBe(false);
+    expect(db.pin.update).not.toHaveBeenCalled();
+  });
+
+  it("restores the owner's pin to published", async () => {
+    db.pin.findUnique.mockResolvedValue({ creatorId: "u1" });
+    expect(await restorePin("p1")).toEqual({ ok: true });
+    expect(db.pin.update).toHaveBeenCalledWith({
+      where: { id: "p1" },
+      data: { status: "PUBLISHED" },
     });
   });
 });

@@ -8,11 +8,19 @@ import { Button, ConfirmDialog, Menu, useToast } from "@/components/ui";
 import { EditPinDialog, LikeButton } from "@/components/pin";
 import { useEngagementActions, usePinOverride } from "@/components/engagement";
 import { useAuthPrompt } from "@/hooks/use-auth-prompt";
-import { ComposeIcon, DownloadIcon, FlagIcon, LinkIcon, MoreIcon, TrashIcon } from "@/icons";
+import {
+  ComposeIcon,
+  DownloadIcon,
+  FlagIcon,
+  LinkIcon,
+  MoreIcon,
+  StackIcon,
+  TrashIcon,
+} from "@/icons";
 import { downloadPin } from "@/lib/download";
 import { pinUrl } from "@/lib/share";
 import { recordDownload } from "@/server/actions/downloads";
-import { deletePin } from "@/server/actions/pins";
+import { archivePin, deletePin } from "@/server/actions/pins";
 import { reportPin } from "@/server/actions/reports";
 import type { MenuItem } from "@/components/ui";
 import type { PinPlace } from "@/types/domain";
@@ -72,6 +80,7 @@ export function DetailActions({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleting, startDelete] = useTransition();
+  const [, startArchive] = useTransition();
   const { show } = useToast();
   const router = useRouter();
   const withAuth = useAuthPrompt(isAuthed);
@@ -109,6 +118,18 @@ export function DetailActions({
     }
   };
 
+  const onArchive = (): void => {
+    startArchive(async () => {
+      const result = await archivePin(pinId);
+      if (result.ok) {
+        show({ title: tp("pinArchived") });
+        router.replace("/");
+      } else {
+        show({ title: tp("archiveFailed"), description: result.error });
+      }
+    });
+  };
+
   const onConfirmDelete = (): void => {
     startDelete(async () => {
       const result = await deletePin(pinId);
@@ -144,6 +165,11 @@ export function DetailActions({
             label: tp("editPin"),
             icon: <ComposeIcon size={18} />,
             onSelect: () => setEditOpen(true),
+          },
+          {
+            label: tp("archivePin"),
+            icon: <StackIcon size={18} />,
+            onSelect: onArchive,
           },
         ]
       : []),
