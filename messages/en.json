@@ -207,7 +207,10 @@
     "scheduledBadge": "Scheduled",
     "publishNow": "Publish now",
     "noDrafts": "No drafts or scheduled pins yet.",
-    "scheduledFor": "Goes live {when}"
+    "scheduledFor": "Goes live {when}",
+    "tabArchived": "Archived",
+    "archivedBadge": "Archived",
+    "noArchived": "No archived pins yet."
   },
   "messages": {
     "title": "Messages",
@@ -460,7 +463,12 @@
     "delete": "Delete",
     "savedToBoard": "Saved to {board}",
     "view": "View",
-    "editPin": "Edit Pin"
+    "editPin": "Edit Pin",
+    "archivePin": "Archive Pin",
+    "pinArchived": "Pin archived",
+    "archiveFailed": "Could not archive",
+    "restorePin": "Restore",
+    "pinRestored": "Pin restored"
   },
   "notifications": {
     "close": "Close notifications",

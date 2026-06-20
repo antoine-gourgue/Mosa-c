@@ -207,7 +207,10 @@
     "scheduledBadge": "Programmé",
     "publishNow": "Publier maintenant",
     "noDrafts": "Aucun brouillon ni pin programmé pour l'instant.",
-    "scheduledFor": "En ligne {when}"
+    "scheduledFor": "En ligne {when}",
+    "tabArchived": "Archivées",
+    "archivedBadge": "Archivée",
+    "noArchived": "Aucune épingle archivée pour l'instant."
   },
   "messages": {
     "title": "Messages",
@@ -460,7 +463,12 @@
     "delete": "Supprimer",
     "savedToBoard": "Enregistré dans {board}",
     "view": "Voir",
-    "editPin": "Modifier l’épingle"
+    "editPin": "Modifier l’épingle",
+    "archivePin": "Archiver l’épingle",
+    "pinArchived": "Épingle archivée",
+    "archiveFailed": "Impossible d’archiver",
+    "restorePin": "Restaurer",
+    "pinRestored": "Épingle restaurée"
   },
   "notifications": {
     "close": "Fermer les notifications",

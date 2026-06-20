@@ -5,7 +5,7 @@ import type { ReactElement } from "react";
 import { BoardsGrid } from "@/components/board";
 import { PlacesMapButton } from "@/components/location";
 import { PinFeed } from "@/components/pin";
-import { DraftsManager, ProfileHeader, ProfileTabs } from "@/components/profile";
+import { ArchiveManager, DraftsManager, ProfileHeader, ProfileTabs } from "@/components/profile";
 import { ProfileHighlights } from "@/components/stories";
 import type { ProfileTab } from "@/components/profile";
 import { JsonLd } from "@/components/seo";
@@ -19,6 +19,7 @@ import {
   getFollowCounts,
   getFollowState,
   getDraftAndScheduledPins,
+  getArchivedPins,
   getLikedPinIds,
   getLikedPins,
   getPlacedPinsForUser,
@@ -35,7 +36,11 @@ import {
  * @returns The active tab, defaulting to created.
  */
 function resolveTab(value: string | undefined): ProfileTab {
-  return value === "saved" || value === "boards" || value === "liked" || value === "drafts"
+  return value === "saved" ||
+    value === "boards" ||
+    value === "liked" ||
+    value === "drafts" ||
+    value === "archived"
     ? value
     : "created";
 }
@@ -189,6 +194,18 @@ async function DraftsView({ userId }: { userId: string }): Promise<ReactElement>
 }
 
 /**
+ * Renders the owner's archived pins with controls to restore or delete them.
+ *
+ * @param props - The owner's user id.
+ * @param props.userId - The owner's user id.
+ * @returns The archive management view.
+ */
+async function ArchivedView({ userId }: { userId: string }): Promise<ReactElement> {
+  const pins = await getArchivedPins(userId);
+  return <ArchiveManager pins={pins} />;
+}
+
+/**
  * Notice shown in place of a profile's content when the viewer has blocked the
  * user. The Unblock control lives in the profile header's actions menu.
  *
@@ -269,7 +286,8 @@ export default async function ProfilePage({
     viewer !== null ? getLikedPinIds(viewer.id) : Promise.resolve<string[]>([]),
   ]);
   const requestedTab = resolveTab(tab);
-  const ownerOnlyTab = requestedTab === "liked" || requestedTab === "drafts";
+  const ownerOnlyTab =
+    requestedTab === "liked" || requestedTab === "drafts" || requestedTab === "archived";
   const active = ownerOnlyTab && !isOwnProfile ? "created" : requestedTab;
   const canViewContent = isOwnProfile || !user.isPrivate || followState === "following";
   const [placedPins, tProfile] = await Promise.all([
@@ -347,6 +365,7 @@ export default async function ProfilePage({
               <BoardsView userId={user.id} viewerId={viewer?.id ?? null} />
             ) : null}
             {active === "drafts" ? <DraftsView userId={user.id} /> : null}
+            {active === "archived" ? <ArchivedView userId={user.id} /> : null}
           </div>
         </>
       )}

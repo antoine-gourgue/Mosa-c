@@ -556,6 +556,23 @@ export async function getDraftAndScheduledPins(userId: string): Promise<Pin[]> {
 }
 
 /**
+ * Fetches the owner's archived pins for their archive view, newest first.
+ * Archived pins are hidden from every public surface and can be restored or
+ * deleted by the owner.
+ *
+ * @param userId - The owner's user id.
+ * @returns The owner's archived pins.
+ */
+export async function getArchivedPins(userId: string): Promise<Pin[]> {
+  const rows = await prisma.pin.findMany({
+    where: { creatorId: userId, status: "ARCHIVED" },
+    include: PIN_INCLUDE,
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map(toPin);
+}
+
+/**
  * Searches pins by title, tag name or creator name, case-insensitively,
  * ordered by the given sort.
  *

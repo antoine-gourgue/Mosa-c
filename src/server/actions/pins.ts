@@ -495,3 +495,63 @@ export async function publishPinNow(
   revalidatePath("/boards");
   return { ok: true };
 }
+
+/**
+ * Archives a published pin owned by the current user, hiding it from every
+ * public surface (feeds, search, profile grid) while keeping it restorable.
+ *
+ * @param pinId - The id of the pin to archive.
+ * @returns A success result, or a failure with an error message.
+ */
+export async function archivePin(
+  pinId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: await errorMessage("signedOut") };
+  }
+  const pin = await prisma.pin.findUnique({ where: { id: pinId }, select: { creatorId: true } });
+  if (pin === null) {
+    return { ok: false, error: await errorMessage("pinNotFound") };
+  }
+  if (pin.creatorId !== user.id) {
+    return { ok: false, error: await errorMessage("editOwnPins") };
+  }
+  await prisma.pin.update({
+    where: { id: pinId },
+    data: { status: "ARCHIVED", publishAt: null },
+  });
+  revalidatePath("/");
+  revalidatePath("/boards");
+  return { ok: true };
+}
+
+/**
+ * Restores an archived pin owned by the current user back to published, so it
+ * reappears on every public surface.
+ *
+ * @param pinId - The id of the pin to restore.
+ * @returns A success result, or a failure with an error message.
+ */
+export async function restorePin(
+  pinId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    return { ok: false, error: await errorMessage("signedOut") };
+  }
+  const pin = await prisma.pin.findUnique({ where: { id: pinId }, select: { creatorId: true } });
+  if (pin === null) {
+    return { ok: false, error: await errorMessage("pinNotFound") };
+  }
+  if (pin.creatorId !== user.id) {
+    return { ok: false, error: await errorMessage("editOwnPins") };
+  }
+  await prisma.pin.update({
+    where: { id: pinId },
+    data: { status: "PUBLISHED" },
+  });
+  revalidatePath("/");
+  revalidatePath("/boards");
+  return { ok: true };
+}

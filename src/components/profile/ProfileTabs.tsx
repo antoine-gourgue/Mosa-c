@@ -8,11 +8,11 @@ import { cn } from "@/lib/cn";
 /**
  * The available profile tabs.
  */
-export type ProfileTab = "created" | "saved" | "liked" | "boards" | "drafts";
+export type ProfileTab = "created" | "saved" | "liked" | "boards" | "drafts" | "archived";
 
 const TABS: {
   key: ProfileTab;
-  labelKey: "tabCreated" | "tabSaved" | "tabLiked" | "tabBoards" | "tabDrafts";
+  labelKey: "tabCreated" | "tabSaved" | "tabLiked" | "tabBoards" | "tabDrafts" | "tabArchived";
   ownerOnly?: boolean;
 }[] = [
   { key: "created", labelKey: "tabCreated" },
@@ -20,6 +20,7 @@ const TABS: {
   { key: "liked", labelKey: "tabLiked", ownerOnly: true },
   { key: "boards", labelKey: "tabBoards" },
   { key: "drafts", labelKey: "tabDrafts", ownerOnly: true },
+  { key: "archived", labelKey: "tabArchived", ownerOnly: true },
 ];
 
 /**

@@ -80,7 +80,7 @@ export type CreatorAnalytics = {
  * Publication state of a pin: a private draft, scheduled to go live at a future
  * time, or publicly published.
  */
-export type PinStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED";
+export type PinStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED";
 
 /**
  * Whether a pin's media is a still image or a video. Video pins keep `imageUrl`
