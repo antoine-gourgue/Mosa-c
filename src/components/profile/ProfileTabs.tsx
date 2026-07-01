@@ -1,9 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import Link from "next/link";
 import type { ReactElement } from "react";
-import { cn } from "@/lib/cn";
+import { Tabs } from "@/components/ui";
 
 /**
  * The available profile tabs.
@@ -44,23 +43,14 @@ export function ProfileTabs({ username, active, isOwnProfile }: ProfileTabsProps
   const t = useTranslations("profile");
   const tabs = TABS.filter((tab) => isOwnProfile || tab.ownerOnly !== true);
   return (
-    <nav className="flex justify-center gap-2 border-b border-line">
-      {tabs.map((tab) => (
-        <Link
-          key={tab.key}
-          href={`/u/${username}?tab=${tab.key}`}
-          aria-current={active === tab.key ? "page" : undefined}
-          className={cn(
-            "relative px-4 py-3 text-sm font-semibold transition-colors",
-            active === tab.key ? "text-ink" : "text-ink-soft hover:text-ink",
-          )}
-        >
-          {t(tab.labelKey)}
-          {active === tab.key ? (
-            <span className="absolute inset-x-2 -bottom-px h-1 rounded-full bg-ink" />
-          ) : null}
-        </Link>
-      ))}
-    </nav>
+    <Tabs
+      ariaLabel={t("tabsAria")}
+      active={active}
+      items={tabs.map((tab) => ({
+        key: tab.key,
+        label: t(tab.labelKey),
+        href: `/u/${username}?tab=${tab.key}`,
+      }))}
+    />
   );
 }

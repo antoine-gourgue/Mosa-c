@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import type { ReactElement, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
@@ -47,8 +48,26 @@ export function Tabs<K extends string = string>({
   align = "center",
   className,
 }: TabsProps<K>): ReactElement {
+  const navRef = useRef<HTMLElement>(null);
+  const activeRef = useRef<HTMLElement | null>(null);
+
+  /**
+   * Keeps the active tab visible when the bar scrolls horizontally on mobile,
+   * centering it in the viewport without disturbing the page's vertical scroll.
+   */
+  useEffect(() => {
+    const nav = navRef.current;
+    const el = activeRef.current;
+    if (nav === null || el === null || nav.scrollWidth <= nav.clientWidth) {
+      return;
+    }
+    const target = el.offsetLeft - (nav.clientWidth - el.clientWidth) / 2;
+    nav.scrollTo({ left: Math.max(0, target) });
+  }, [active]);
+
   return (
     <nav
+      ref={navRef}
       aria-label={ariaLabel}
       className={cn(
         "flex gap-2 overflow-x-auto border-b border-line [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
@@ -70,10 +89,16 @@ export function Tabs<K extends string = string>({
           "relative shrink-0 whitespace-nowrap px-4 py-3 text-sm font-semibold transition-colors",
           isActive ? "text-ink" : "text-ink-soft hover:text-ink",
         );
+        const setActiveRef = (node: HTMLElement | null): void => {
+          if (isActive) {
+            activeRef.current = node;
+          }
+        };
         if (item.href !== undefined) {
           return (
             <Link
               key={item.key}
+              ref={setActiveRef}
               href={item.href}
               aria-current={isActive ? "page" : undefined}
               className={classes}
@@ -85,6 +110,7 @@ export function Tabs<K extends string = string>({
         return (
           <button
             key={item.key}
+            ref={setActiveRef}
             type="button"
             role="tab"
             aria-selected={isActive}

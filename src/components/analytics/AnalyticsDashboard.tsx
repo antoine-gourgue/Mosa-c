@@ -70,8 +70,8 @@ export async function AnalyticsDashboard({
 
       <section>
         <h2 className="mb-3 text-lg font-bold text-ink">{t("perPin")}</h2>
-        <div className="overflow-hidden rounded-2xl bg-surface">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-2xl bg-surface">
+          <table className="w-full min-w-[560px] text-sm">
             <thead>
               <tr className="border-b border-line text-left text-ink-soft">
                 <th className="px-4 py-3 font-medium">{t("pin")}</th>
