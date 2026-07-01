@@ -558,7 +558,7 @@ export function Messenger({
   );
 
   return (
-    <div className="flex h-[calc(100dvh-9rem)] overflow-hidden border-t border-line sm:h-[calc(100dvh-4rem)]">
+    <div className="flex h-[calc(100dvh-10rem)] overflow-hidden border-t border-line sm:h-[calc(100dvh-4rem)]">
       <aside
         className={cn(
           "w-full shrink-0 overflow-y-auto border-line md:w-80 md:border-r",
