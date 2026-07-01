@@ -660,7 +660,7 @@ export function Messenger({
                   href={active.other.username !== null ? `/u/${active.other.username}` : "#"}
                   className="group flex min-w-0 flex-1 items-center gap-2.5"
                 >
-                  <span className="relative shrink-0">
+                  <span className="relative inline-flex shrink-0">
                     <Avatar
                       src={active.other.avatarUrl ?? undefined}
                       name={active.other.name}
