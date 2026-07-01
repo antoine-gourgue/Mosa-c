@@ -30,3 +30,7 @@ export { Skeleton } from "./Skeleton";
 export type { SkeletonProps } from "./Skeleton";
 export { Spinner } from "./Spinner";
 export type { SpinnerProps } from "./Spinner";
+export { Sheet } from "./Sheet";
+export type { SheetProps } from "./Sheet";
+export { Tabs } from "./Tabs";
+export type { TabItem, TabsProps } from "./Tabs";
