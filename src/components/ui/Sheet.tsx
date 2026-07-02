@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 import type { ReactElement, ReactNode } from "react";
-import { useIsMobile } from "@/hooks/useMediaQuery";
+import { MOBILE_BREAKPOINT } from "@/hooks/useMediaQuery";
 import { CloseIcon } from "@/icons";
 import { cn } from "@/lib/cn";
 import { DURATION, REDUCED_MOTION, gsap, useGSAP } from "@/lib/gsap";
@@ -54,7 +54,6 @@ export function Sheet({
   className,
 }: SheetProps): ReactElement | null {
   const t = useTranslations("ui");
-  const isMobile = useIsMobile();
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
 
@@ -77,18 +76,33 @@ export function Sheet({
       if (!open || panelRef.current === null) {
         return;
       }
-      gsap.matchMedia().add(`not all and ${REDUCED_MOTION}`, () => {
-        gsap.from(panelRef.current, {
-          opacity: 0,
-          y: isMobile ? 24 : 12,
-          yPercent: isMobile ? 100 : 0,
-          scale: isMobile ? 1 : 0.96,
-          duration: DURATION.fast,
-          ease: "power2.out",
-        });
-      });
+      /**
+       * Pick the slide direction from the live viewport via matchMedia (bottom
+       * sheet on mobile, dialog on desktop) rather than a React state value, so
+       * the intro tween runs exactly once and never gets interrupted mid-fade by
+       * a re-render — which would leave the panel stuck semi-transparent.
+       */
+      gsap
+        .matchMedia()
+        .add(
+          { reduce: REDUCED_MOTION, mobile: `(max-width: ${MOBILE_BREAKPOINT - 0.02}px)` },
+          (context) => {
+            const conditions = context.conditions;
+            if (conditions === undefined || conditions.reduce) {
+              return;
+            }
+            gsap.from(panelRef.current, {
+              opacity: 0,
+              y: conditions.mobile ? 24 : 12,
+              yPercent: conditions.mobile ? 100 : 0,
+              scale: conditions.mobile ? 1 : 0.96,
+              duration: DURATION.fast,
+              ease: "power2.out",
+            });
+          },
+        );
     },
-    { dependencies: [open, isMobile] },
+    { dependencies: [open] },
   );
 
   if (!open) {
