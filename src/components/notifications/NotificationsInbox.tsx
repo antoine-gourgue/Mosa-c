@@ -156,7 +156,7 @@ export function NotificationsInbox({ items }: NotificationsInboxProps): ReactEle
                     !item.read && "bg-accent/[0.06]",
                   )}
                 >
-                  <span className="relative shrink-0">
+                  <span className="relative inline-flex shrink-0">
                     <Avatar
                       name={item.actor.name}
                       src={item.actor.avatarUrl ?? undefined}
