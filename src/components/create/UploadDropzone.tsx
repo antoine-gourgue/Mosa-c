@@ -272,7 +272,7 @@ export function UploadDropzone({
       ) : null}
 
       <div className="my-4 border-t border-line" />
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <Button
           variant="ghost"
           fullWidth

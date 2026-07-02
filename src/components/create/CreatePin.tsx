@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import type { ReactElement, ReactNode } from "react";
 import { Button, Spinner } from "@/components/ui";
 import { SparkleIcon } from "@/icons";
@@ -103,11 +103,21 @@ export function CreatePin({
   const [boardList, setBoardList] = useState(boards);
   const [board, setBoard] = useState(boards[0]?.name ?? "Quick Saves");
   const [scheduledAt, setScheduledAt] = useState("");
-  const [minScheduledAt] = useState(() =>
-    new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
-  );
+  const [minScheduledAt, setMinScheduledAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  /**
+   * Compute the "not in the past" minimum for the schedule picker on the client
+   * only. It depends on the local clock and timezone, so deriving it during
+   * render would differ from the server and break hydration.
+   */
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- client-only value, set once after mount for hydration safety
+    setMinScheduledAt(
+      new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
+    );
+  }, []);
 
   const onImageChange = (next: SelectedImage | null): void => {
     setImage(next);

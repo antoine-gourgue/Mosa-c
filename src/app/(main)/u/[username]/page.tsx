@@ -323,10 +323,12 @@ export default async function ProfilePage({
       ) : (
         <>
           <ProfileHighlights ownerId={user.id} />
-          <div className="relative">
-            <ProfileTabs username={username} active={active} isOwnProfile={isOwnProfile} />
+          <div className="flex items-center border-b border-line">
+            <div className="min-w-0 flex-1">
+              <ProfileTabs username={username} active={active} isOwnProfile={isOwnProfile} />
+            </div>
             {placedPins.length > 0 ? (
-              <div className="absolute right-1 top-1/2 -translate-y-1/2">
+              <div className="shrink-0 pl-1 pr-1">
                 <PlacesMapButton
                   pins={placedPins}
                   label={tProfile("map")}

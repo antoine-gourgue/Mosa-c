@@ -71,6 +71,7 @@
     "confirm": "Confirm",
     "cancel": "Cancel",
     "dismiss": "Dismiss",
+    "close": "Close",
     "loading": "Loading",
     "removeTag": "Remove tag"
   },
@@ -191,6 +192,7 @@
     "reportThanks": "Thanks for helping keep Mosaic safe.",
     "requested": "Requested",
     "tabBoards": "Boards",
+    "tabsAria": "Profile sections",
     "tabCreated": "Created",
     "tabLiked": "Liked",
     "tabSaved": "Saved",

@@ -14,6 +14,8 @@ import { cn } from "@/lib/cn";
 export type CameraCaptureProps = {
   onCapture: (file: File) => void;
   onClose: () => void;
+  /** Restrict to still photos: hides the video mode and skips the microphone. */
+  photoOnly?: boolean;
 };
 
 /** Longest in-app recording, matching the video upload limit. */
@@ -57,7 +59,11 @@ function clock(seconds: number): string {
  * @param props - The capture and close callbacks.
  * @returns The camera overlay element.
  */
-export function CameraCapture({ onCapture, onClose }: CameraCaptureProps): ReactElement {
+export function CameraCapture({
+  onCapture,
+  onClose,
+  photoOnly = false,
+}: CameraCaptureProps): ReactElement {
   const t = useTranslations("create");
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -86,7 +92,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps): React
     let active = true;
     const start = async (): Promise<void> => {
       try {
-        const constraints = { video: { facingMode: facing }, audio: true };
+        const constraints = { video: { facingMode: facing }, audio: !photoOnly };
         const stream = await navigator.mediaDevices
           .getUserMedia(constraints)
           .catch(() => navigator.mediaDevices.getUserMedia({ video: { facingMode: facing } }));
@@ -111,7 +117,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps): React
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     };
-  }, [facing, t]);
+  }, [facing, t, photoOnly]);
 
   useEffect(() => () => clearTimer(), []);
 
@@ -227,7 +233,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps): React
 
   return createPortal(
     <div className="fixed inset-0 z-[150] flex flex-col bg-ink">
-      <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between p-4">
+      <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between p-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
         <IconButton label={t("closeCamera")} tone="solid" onClick={close}>
           <CloseIcon size={18} />
         </IconButton>
@@ -260,8 +266,8 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps): React
       </div>
 
       {error === null ? (
-        <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center gap-4 pb-8">
-          {!recording ? (
+        <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center gap-4 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
+          {!recording && !photoOnly ? (
             <div className="flex gap-1 rounded-full bg-bg/15 p-1 text-sm font-semibold text-bg backdrop-blur">
               <button
                 type="button"

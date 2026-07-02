@@ -558,7 +558,7 @@ export function Messenger({
   );
 
   return (
-    <div className="flex h-[calc(100dvh-9rem)] overflow-hidden border-t border-line sm:h-[calc(100dvh-4rem)]">
+    <div className="flex h-[calc(100dvh-10rem)] overflow-hidden border-t border-line sm:h-[calc(100dvh-4rem)]">
       <aside
         className={cn(
           "w-full shrink-0 overflow-y-auto border-line md:w-80 md:border-r",
@@ -658,9 +658,9 @@ export function Messenger({
               ) : (
                 <Link
                   href={active.other.username !== null ? `/u/${active.other.username}` : "#"}
-                  className="group flex items-center gap-2.5"
+                  className="group flex min-w-0 flex-1 items-center gap-2.5"
                 >
-                  <span className="relative shrink-0">
+                  <span className="relative inline-flex shrink-0">
                     <Avatar
                       src={active.other.avatarUrl ?? undefined}
                       name={active.other.name}
@@ -670,14 +670,14 @@ export function Messenger({
                       <span className="absolute bottom-0 right-0 size-3 rounded-full border-2 border-bg bg-[#22c55e]" />
                     ) : null}
                   </span>
-                  <span className="flex flex-col">
-                    <span className="font-semibold leading-tight text-ink group-hover:underline">
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate font-semibold leading-tight text-ink group-hover:underline">
                       {active.other.name}
                     </span>
                     {otherOnline ? (
                       <span className="text-xs font-medium text-ink">{t("online")}</span>
                     ) : time.lastActive(otherLastSeen) !== null ? (
-                      <span className="text-xs text-ink-soft">
+                      <span className="truncate text-xs text-ink-soft">
                         {time.lastActive(otherLastSeen)}
                       </span>
                     ) : null}

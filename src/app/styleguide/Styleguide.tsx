@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { ReactElement, ReactNode } from "react";
 import {
   Avatar,
@@ -8,9 +9,11 @@ import {
   IconButton,
   Input,
   Pill,
+  Sheet,
   Skeleton,
   Spinner,
   Surface,
+  Tabs,
   ToastProvider,
   useToast,
 } from "@/components/ui";
@@ -72,6 +75,60 @@ function ToastDemo(): ReactElement {
     >
       Show toast
     </Button>
+  );
+}
+
+/**
+ * Button opening the responsive {@link Sheet} primitive so its bottom-sheet
+ * (mobile) / dialog (desktop) behaviour can be eyeballed.
+ *
+ * @returns The sheet trigger and its overlay.
+ */
+function SheetDemo(): ReactElement {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button variant="dark" onClick={() => setOpen(true)}>
+        Open sheet
+      </Button>
+      <Sheet open={open} onClose={() => setOpen(false)} title="Add to highlight">
+        <p className="text-ink-soft">
+          Full-width bottom sheet on mobile, centered dialog on desktop.
+        </p>
+        <div className="mt-4 flex flex-col gap-2">
+          <Button variant="dark">Create new highlight</Button>
+          <Button variant="ghost" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+        </div>
+      </Sheet>
+    </>
+  );
+}
+
+/**
+ * In-page {@link Tabs} example wired to local state.
+ *
+ * @returns The tab bar demo.
+ */
+function TabsDemo(): ReactElement {
+  const [tab, setTab] = useState("account");
+  return (
+    <div className="w-full">
+      <Tabs
+        ariaLabel="Styleguide tabs"
+        active={tab}
+        onChange={setTab}
+        items={[
+          { key: "account", label: "Account" },
+          { key: "profile", label: "Profile" },
+          { key: "privacy", label: "Privacy" },
+          { key: "notifications", label: "Notifications" },
+          { key: "interests", label: "Interests" },
+        ]}
+      />
+      <p className="mt-3 text-sm text-ink-soft">Active: {tab}</p>
+    </div>
   );
 }
 
@@ -216,6 +273,14 @@ export function Styleguide(): ReactElement {
           <div className="w-48">
             <PinCardSkeleton height={180} />
           </div>
+        </Section>
+
+        <Section title="Tabs">
+          <TabsDemo />
+        </Section>
+
+        <Section title="Sheet (responsive)">
+          <SheetDemo />
         </Section>
 
         <Section title="Toast">

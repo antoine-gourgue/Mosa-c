@@ -2,10 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import type { PointerEvent as ReactPointerEvent, ReactElement } from "react";
-import { Button } from "@/components/ui";
-import { CloseIcon, PlayIcon } from "@/icons";
+import { Button, Sheet } from "@/components/ui";
+import { PlayIcon } from "@/icons";
 import { MAX_VIDEO_SECONDS } from "@/lib/video";
 import { trimVideo } from "@/lib/video-trim";
 
@@ -38,8 +37,8 @@ function formatTime(seconds: number): string {
  * within the chosen range, and a two-handle bar to pick the start and end (kept
  * within {@link MAX_VIDEO_SECONDS}). Applying cuts the clip in-browser with
  * ffmpeg.wasm (stream copy, lossless) and hands the shorter file back; leaving
- * the full range untouched skips ffmpeg and returns the original. Rendered in a
- * portal with a dimmed backdrop.
+ * the full range untouched skips ffmpeg and returns the original. Uses the
+ * shared {@link Sheet} primitive (bottom sheet on mobile, dialog on desktop).
  *
  * @param props - The source file and the cancel / apply callbacks.
  * @returns The dialog element.
@@ -65,15 +64,11 @@ export function TrimVideoDialog({ file, onCancel, onApply }: TrimVideoDialogProp
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === "Escape") {
-        onCancel();
-      }
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [onCancel]);
+  const handleClose = (): void => {
+    if (!trimming) {
+      onCancel();
+    }
+  };
 
   const applyDuration = (total: number): void => {
     setDuration(total);
@@ -181,108 +176,83 @@ export function TrimVideoDialog({ file, onCancel, onApply }: TrimVideoDialogProp
 
   const pct = (value: number): string => (duration === 0 ? "0%" : `${(value / duration) * 100}%`);
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm"
-      onClick={onCancel}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="trim-dialog-title"
-        onClick={(event) => event.stopPropagation()}
-        className="relative w-full max-w-md rounded-2xl bg-bg p-6 shadow-pop"
-      >
-        <button
-          type="button"
-          aria-label={t("cancel")}
-          onClick={onCancel}
-          disabled={trimming}
-          className="absolute right-3 top-3 grid size-9 place-items-center rounded-full text-ink-soft transition-colors hover:bg-surface hover:text-ink"
-        >
-          <CloseIcon size={18} />
-        </button>
+  return (
+    <Sheet open onClose={handleClose} title={t("trimTitle")}>
+      <p className="text-sm text-ink-soft">{t("trimHint")}</p>
 
-        <h2 id="trim-dialog-title" className="pr-8 text-xl font-bold text-ink">
-          {t("trimTitle")}
-        </h2>
-        <p className="mt-1 pr-8 text-sm text-ink-soft">{t("trimHint")}</p>
-
-        <div className="relative mt-4 overflow-hidden rounded-2xl bg-ink">
-          <video
-            ref={videoRef}
-            muted
-            playsInline
-            onLoadedMetadata={onLoadedMetadata}
-            onDurationChange={onDurationChange}
-            onTimeUpdate={onTimeUpdate}
-            onPlay={() => setPlaying(true)}
-            onPause={() => setPlaying(false)}
-            onError={() => setError(t("videoUnreadable"))}
+      <div className="relative mt-4 overflow-hidden rounded-2xl bg-ink">
+        <video
+          ref={videoRef}
+          muted
+          playsInline
+          onLoadedMetadata={onLoadedMetadata}
+          onDurationChange={onDurationChange}
+          onTimeUpdate={onTimeUpdate}
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onError={() => setError(t("videoUnreadable"))}
+          onClick={togglePlay}
+          className="mx-auto block max-h-[40vh] w-auto max-w-full"
+        />
+        {!playing ? (
+          <button
+            type="button"
+            aria-label={t("playPreview")}
             onClick={togglePlay}
-            className="mx-auto block max-h-[40vh] w-auto max-w-full"
-          />
-          {!playing ? (
-            <button
-              type="button"
-              aria-label={t("playPreview")}
-              onClick={togglePlay}
-              className="absolute inset-0 grid place-items-center"
-            >
-              <span className="grid size-12 place-items-center rounded-full bg-ink/55 text-bg backdrop-blur">
-                <PlayIcon size={22} />
-              </span>
-            </button>
-          ) : null}
-        </div>
-
-        <div className="mt-5">
-          <div ref={trackRef} className="relative h-1.5 rounded-full bg-surface">
-            <div
-              className="absolute inset-y-0 rounded-full bg-accent"
-              style={{ left: pct(start), width: pct(end - start) }}
-            />
-            <button
-              type="button"
-              aria-label={t("trimStartHandle")}
-              onPointerDown={(event) => beginDrag("start", event)}
-              onPointerMove={moveHandle}
-              onPointerUp={endDrag}
-              style={{ left: pct(start) }}
-              className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none rounded-full bg-ink ring-2 ring-bg"
-            />
-            <button
-              type="button"
-              aria-label={t("trimEndHandle")}
-              onPointerDown={(event) => beginDrag("end", event)}
-              onPointerMove={moveHandle}
-              onPointerUp={endDrag}
-              style={{ left: pct(end) }}
-              className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none rounded-full bg-ink ring-2 ring-bg"
-            />
-          </div>
-          <div className="mt-2 flex items-center justify-between text-xs text-ink-soft">
-            <span>{formatTime(start)}</span>
-            <span className="font-semibold text-ink">
-              {t("trimSelected", { duration: (end - start).toFixed(1) })}
+            className="absolute inset-0 grid place-items-center"
+          >
+            <span className="grid size-12 place-items-center rounded-full bg-ink/55 text-bg backdrop-blur">
+              <PlayIcon size={22} />
             </span>
-            <span>{formatTime(end)}</span>
-          </div>
-        </div>
-
-        {error !== null ? (
-          <p role="alert" className="mt-3 text-sm text-accent">
-            {error}
-          </p>
+          </button>
         ) : null}
+      </div>
 
-        <div className="mt-5 flex justify-end">
-          <Button onClick={() => void apply()} loading={trimming} disabled={duration === 0}>
-            {t("useClip")}
-          </Button>
+      <div className="mt-5">
+        <div ref={trackRef} className="relative h-1.5 rounded-full bg-surface">
+          <div
+            className="absolute inset-y-0 rounded-full bg-accent"
+            style={{ left: pct(start), width: pct(end - start) }}
+          />
+          <button
+            type="button"
+            aria-label={t("trimStartHandle")}
+            onPointerDown={(event) => beginDrag("start", event)}
+            onPointerMove={moveHandle}
+            onPointerUp={endDrag}
+            style={{ left: pct(start) }}
+            className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none rounded-full bg-ink ring-2 ring-bg"
+          />
+          <button
+            type="button"
+            aria-label={t("trimEndHandle")}
+            onPointerDown={(event) => beginDrag("end", event)}
+            onPointerMove={moveHandle}
+            onPointerUp={endDrag}
+            style={{ left: pct(end) }}
+            className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none rounded-full bg-ink ring-2 ring-bg"
+          />
+        </div>
+        <div className="mt-2 flex items-center justify-between text-xs text-ink-soft">
+          <span>{formatTime(start)}</span>
+          <span className="font-semibold text-ink">
+            {t("trimSelected", { duration: (end - start).toFixed(1) })}
+          </span>
+          <span>{formatTime(end)}</span>
         </div>
       </div>
-    </div>,
-    document.body,
+
+      {error !== null ? (
+        <p role="alert" className="mt-3 text-sm text-accent">
+          {error}
+        </p>
+      ) : null}
+
+      <div className="mt-5 flex justify-end">
+        <Button onClick={() => void apply()} loading={trimming} disabled={duration === 0}>
+          {t("useClip")}
+        </Button>
+      </div>
+    </Sheet>
   );
 }

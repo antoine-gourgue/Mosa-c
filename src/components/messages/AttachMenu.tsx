@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, ReactElement } from "react";
 import { CameraIcon, ImageIcon, PlusIcon } from "@/icons";
-import { CameraCapture } from "./CameraCapture";
+import { CameraCapture } from "@/components/create";
 import { GifPicker } from "./GifPicker";
 
 /**
@@ -80,7 +80,14 @@ export function AttachMenu({ onPickFile, onPickGifUrl }: AttachMenuProps): React
       <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={onChange} />
 
       {cameraOpen ? (
-        <CameraCapture onCapture={onPickFile} onClose={() => setCameraOpen(false)} />
+        <CameraCapture
+          photoOnly
+          onCapture={(file) => {
+            setCameraOpen(false);
+            onPickFile(file);
+          }}
+          onClose={() => setCameraOpen(false)}
+        />
       ) : null}
 
       <button
